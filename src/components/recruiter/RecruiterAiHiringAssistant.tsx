@@ -194,14 +194,14 @@ export const RecruiterAiHiringAssistant: React.FC<RecruiterAiHiringAssistantProp
 
   const [offerCandidateName, setOfferCandidateName] = useState('Candidate Name');
   const [offerRole, setOfferRole] = useState('Software Engineer');
-  const [offerCompany, setOfferCompany] = useState('ActroTech');
+  const [offerCompany, setOfferCompany] = useState('Jobpoyt');
   const [offerJoiningDate, setOfferJoiningDate] = useState('');
   const [offerCtc, setOfferCtc] = useState('₹12 LPA');
   const [offerOutput, setOfferOutput] = useState('');
 
   const [msgCandidateName, setMsgCandidateName] = useState('Candidate Name');
   const [msgRole, setMsgRole] = useState('Software Engineer');
-  const [msgCompany, setMsgCompany] = useState('ActroTech');
+  const [msgCompany, setMsgCompany] = useState('Jobpoyt');
   const [msgInterviewDate, setMsgInterviewDate] = useState('');
   const [existingMessage, setExistingMessage] = useState('');
   const [msgOutput, setMsgOutput] = useState('');

@@ -3,7 +3,7 @@ import { Box, Button, Paper, TextField, Typography, FormControlLabel, Switch } f
 import { adminService } from '../../services/admin';
 
 const defaultSettings = {
-  siteTitle: 'Actro Jobs Admin',
+  siteTitle: 'Jobpoyt Admin',
   supportEmail: '',
   maintenanceMode: false,
 };

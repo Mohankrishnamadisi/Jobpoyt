@@ -39,7 +39,7 @@ import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@store/index';
 import { razorpayCheckout } from '@services/razorpayCheckout';
-import { SUBSCRIPTION_GATEWAY_FEE_PERCENT, SUBSCRIPTION_GST_PERCENT } from '@constants/index';
+import { SUBSCRIPTION_GST_PERCENT } from '@constants/index';
 
 interface PaymentModalProps {
   open: boolean;
@@ -81,20 +81,17 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     holderName: '',
   });
 
-  const gatewayFee = useMemo(
-    () => Math.round((plan.price * SUBSCRIPTION_GATEWAY_FEE_PERCENT) / 100),
-    [plan.price]
-  );
+  const isCandidatePlan = ['premium_monthly', 'premium_3_month'].includes(plan.id);
 
-  const gstAmount = useMemo(
-    () => Math.round(((plan.price + gatewayFee) * SUBSCRIPTION_GST_PERCENT) / 100),
-    [plan.price, gatewayFee]
-  );
+  const gstAmount = useMemo(() => {
+    if (!isCandidatePlan) return 0;
+    return Number(((plan.price * SUBSCRIPTION_GST_PERCENT) / 100).toFixed(2));
+  }, [isCandidatePlan, plan.price]);
 
-  const totalAmount = useMemo(
-    () => plan.price + gatewayFee + gstAmount,
-    [plan.price, gatewayFee, gstAmount]
-  );
+  const totalAmount = useMemo(() => {
+    if (!isCandidatePlan) return plan.price;
+    return Number((plan.price + gstAmount).toFixed(2));
+  }, [gstAmount, isCandidatePlan, plan.price]);
 
   const steps = ['Select Method', 'Review & Confirm', 'Payment Complete'];
 
@@ -462,40 +459,25 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     ₹{plan.price.toLocaleString('en-IN')}
                   </Typography>
                 </Box>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    mb: 1,
-                  }}
-                >
-                  <Typography variant="caption" sx={{ color: '#6B7280' }}>
-                    Gateway Fee
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{ fontWeight: 600, color: '#DC2626' }}
+                {isCandidatePlan && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      mb: 1,
+                    }}
                   >
-                    +₹{gatewayFee.toLocaleString('en-IN')}
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    mb: 1,
-                  }}
-                >
-                  <Typography variant="caption" sx={{ color: '#6B7280' }}>
-                    GST ({SUBSCRIPTION_GST_PERCENT}%)
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{ fontWeight: 600, color: '#DC2626' }}
-                  >
-                    +₹{gstAmount.toLocaleString('en-IN')}
-                  </Typography>
-                </Box>
+                    <Typography variant="caption" sx={{ color: '#6B7280' }}>
+                      GST ({SUBSCRIPTION_GST_PERCENT}%)
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ fontWeight: 600, color: '#DC2626' }}
+                    >
+                      +₹{gstAmount.toLocaleString('en-IN')}
+                    </Typography>
+                  </Box>
+                )}
               </Box>
               <Divider sx={{ my: 1.5 }} />
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>

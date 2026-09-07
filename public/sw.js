@@ -1,4 +1,4 @@
-const CACHE_PREFIX = 'actro-cache';
+const CACHE_PREFIX = 'jobpoyt-cache';
 const SHELL_CACHE_ASSETS = [
   '/',
   '/index.html',
@@ -13,7 +13,7 @@ const SHELL_CACHE_ASSETS = [
   '/icons/icon-384x384.png',
   '/icons/icon-512x512.png',
   '/icons/icon-512x512-maskable.png',
-  '/actrotitle.png',
+  '/jobpoyttitle.png',
 ];
 
 const getBuildId = async () => {

@@ -1539,7 +1539,7 @@ export const PremiumDashboard: React.FC = () => {
                       </Box>
                       <Box>
                         <Typography variant="h6" sx={{ fontWeight: 800, color: isDarkMode ? '#F8FAFC' : '#0F172A' }}>
-                          Unlock the full power of Actro Premium
+                          Unlock the full power of Jobpoyt Premium
                         </Typography>
                         <Typography variant="body2" sx={{ color: isDarkMode ? '#FFFFFF' : '#64748B', mt: 0.5 }}>
                           More tools. More insights. More opportunities.

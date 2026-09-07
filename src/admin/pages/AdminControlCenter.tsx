@@ -188,7 +188,7 @@ const defaultLocalState = (): LocalState => ({
     defaultPlan: 'starter',
     defaultCredits: 25,
     taxPercent: 18,
-    emailFrom: 'support@actrojobs.com',
+    emailFrom: 'support@jobpoyt.com',
     aiDailyBudget: 15000,
     paymentGateway: 'razorpay',
     fileUploadLimitMb: 20,

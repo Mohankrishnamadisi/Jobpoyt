@@ -279,7 +279,7 @@ export const RecruiterBillingSubscription: React.FC<RecruiterBillingSubscription
 
   const isFreeRecruiter = currentSubscription?.plan === 'free' || !currentSubscription?.plan;
 
-  const currentPlanLabel = currentSubscription?.plan === 'actro_recruiter_pro' ? 'Actro Recruiter Pro' : 'Free Onboarding';
+  const currentPlanLabel = currentSubscription?.plan === 'Jobpoyt_recruiter_pro' ? 'Jobpoyt Recruiter Pro' : 'Free Onboarding';
   const planAmount = currentSubscription?.amount || billingOverview?.monthlySpend || 0;
   const planStart = currentSubscription?.start_date || currentSubscription?.created_at || new Date().toISOString();
   const planExpiry = currentSubscription?.end_date || currentSubscription?.expiry_date || billingOverview?.nextBillingDate || 'Not set';
@@ -309,8 +309,8 @@ export const RecruiterBillingSubscription: React.FC<RecruiterBillingSubscription
     }
     const pricing = billingSubscriptionService.getRecruiterPlanPricing(duration);
     setCheckoutPlan({
-      id: 'actro_recruiter_pro',
-      name: 'Actro Recruiter Pro',
+      id: `jobpoyt_recruiter_pro_${duration}_month`,
+      name: 'Jobpoyt Recruiter Pro',
       price: pricing.price,
       durationMonths: duration,
       durationLabel: `${duration} ${duration === 1 ? 'Month' : 'Months'}`,
@@ -578,7 +578,7 @@ export const RecruiterBillingSubscription: React.FC<RecruiterBillingSubscription
                   variant="h5"
                   sx={{ fontWeight: 900, mb: 0.5, color: isFreeRecruiter ? '#6EE7B7' : '#60A5FA' }}
                 >
-                  {isFreeRecruiter ? 'FREE' : 'ACTRO RECRUITER PRO'}
+                  {isFreeRecruiter ? 'FREE' : 'JOBPOYT RECRUITER PRO'}
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'rgba(226, 232, 240, 0.85)' }}>
                   {isFreeRecruiter
@@ -726,7 +726,7 @@ export const RecruiterBillingSubscription: React.FC<RecruiterBillingSubscription
               color: '#1F2937',
             }}
           >
-            Actro Recruiter Pro
+            Jobpoyt Recruiter Pro
           </Typography>
           <Typography
             variant="body1"
@@ -815,7 +815,7 @@ export const RecruiterBillingSubscription: React.FC<RecruiterBillingSubscription
                     )}
 
                     <Typography variant="overline" sx={{ color: '#6B7280', fontWeight: 700 }}>
-                      ACTRO RECRUITER PRO
+                      JOBPOYT RECRUITER PRO
                     </Typography>
 
                     <Typography
@@ -925,7 +925,7 @@ export const RecruiterBillingSubscription: React.FC<RecruiterBillingSubscription
                 const updated = await subscriptionService.getUserSubscription(ownerId);
                 setCurrentSubscription(updated);
                 setCheckoutPlan(null);
-                toast.success('Actro Recruiter Pro is active.');
+                toast.success('Jobpoyt Recruiter Pro is active.');
               }}
               onError={(reason) => toast.error(reason)}
             />

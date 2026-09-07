@@ -5,7 +5,7 @@
  * - Premium Monthly: ₹149 + 18% GST
  * - Premium 3 Months: ₹399 + 18% GST (Save ₹48)
  * 
- * Both plans unlock identical ACTRO PREMIUM features.
+ * Both plans unlock identical JOBPOYT PREMIUM features.
  */
 
 export const CANDIDATE_PAID_PLANS = {
@@ -21,8 +21,8 @@ export type CandidatePaidPlanType = typeof CANDIDATE_PAID_PLANS[keyof typeof CAN
 export const CANDIDATE_PLAN_CONFIG = {
   premium_monthly: {
     id: 'premium_monthly',
-    name: 'Actro Premium',
-    displayName: 'Actro Premium',
+    name: 'Jobpoyt Premium',
+    displayName: 'Jobpoyt Premium',
     duration: 1, // months
     basePriceInr: 149,
     gstPercent: 18,
@@ -32,8 +32,8 @@ export const CANDIDATE_PLAN_CONFIG = {
   },
   premium_3_month: {
     id: 'premium_3_month',
-    name: 'Actro Premium',
-    displayName: 'Actro Premium',
+    name: 'Jobpoyt Premium',
+    displayName: 'Jobpoyt Premium',
     duration: 3, // months
     basePriceInr: 399,
     gstPercent: 18,
@@ -63,7 +63,7 @@ export const ALL_CANDIDATE_PLANS = [
 ] as const;
 
 /**
- * Premium features available to Actro Premium candidates
+ * Premium features available to Jobpoyt Premium candidates
  */
 export const PREMIUM_FEATURES = [
   // Job Access

@@ -725,7 +725,7 @@ class AssessmentPlatformService {
 
   generateCertificateDocument(certificate: Certificate): string {
     return [
-      'ACTROTECH VERIFIED CERTIFICATE',
+      'JOBPOYT VERIFIED CERTIFICATE',
       `Certificate ID: ${certificate.certificateId}`,
       `Candidate Name: ${certificate.candidateName}`,
       `Skill: ${certificate.skill}`,

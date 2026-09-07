@@ -586,8 +586,8 @@ class EnterpriseApiPlatformService {
       statusCode,
       latency,
       response,
-      curl: `curl -X ${method.toUpperCase()} "https://api.actrojobs.com${endpoint}" -H "Authorization: Bearer <token>"`,
-      jsSnippet: `const res = await fetch('https://api.actrojobs.com${endpoint}', { method: '${method.toUpperCase()}', headers: { Authorization: 'Bearer <token>' } });`,
+      curl: `curl -X ${method.toUpperCase()} "https://api.jobpoyt.com${endpoint}" -H "Authorization: Bearer <token>"`,
+      jsSnippet: `const res = await fetch('https://api.jobpoyt.com${endpoint}', { method: '${method.toUpperCase()}', headers: { Authorization: 'Bearer <token>' } });`,
     };
   }
 

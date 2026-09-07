@@ -286,7 +286,7 @@ export const adminService = {
 
   async getAdminSettings() {
     const stored = typeof window !== 'undefined' ? window.localStorage.getItem('adminSettings') : null;
-    return stored ? JSON.parse(stored) : { siteTitle: 'Actro Jobs Admin', supportEmail: '', maintenanceMode: false };
+    return stored ? JSON.parse(stored) : { siteTitle: 'Jobpoyt Admin', supportEmail: '', maintenanceMode: false };
   },
 
   async saveAdminSettings(settings: Record<string, any>) {

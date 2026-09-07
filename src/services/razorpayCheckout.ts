@@ -36,7 +36,7 @@ const loadRazorpay = (): Promise<void> => new Promise((resolve, reject) => {
 export const razorpayCheckout = {
   async start(plan: CheckoutPlan, onSuccess: (payment: unknown) => void, onFailure: (reason: string) => void): Promise<void> {
     const { data: order, error } = await supabase.functions.invoke<RazorpayOrder>('razorpay-checkout', {
-      body: { action: 'create-order', plan },
+      body: { action: 'create-order', planId: plan.id },
     });
     if (error || !order?.orderId || !order.keyId) throw new Error(error?.message || 'Unable to create a secure payment order.');
 
@@ -45,13 +45,13 @@ export const razorpayCheckout = {
       key: order.keyId,
       amount: order.amount,
       currency: order.currency,
-      name: 'Actro Jobs',
+      name: 'Jobpoyt',
       description: `${plan.name} - ${plan.durationLabel}`,
       order_id: order.orderId,
       handler: async (response: Record<string, string>) => {
         try {
           const { data: payment, error: verificationError } = await supabase.functions.invoke('razorpay-checkout', {
-            body: { action: 'verify-payment', plan, ...response },
+            body: { action: 'verify-payment', planId: plan.id, ...response },
           });
           if (verificationError) throw verificationError;
           onSuccess(payment);

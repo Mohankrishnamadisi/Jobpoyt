@@ -861,7 +861,7 @@ const AdminBillingManagement: React.FC<AdminBillingManagementProps> = ({ ownerId
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Invoice Template Configuration</Typography>
                 <Stack spacing={1}>
-                  <TextField fullWidth label="Company Name" defaultValue="Actrotech Pvt. Ltd." />
+                  <TextField fullWidth label="Company Name" defaultValue="Jobpoyt" />
                   <TextField fullWidth label="GST Number" defaultValue="27XXXXX1234X1ZX" />
                   <TextField fullWidth label="Address Line 1" defaultValue="123, Tech Park, Bengaluru" />
                   <TextField fullWidth label="Address Line 2" defaultValue="Karnataka - 560001, India" />

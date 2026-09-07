@@ -305,7 +305,7 @@ const planCatalog: SubscriptionPlan[] = [
   },
   {
     id: 'actro_recruiter_pro',
-    name: 'ACTRO RECRUITER PRO',
+    name: 'JOBPOYT RECRUITER PRO',
     priceMonthly: 999,
     priceYearly: 7999,
     limits: {

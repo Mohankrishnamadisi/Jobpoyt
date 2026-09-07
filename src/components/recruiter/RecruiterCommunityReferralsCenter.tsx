@@ -50,7 +50,7 @@ export const RecruiterCommunityReferralsCenter: React.FC<RecruiterCommunityRefer
     setTab(mode);
   }, [mode]);
   const [opportunity, setOpportunity] = useState({
-    company: 'ActroTech',
+    company: 'Jobpoyt',
     role: 'Frontend Engineer',
     eligibility: 'React + TypeScript + 2 years experience',
     availablePositions: 3,

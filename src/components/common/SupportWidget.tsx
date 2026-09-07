@@ -465,10 +465,10 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({
                 <Button
                   startIcon={<EmailIcon />}
                   variant="outlined"
-                  href="mailto:support@actrojobs.com"
+                  href="mailto:support@jobpoyt.com"
                   sx={{ textTransform: 'none', fontWeight: 600 }}
                 >
-                  support@actrojobs.com
+                  support@jobpoyt.com
                 </Button>
                 <Button
                   startIcon={<PhoneIcon />}

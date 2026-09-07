@@ -34,19 +34,19 @@ const MotionBox = motion(Box);
 const UPGRADE_MESSAGES: Record<UpgradeReason, { title: string; description: string }> = {
   job_limit_reached: {
     title: '🎯 You\'ve Used All 15 Free Job Posts',
-    description: 'Your complimentary recruiter job posting allowance has been fully used. Continue hiring without limits with Actro Recruiter Pro.',
+    description: 'Your complimentary recruiter job posting allowance has been fully used. Continue hiring without limits with Jobpoyt Recruiter Pro.',
   },
   resume_unlock_limit_reached: {
     title: '📄 You\'ve Used All 150 Free Resume Unlocks',
-    description: 'Your complimentary resume unlock allowance has been fully used. Unlock unlimited resumes with Actro Recruiter Pro.',
+    description: 'Your complimentary resume unlock allowance has been fully used. Unlock unlimited resumes with Jobpoyt Recruiter Pro.',
   },
   team_limit_reached: {
     title: '👥 Team Member Limit Reached',
-    description: 'You\'ve reached the team member limit on your current plan. Upgrade to Actro Recruiter Pro for unlimited team collaboration.',
+    description: 'You\'ve reached the team member limit on your current plan. Upgrade to Jobpoyt Recruiter Pro for unlimited team collaboration.',
   },
   general: {
-    title: 'Upgrade to Actro Recruiter Pro',
-    description: 'Unlock unlimited hiring capabilities with Actro Recruiter Pro.',
+    title: 'Upgrade to Jobpoyt Recruiter Pro',
+    description: 'Unlock unlimited hiring capabilities with Jobpoyt Recruiter Pro.',
   },
 };
 
@@ -88,13 +88,13 @@ export const RecruiterUpgradePrompt: React.FC<RecruiterUpgradePromptProps> = ({
 
       await subscriptionService.createSubscription(
         recruiterId,
-        'actro_recruiter_pro',
+        'Jobpoyt_recruiter_pro',
         expiryDate.toISOString(),
         billingSubscriptionService.getRecruiterPlanPricing(duration).price,
         `razorpay_placeholder_${Date.now()}`
       );
 
-      toast.success('Actro Recruiter Pro activated! Start hiring unlimited.');
+      toast.success('Jobpoyt Recruiter Pro activated! Start hiring unlimited.');
       onClose();
     } catch (error) {
       console.error('Upgrade failed:', error);

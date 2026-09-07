@@ -28,7 +28,7 @@ import {
   SecurityOutlined,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
-import { SUBSCRIPTION_GATEWAY_FEE_PERCENT, SUBSCRIPTION_GST_PERCENT } from '@constants/index';
+import { SUBSCRIPTION_GST_PERCENT } from '@constants/index';
 import { PaymentModal } from './PaymentModal';
 
 interface PaymentSectionProps {
@@ -100,20 +100,17 @@ export const PaymentSection: React.FC<PaymentSectionProps> = ({
     },
   ];
 
-  const gatewayFee = useMemo(
-    () => Math.round((plan.price * SUBSCRIPTION_GATEWAY_FEE_PERCENT) / 100),
-    [plan.price]
-  );
+  const isCandidatePlan = ['premium_monthly', 'premium_3_month'].includes(plan.id);
 
-  const gstAmount = useMemo(
-    () => Math.round(((plan.price + gatewayFee) * SUBSCRIPTION_GST_PERCENT) / 100),
-    [plan.price, gatewayFee]
-  );
+  const gstAmount = useMemo(() => {
+    if (!isCandidatePlan) return 0;
+    return Number(((plan.price * SUBSCRIPTION_GST_PERCENT) / 100).toFixed(2));
+  }, [isCandidatePlan, plan.price]);
 
-  const totalAmount = useMemo(
-    () => plan.price + gatewayFee + gstAmount,
-    [plan.price, gatewayFee, gstAmount]
-  );
+  const totalAmount = useMemo(() => {
+    if (!isCandidatePlan) return plan.price;
+    return Number((plan.price + gstAmount).toFixed(2));
+  }, [gstAmount, isCandidatePlan, plan.price]);
 
   const discount = useMemo(() => {
     if (plan.durationMonths > 1) {
@@ -323,61 +320,31 @@ export const PaymentSection: React.FC<PaymentSectionProps> = ({
 
                 <Divider sx={{ my: 2 }} />
 
-                <Box sx={{ mb: 2.5 }}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      mb: 1.5,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                      }}
-                    >
-                      <LocalAtm sx={{ fontSize: 18, color: '#6B7280' }} />
-                      <Typography variant="body2" sx={{ color: '#6B7280' }}>
-                        Gateway Fee ({SUBSCRIPTION_GATEWAY_FEE_PERCENT}%)
-                      </Typography>
+                {isCandidatePlan && (
+                  <>
+                    <Divider sx={{ my: 2 }} />
+
+                    <Box sx={{ mb: 2.5 }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Typography variant="body2" sx={{ color: '#6B7280' }}>
+                          GST ({SUBSCRIPTION_GST_PERCENT}%)
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{ fontWeight: 600, color: '#DC2626' }}
+                        >
+                          + ₹{gstAmount.toLocaleString('en-IN')}
+                        </Typography>
+                      </Box>
                     </Box>
-                    <Typography
-                      variant="body2"
-                      sx={{ fontWeight: 600, color: '#DC2626' }}
-                    >
-                      + ₹{gatewayFee.toLocaleString('en-IN')}
-                    </Typography>
-                  </Box>
-
-                  <Typography variant="caption" sx={{ color: '#9CA3AF' }}>
-                    Payment processing fee
-                  </Typography>
-                </Box>
-
-                <Divider sx={{ my: 2 }} />
-
-                <Box sx={{ mb: 2.5 }}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ color: '#6B7280' }}>
-                      GST ({SUBSCRIPTION_GST_PERCENT}%)
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{ fontWeight: 600, color: '#DC2626' }}
-                    >
-                      + ₹{gstAmount.toLocaleString('en-IN')}
-                    </Typography>
-                  </Box>
-                </Box>
+                  </>
+                )}
 
                 <Divider sx={{ my: 2, borderStyle: 'dashed' }} />
 

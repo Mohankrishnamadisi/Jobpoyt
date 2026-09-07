@@ -316,7 +316,7 @@ export const RecruiterMobilePwaCenter: React.FC = () => {
     const base = window.location.origin;
     switch (kind) {
       case 'company-career':
-        return `${base}/#/company/actrotech`;
+        return `${base}/#/company/jobpoyt`;
       case 'job-details':
         return `${base}/#/jobs/123`;
       case 'candidate-profile':
@@ -776,8 +776,8 @@ export const RecruiterMobilePwaCenter: React.FC = () => {
           <Grid item xs={12} md={6}><Alert severity="info">Supports Google Calendar, Apple Calendar and Outlook via ICS export.</Alert></Grid>
           <Grid item xs={12}>
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={1}>
-              <Button variant="contained" startIcon={<CalendarMonthIcon />} onClick={() => window.open(mobilePwaService.createGoogleCalendarLink('Interview Reminder', 'Interview schedule from Actrotech', new Date(calendarDate).toISOString()), '_blank', 'noopener')}>Add to Google Calendar</Button>
-              <Button variant="outlined" onClick={() => downloadTextFile('interview-reminder.ics', mobilePwaService.createIcsContent('Interview Reminder', 'Interview schedule from Actrotech', new Date(calendarDate).toISOString()))}>Download ICS (Apple/Outlook)</Button>
+              <Button variant="contained" startIcon={<CalendarMonthIcon />} onClick={() => window.open(mobilePwaService.createGoogleCalendarLink('Interview Reminder', 'Interview schedule from Jobpoyt', new Date(calendarDate).toISOString()), '_blank', 'noopener')}>Add to Google Calendar</Button>
+              <Button variant="outlined" onClick={() => downloadTextFile('interview-reminder.ics', mobilePwaService.createIcsContent('Interview Reminder', 'Interview schedule from Jobpoyt', new Date(calendarDate).toISOString()))}>Download ICS (Apple/Outlook)</Button>
             </Stack>
           </Grid>
         </Grid>
@@ -788,7 +788,7 @@ export const RecruiterMobilePwaCenter: React.FC = () => {
           <Grid item xs={12}><Alert severity="info">Native Share API is used when available. Clipboard fallback is used otherwise.</Alert></Grid>
           <Grid item xs={12} md={4}><Button fullWidth variant="outlined" startIcon={<ShareIcon />} onClick={() => handleShare('Share Job', 'Check this role', `${window.location.origin}/#/jobs`)}>Share Job</Button></Grid>
           <Grid item xs={12} md={4}><Button fullWidth variant="outlined" onClick={() => handleShare('Share Candidate', 'Candidate profile preview', `${window.location.origin}/#/dashboard/profile`)}>Share Candidate</Button></Grid>
-          <Grid item xs={12} md={4}><Button fullWidth variant="outlined" onClick={() => handleShare('Share Company', 'Explore company page', `${window.location.origin}/#/company/actrotech`)}>Share Company</Button></Grid>
+          <Grid item xs={12} md={4}><Button fullWidth variant="outlined" onClick={() => handleShare('Share Company', 'Explore company page', `${window.location.origin}/#/company/jobpoyt`)}>Share Company</Button></Grid>
           <Grid item xs={12} md={4}><Button fullWidth variant="outlined" onClick={() => handleShare('Share Interview', 'Interview invite', `${window.location.origin}/#/dashboard/interview-management`)}>Share Interview</Button></Grid>
           <Grid item xs={12} md={4}><Button fullWidth variant="outlined" onClick={() => handleShare('Share Offer', 'Offer details', `${window.location.origin}/#/recruiter/dashboard`)}>Share Offer</Button></Grid>
         </Grid>

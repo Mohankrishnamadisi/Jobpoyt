@@ -348,7 +348,7 @@ class MobilePwaService {
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
       'BEGIN:VEVENT',
-      `UID:${Date.now()}@actrotech`,
+      `UID:${Date.now()}@jobpoyt`,
       `DTSTAMP:${encodeDate(new Date())}`,
       `DTSTART:${encodeDate(start)}`,
       `DTEND:${encodeDate(end)}`,

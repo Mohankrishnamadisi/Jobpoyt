@@ -86,7 +86,7 @@ export const SUBSCRIPTION_PLANS = [
 export const CANDIDATE_SUBSCRIPTION_PLANS = [
   {
     id: 'premium_monthly',
-    name: 'Actro Premium',
+    name: 'Jobpoyt Premium',
     planType: 'Monthly',
     durationLabel: 'Monthly',
     basePriceInr: 149,
@@ -143,7 +143,7 @@ export const CANDIDATE_SUBSCRIPTION_PLANS = [
   },
   {
     id: 'premium_3_month',
-    name: 'Actro Premium',
+    name: 'Jobpoyt Premium',
     planType: '3 Months',
     durationLabel: '3 Months',
     basePriceInr: 399,
@@ -201,7 +201,7 @@ export const CANDIDATE_SUBSCRIPTION_PLANS = [
   },
 ];
 
-export const SUBSCRIPTION_GATEWAY_FEE_PERCENT = 2;
+export const SUBSCRIPTION_GATEWAY_FEE_PERCENT = 0;
 export const SUBSCRIPTION_GST_PERCENT = 18;
 
 export const USER_ROLES = {

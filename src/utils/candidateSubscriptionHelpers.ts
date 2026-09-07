@@ -194,13 +194,13 @@ export function getPlanDisplayName(plan: string | null | undefined): string {
   
   switch (normalized) {
     case 'premium_monthly':
-      return 'Actro Premium • Monthly';
+      return 'Jobpoyt Premium • Monthly';
     case 'premium_3_month':
-      return 'Actro Premium • 3 Months';
+      return 'Jobpoyt Premium • 3 Months';
     case 'premium':
     case 'pro':
     case 'enterprise':
-      return 'Actro Premium'; // Legacy
+      return 'Jobpoyt Premium'; // Legacy
     case 'basic':
     case 'free':
     default:

@@ -139,7 +139,7 @@ export const MobileHome: React.FC = () => {
         {/* Features Section */}
         <Box sx={{ mb: 4 }}>
           <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, textAlign: 'center' }}>
-            Why Choose Actro Jobs?
+            Why Choose Jobpoyt?
           </Typography>
           {features.map((feature, index) => (
             <MotionCard

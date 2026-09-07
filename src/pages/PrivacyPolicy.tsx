@@ -17,7 +17,7 @@ export const PrivacyPolicy: React.FC = () => {
 
           <Typography variant="h5">1. Introduction</Typography>
           <Typography variant="body1" component="p">
-            Actro Jobs ("we" or "us" or "Company") operates the website. This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our Service and the choices you have associated with that data.
+            Jobpoyt ("we" or "us" or "Company") operates the website. This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our Service and the choices you have associated with that data.
           </Typography>
 
           <Typography variant="h5">2. Information Collection and Use</Typography>
@@ -37,7 +37,7 @@ export const PrivacyPolicy: React.FC = () => {
 
           <Typography variant="h5">5. Contact Us</Typography>
           <Typography variant="body1" component="p">
-            If you have any questions about this Privacy Policy, please contact us at privacy@actrojobs.com
+            If you have any questions about this Privacy Policy, please contact us at privacy@jobpoyt.com
           </Typography>
         </Box>
       </Container>

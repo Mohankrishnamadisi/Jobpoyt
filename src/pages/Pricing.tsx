@@ -325,7 +325,7 @@ export const Pricing: React.FC = () => {
               mb: 3,
             }}
           >
-            ✨ Why Choose Actro Premium?
+            ✨ Why Choose Jobpoyt Premium?
           </Typography>
           <Grid container spacing={3} sx={{ justifyContent: 'center' }}>
             {[
