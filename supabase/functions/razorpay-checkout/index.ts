@@ -190,11 +190,10 @@ Deno.serve(async (request) => {
         .from('subscriptions')
         .insert({
           user_id: userId,
-          plan: plan.id,
+          plan: plan.type === 'candidate' ? 'premium' : 'pro',
           status: 'active',
           start_date: startDate.toISOString(),
           end_date: expiryDate.toISOString(),
-          amount: plan.amount,
         })
         .select()
         .single();
@@ -206,7 +205,7 @@ Deno.serve(async (request) => {
         .insert({
           user_id: userId,
           subscription_id: subscription.id,
-          amount: plan.amount,
+          amount: plan.amountInPaise,
           currency: 'INR',
           status: 'completed',
           method: 'razorpay',
@@ -215,14 +214,18 @@ Deno.serve(async (request) => {
         .select()
         .single();
 
-      if (paymentError) throw paymentError;
+      if (paymentError) {
+        const { error: rollbackError } = await admin
+          .from('subscriptions')
+          .delete()
+          .eq('id', subscription.id);
 
-      const { error: updateSubscriptionError } = await admin
-        .from('subscriptions')
-        .update({ payment_id: payment.id })
-        .eq('id', subscription.id);
+        if (rollbackError) {
+          console.error('Failed to rollback subscription after payment insert error', rollbackError);
+        }
 
-      if (updateSubscriptionError) throw updateSubscriptionError;
+        throw paymentError;
+      }
 
       return response({ ...payment, subscription, alreadyProcessed: false });
     }
