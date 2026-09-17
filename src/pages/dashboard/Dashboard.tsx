@@ -330,11 +330,11 @@ export const Dashboard: React.FC = () => {
 
   const stats = useMemo(
     () => [
-      { label: 'Applications', value: recentApplications.length || 0, hint: '↑ 3 this week', icon: WorkIcon, color: '#2563EB', bg: 'linear-gradient(135deg, rgba(219,234,254,0.86), rgba(239,246,255,0.96))' },
-      { label: 'Saved Jobs', value: savedCount || 0, hint: '↑ 2 this week', icon: BookmarkIcon, color: '#059669', bg: 'linear-gradient(135deg, rgba(209,250,229,0.9), rgba(236,253,245,0.96))' },
-      { label: 'Resume Downloads', value: resumeDownloadCount ?? 0, hint: '↑ 1 this week', icon: DownloadIcon, color: '#7C3AED', bg: 'linear-gradient(135deg, rgba(233,213,255,0.9), rgba(245,243,255,0.96))' },
-      { label: 'Profile Views', value: profileViewCount ?? 0, hint: '↑ 4 this week', icon: VisibilityIcon, color: '#EA580C', bg: 'linear-gradient(135deg, rgba(254,215,170,0.9), rgba(255,247,237,0.96))' },
-      { label: 'Recruiter Actions', value: Math.max(0, (profileViewCount ?? 0) + (resumeDownloadCount ?? 0)), hint: 'Live now', icon: TrendingUpIcon, color: '#EC4899', bg: 'linear-gradient(135deg, rgba(252,231,243,0.9), rgba(253,242,248,0.96))' },
+      { label: 'Applications', value: recentApplications.length || 0, hint: '↑ 3 this week', icon: WorkIcon, color: '#276A9B', tint: '#EDF5FC' },
+      { label: 'Saved Jobs', value: savedCount || 0, hint: '↑ 2 this week', icon: BookmarkIcon, color: '#15803D', tint: '#EEF9F1' },
+      { label: 'Resume Downloads', value: resumeDownloadCount ?? 0, hint: '↑ 1 this week', icon: DownloadIcon, color: '#5B5E9D', tint: '#F2F1FA' },
+      { label: 'Profile Views', value: profileViewCount ?? 0, hint: '↑ 4 this week', icon: VisibilityIcon, color: '#B78317', tint: '#FFF8E5' },
+      { label: 'Recruiter Actions', value: Math.max(0, (profileViewCount ?? 0) + (resumeDownloadCount ?? 0)), hint: 'Live now', icon: TrendingUpIcon, color: '#A54B57', tint: '#FDF0F1' },
     ],
     [profileViewCount, recentApplications.length, resumeDownloadCount, savedCount],
   );
@@ -538,11 +538,11 @@ export const Dashboard: React.FC = () => {
   ];
 
   const profileCompletionBreakdown = [
-    { label: 'Resume', value: Math.min(100, Math.max(60, profileCompletion)), color: '#2563EB' },
-    { label: 'Skills', value: Math.min(100, Math.max(55, profileCompletion - 8)), color: '#7C3AED' },
-    { label: 'Experience', value: Math.min(100, Math.max(50, profileCompletion + 2)), color: '#06B6D4' },
-    { label: 'Projects', value: Math.min(100, Math.max(42, profileCompletion - 18)), color: '#F59E0B' },
-    { label: 'Education', value: Math.min(100, Math.max(58, profileCompletion - 5)), color: '#22C55E' },
+    { label: 'Resume', value: Math.min(100, Math.max(60, profileCompletion)), color: '#D6A73A' },
+    { label: 'Skills', value: Math.min(100, Math.max(55, profileCompletion - 8)), color: '#D6A73A' },
+    { label: 'Experience', value: Math.min(100, Math.max(50, profileCompletion + 2)), color: '#D6A73A' },
+    { label: 'Projects', value: Math.min(100, Math.max(42, profileCompletion - 18)), color: '#D6A73A' },
+    { label: 'Education', value: Math.min(100, Math.max(58, profileCompletion - 5)), color: '#D6A73A' },
   ];
 
   const navBadge = (count: number) => count > 0 ? <Box component="span" sx={{ ml: 'auto', minWidth: 22, height: 22, borderRadius: 999, bgcolor: '#dbeafe', color: '#1d4ed8', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800 }}>{count}</Box> : null;
@@ -621,13 +621,14 @@ export const Dashboard: React.FC = () => {
                 borderRadius: 3,
                 px: 1.2,
                 py: 1.1,
-                color: active ? '#1d4ed8' : '#1e293b',
-                background: active ? 'linear-gradient(90deg, rgba(37,99,235,0.14), rgba(191,219,254,0.2))' : 'transparent',
+                color: active ? '#071D35' : '#17324D',
+                background: active ? '#F2F6FB' : 'transparent',
                 fontWeight: active ? 800 : 700,
                 textTransform: 'none',
                 minHeight: 46,
-                boxShadow: active ? 'inset 0 0 0 1px rgba(37,99,235,0.08)' : 'none',
-                '&:hover': { background: active ? 'linear-gradient(90deg, rgba(37,99,235,0.14), rgba(191,219,254,0.2))' : '#f8fafc' },
+                borderLeft: active ? '3px solid #D6A73A' : '3px solid transparent',
+                boxShadow: 'none',
+                '&:hover': { background: active ? '#F2F6FB' : '#F8FAFC' },
               }}
             >
               <span className="sidebar-button-label">{label}</span>
@@ -674,6 +675,12 @@ export const Dashboard: React.FC = () => {
             </Button>
           ))}
         </Stack>
+        <Box sx={{ mt: 2.5, p: 1.5, borderRadius: 2, bgcolor: '#FFF9E8', border: '1px solid rgba(214,167,58,0.2)' }}>
+          <Typography sx={{ color: '#D6A73A', fontSize: 18, lineHeight: 1 }}>♛</Typography>
+          <Typography sx={{ fontWeight: 800, color: '#071D35', fontSize: 14, mt: 0.6 }}>Go Further</Typography>
+          <Typography sx={{ color: '#64748B', fontSize: 11.5, mt: 0.4 }}>Get premium access to exclusive jobs, insights and more.</Typography>
+          <Button onClick={() => navigate(ROUTES.PRICING)} size="small" endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />} sx={{ mt: 0.8, px: 0, minWidth: 0, color: '#9A7017', fontWeight: 800 }}>Upgrade Now</Button>
+        </Box>
       </Box>
       </Box>
       </Box>
@@ -682,7 +689,7 @@ export const Dashboard: React.FC = () => {
 
   return (
     <Layout>
-      <Box className={footerVisible ? 'dashboard-page candidate-dashboard footer-visible' : 'dashboard-page candidate-dashboard'} sx={{ background: 'radial-gradient(circle at top left, rgba(59,130,246,0.08), transparent 28%), radial-gradient(circle at top right, rgba(124,58,237,0.08), transparent 26%), #F6F8FC', minHeight: '100vh', px: { xs: 1.5, md: 2.5 }, py: { xs: 2, md: 3 } }}>
+      <Box className={footerVisible ? 'dashboard-page candidate-dashboard footer-visible' : 'dashboard-page candidate-dashboard'} sx={{ background: '#F5F7FA', minHeight: '100vh', px: { xs: 1.5, md: 2.5 }, py: { xs: 2, md: 3 } }}>
         <Drawer anchor="left" open={mobileNavOpen} onClose={() => setMobileNavOpen(false)}>
           <Box sx={{ width: 280, height: '100%', background: '#fff' }}>{renderSidebar({ drawerMode: true })}</Box>
         </Drawer>
@@ -693,26 +700,24 @@ export const Dashboard: React.FC = () => {
           <Box sx={{ width: '100%', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'stretch' }}>
             <Box sx={{ width: '100%', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut' }}>
-                <Card sx={{ position: 'relative', overflow: 'hidden', borderRadius: 4.5, background: 'linear-gradient(135deg, #0f172a 0%, #1d4ed8 34%, #4f46e5 66%, #7c3aed 100%)', border: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 32px 60px rgba(79,70,229,0.24)' }}>
-                  <Box sx={{ position: 'absolute', width: 280, height: 280, right: -60, top: -80, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0.08) 35%, transparent 70%)' }} />
-                  <Box sx={{ position: 'absolute', width: 210, height: 210, left: -30, bottom: -56, borderRadius: '50%', background: 'radial-gradient(circle, rgba(96,165,250,0.28) 0%, rgba(96,165,250,0.1) 35%, transparent 70%)' }} />
+                <Card sx={{ position: 'relative', overflow: 'hidden', borderRadius: 2.25, minHeight: { xs: 470, md: 380 }, backgroundColor: '#071D35', backgroundImage: "linear-gradient(90deg, rgba(5,22,42,0.97) 0%, rgba(7,29,53,0.9) 35%, rgba(7,29,53,0.68) 58%, rgba(7,29,53,0.3) 100%), url('/images/career-hero.png')", backgroundSize: 'cover', backgroundPosition: { xs: '70% 58%', md: 'center 62%' }, border: '1px solid #123B5D', boxShadow: '0 18px 38px rgba(6,23,43,0.18)' }}>
 
-                  <CardContent sx={{ position: 'relative', py: { xs: 1.8, md: 2.6 }, px: { xs: 1.8, md: 4 }, zIndex: 2 }}>
-                    <Grid container spacing={2.8} alignItems="center">
+                  <CardContent sx={{ position: 'relative', py: { xs: 2, md: 2.4 }, px: { xs: 2, md: 3.5 }, zIndex: 2 }}>
+                    <Grid container spacing={{ xs: 2, md: 4 }} alignItems="center">
                       <Grid item xs={12} md={8}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.7, mb: 2.1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.7, mb: 1.35 }}>
                           <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}>
                             <Avatar src={profileAvatarUrl || undefined} imgProps={{ referrerPolicy: 'no-referrer' }} sx={{ width: { xs: 68, md: 80 }, height: { xs: 68, md: 80 }, bgcolor: 'rgba(255,255,255,0.18)', border: '2px solid rgba(255,255,255,0.5)', boxShadow: '0 10px 24px rgba(15,23,42,0.22)', fontWeight: 800, fontSize: 28 }}>
                               {(user?.name || 'U').charAt(0).toUpperCase()}
                             </Avatar>
                           </motion.div>
                           <Box>
-                            <Chip 
+                            <Chip
                               label={isCandidatePremium(subscription?.plan) && isSubscriptionActive(subscription?.end_date) ? `Premium • ${getPlanDisplayName(subscription?.plan)}` : 'Free'} 
                               size="small" 
-                              sx={{ mb: 0.55, height: 24, bgcolor: 'rgba(255,255,255,0.12)', color: '#fff', borderRadius: 999, fontWeight: 700, border: '1px solid rgba(255,255,255,0.18)' }} 
+                              sx={{ mb: 0.55, height: 24, bgcolor: 'rgba(7,29,53,0.45)', color: '#fff', borderRadius: 999, fontWeight: 700, border: '1px solid rgba(214,167,58,0.72)' }}
                             />
-                            <Typography sx={{ color: '#fff', fontWeight: 800, lineHeight: 1.12, fontSize: { xs: 21, md: 24 } }}>
+                            <Typography sx={{ color: '#fff', fontWeight: 800, lineHeight: 1.12, fontSize: { xs: 24, md: 32 } }}>
                               {getGreeting()}, {user?.name || 'Candidate'} 👋
                             </Typography>
                             <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)', mt: 0.45, fontSize: 13 }}>
@@ -721,37 +726,27 @@ export const Dashboard: React.FC = () => {
                           </Box>
                         </Box>
 
-                        <Grid container spacing={1.4} sx={{ mb: 1.8 }}>
-                          <Grid item xs={12} sm={7}>
-                            <Box sx={{ height: '100%', boxSizing: 'border-box', p: 1.35, borderRadius: 2.4, bgcolor: 'rgba(15,23,42,0.16)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                        <Box sx={{ mb: 1.25 }}>
+                          <Typography sx={{ color: 'rgba(255,255,255,0.88)', fontStyle: 'italic', fontSize: 14 }}>A better career is a brighter you.</Typography>
+                          <Box sx={{ width: 44, height: 2, bgcolor: '#D6A73A', mt: 0.8 }} />
+                        </Box>
+
+                        <Grid container spacing={1.4} sx={{ mb: 1.4 }}>
+                          <Grid item xs={12} sm={6}>
+                            <Box sx={{ boxSizing: 'border-box', p: 1.2, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)' }}>
                               <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: 14, mb: 0.4 }}>Profile momentum</Typography>
-                              <Typography sx={{ color: 'rgba(255,255,255,0.76)', fontSize: 12, mb: 1.2 }}>Complete your profile to unlock better job opportunities.</Typography>
+                              <Typography sx={{ color: 'rgba(255,255,255,0.76)', fontSize: 12, mb: 0.9 }}>Complete your profile to unlock better job opportunities.</Typography>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.1 }}>
-                                <LinearProgress variant="determinate" value={Math.min(100, profileCompletion)} sx={{ flex: 1, height: 7, borderRadius: 999, background: 'rgba(255,255,255,0.16)', '& .MuiLinearProgress-bar': { bgcolor: '#fff', borderRadius: 999 } }} />
+                                <LinearProgress variant="determinate" value={Math.min(100, profileCompletion)} sx={{ flex: 1, height: 7, borderRadius: 999, background: 'rgba(255,255,255,0.18)', '& .MuiLinearProgress-bar': { bgcolor: '#D6A73A', borderRadius: 999 } }} />
                                 <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: 13 }}>{Math.min(100, profileCompletion)}%</Typography>
                               </Box>
-                              <Typography sx={{ color: 'rgba(255,255,255,0.62)', fontSize: 11, mt: 0.85 }}>Updated {profile?.updated_at ? formatDate(profile.updated_at) : 'recently'}</Typography>
-                            </Box>
-                          </Grid>
-                          <Grid item xs={12} sm={5}>
-                            <Box sx={{ height: '100%', boxSizing: 'border-box', p: 1.35, borderRadius: 2.4, bgcolor: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.12)' }}>
-                              <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,0.86)', fontWeight: 800, mb: 0.75 }}>Profile performance</Typography>
-                              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', columnGap: 1.5, alignItems: 'start' }}>
-                              <Box sx={{ minWidth: 0 }}>
-                                <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>{searchAppearanceCount}</Typography>
-                                <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,0.8)' }}>Search appearances</Typography>
-                              </Box>
-                              <Box sx={{ minWidth: 0 }}>
-                                <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>{recruiterActionCount}</Typography>
-                                <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,0.8)' }}>Recruiter actions</Typography>
-                              </Box>
-                            </Box>
+                              <Typography sx={{ color: 'rgba(255,255,255,0.62)', fontSize: 11, mt: 0.65 }}>Updated {profile?.updated_at ? formatDate(profile.updated_at) : 'recently'}</Typography>
                             </Box>
                           </Grid>
                         </Grid>
 
-                        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.2 }}>
-                          <Button onClick={() => navigate(ROUTES.DASHBOARD_PROFILE)} sx={{ borderRadius: 999, textTransform: 'none', fontWeight: 800, px: 1.6, py: 0.7, color: '#0f172a', background: '#fff', boxShadow: 'none', border: '1px solid rgba(255,255,255,0.32)', '&:hover': { background: '#f8fafc', boxShadow: 'none' }, fontSize: 13 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.2, mt: 2.5 }}>
+                          <Button onClick={() => navigate(ROUTES.DASHBOARD_PROFILE)} sx={{ borderRadius: 1.5, textTransform: 'none', fontWeight: 800, px: 1.6, py: 0.7, color: '#071D35', background: '#D6A73A', boxShadow: 'none', '&:hover': { background: '#F0C75E', boxShadow: 'none' }, fontSize: 13 }}>
                             {Math.min(100, profileCompletion) >= 100 ? 'Edit Profile' : 'Complete Profile'}
                           </Button>
                           <Button onClick={() => navigate(ROUTES.JOBS)} sx={{ borderRadius: 999, textTransform: 'none', fontWeight: 800, px: 1.6, py: 0.7, color: '#fff', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.22)', boxShadow: 'none', '&:hover': { background: 'rgba(255,255,255,0.18)', boxShadow: 'none' }, fontSize: 13 }}>Browse Jobs</Button>
@@ -769,24 +764,24 @@ export const Dashboard: React.FC = () => {
                       </Grid>
 
                       <Grid item xs={12} md={4}>
-                        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                          <Box sx={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 4, p: 2.4, width: '100%', maxWidth: 300, backdropFilter: 'blur(10px)' }}>
-                            <Typography sx={{ color: 'rgba(255,255,255,0.72)', fontWeight: 700, letterSpacing: 0.4, mb: 1.2, textTransform: 'uppercase', fontSize: 11 }}>Career Score</Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 1.6 }}>
-                              <Box sx={{ position: 'relative', width: 84, height: 84, borderRadius: '50%', background: `conic-gradient(#ffffff 0deg ${heroScore * 3.6}deg, rgba(255,255,255,0.12) ${heroScore * 3.6}deg 360deg)`, display: 'grid', placeItems: 'center' }}>
-                                  <Box sx={{ width: 56, height: 56, borderRadius: '50%', background: 'linear-gradient(135deg, rgba(15,23,42,0.78), rgba(29,78,216,0.85))', display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 800, fontSize: 18 }}>{Math.round(heroScore)}</Box>
+                        <Box sx={{ display: 'flex', justifyContent: { xs: 'center', md: 'flex-start' }, pl: { md: 1.5 }, transform: { md: 'translate(-322px, 55px)' } }}>
+                          <Box sx={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.18)', borderRadius: 2, p: 1.1, width: '100%', maxWidth: 210, backdropFilter: 'blur(12px)' }}>
+                            <Typography sx={{ color: 'rgba(255,255,255,0.72)', fontWeight: 700, letterSpacing: 0.4, mb: 0.7, textTransform: 'uppercase', fontSize: 10 }}>Career Score</Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 0.9 }}>
+                                <Box sx={{ position: 'relative', width: 58, height: 58, borderRadius: '50%', background: `conic-gradient(#D6A73A 0deg ${heroScore * 3.6}deg, rgba(255,255,255,0.12) ${heroScore * 3.6}deg 360deg)`, display: 'grid', placeItems: 'center' }}>
+                                  <Box sx={{ width: 38, height: 38, borderRadius: '50%', background: '#071D35', display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 800, fontSize: 14 }}>{Math.round(heroScore)}</Box>
                                 </Box>
-                                <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: 18 }}>{heroScore >= 80 ? 'Good' : heroScore >= 60 ? 'Strong' : 'Growing'}</Typography>
+                                <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: 16 }}>{heroScore >= 80 ? 'Good' : heroScore >= 60 ? 'Strong' : 'Growing'}</Typography>
                             </Box>
 
-                            <Stack spacing={1.1}>
+                            <Stack spacing={0.75}>
                               {profileCompletionBreakdown.slice(0, 4).map((item) => (
                                 <Box key={item.label}>
-                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', color: '#fff', fontSize: 12, mb: 0.35 }}>
+                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', color: '#fff', fontSize: 11, mb: 0.25 }}>
                                     <span>{item.label}</span>
                                     <span>{Math.min(99, item.value)}%</span>
                                   </Box>
-                                  <LinearProgress variant="determinate" value={item.value} sx={{ height: 6, borderRadius: 999, background: 'rgba(255,255,255,0.15)', '& .MuiLinearProgress-bar': { bgcolor: '#fff', borderRadius: 999 } }} />
+                                  <LinearProgress variant="determinate" value={item.value} sx={{ height: 5, borderRadius: 999, background: 'rgba(255,255,255,0.16)', '& .MuiLinearProgress-bar': { bgcolor: '#D6A73A', borderRadius: 999 } }} />
                                 </Box>
                               ))}
                             </Stack>
@@ -801,11 +796,11 @@ export const Dashboard: React.FC = () => {
               <Grid container spacing={2}>
                 {stats.map((item) => (
                   <Grid item xs={12} sm={6} md={4} lg={2.4} key={item.label}>
-                    <Card sx={{ borderRadius: 3.2, border: '1px solid rgba(148,163,184,0.12)', background: item.bg, boxShadow: '0 8px 18px rgba(15,23,42,0.04)', transition: 'all 0.18s ease', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 16px 26px rgba(15,23,42,0.06)' }, height: '100%' }}>
+                    <Card sx={{ borderRadius: 2, border: '1px solid #E5EAF0', background: '#FFFFFF', boxShadow: '0 6px 20px rgba(15,23,42,0.04)', transition: 'all 0.18s ease', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 12px 26px rgba(15,23,42,0.08)' }, height: '100%' }}>
                       <CardContent sx={{ p: 1.2 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                           <Typography sx={{ fontWeight: 700, color: '#334155', fontSize: 12 }}>{item.label}</Typography>
-                          <Box sx={{ width: 34, height: 34, borderRadius: 2.2, bgcolor: 'rgba(255,255,255,0.85)', display: 'grid', placeItems: 'center' }}>
+                          <Box sx={{ width: 34, height: 34, borderRadius: 1.5, bgcolor: item.tint, display: 'grid', placeItems: 'center' }}>
                             <item.icon sx={{ color: item.color, fontSize: 18 }} />
                           </Box>
                         </Box>
@@ -820,7 +815,7 @@ export const Dashboard: React.FC = () => {
               <Grid container spacing={2.5} sx={{ mb: 0.5 }}>
                 <Grid item xs={12}>
                   <Card sx={{ borderRadius: 4, border: '1px solid rgba(148,163,184,0.18)', boxShadow: '0 18px 34px rgba(15,23,42,0.04)', overflow: 'hidden' }}>
-                    <Box sx={{ height: 4, background: 'linear-gradient(90deg, #2563eb 0%, #7c3aed 55%, #ec4899 100%)' }} />
+                    <Box sx={{ height: 4, background: '#071D35' }} />
                     <CardContent sx={{ p: { xs: 2.1, md: 2.5 } }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 1.5, mb: 2.2 }}>
                         <Box sx={{ display: 'flex', gap: 1.4, alignItems: 'center' }}>
@@ -832,8 +827,8 @@ export const Dashboard: React.FC = () => {
                               display: 'grid',
                               placeItems: 'center',
                               color: '#fff',
-                              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
-                              boxShadow: '0 10px 22px rgba(37,99,235,0.32)',
+                              background: '#071D35',
+                              boxShadow: '0 8px 18px rgba(7,29,53,0.18)',
                               flexShrink: 0,
                             }}
                           >
@@ -885,7 +880,7 @@ export const Dashboard: React.FC = () => {
                             value: recruiterActionCount,
                             subtitle: `${companiesEngagedCount} compan${companiesEngagedCount === 1 ? 'y' : 'ies'} engaged`,
                             icon: TrendingUpIcon,
-                            accent: '#2563eb',
+                            accent: '#123B5D',
                           },
                           {
                             key: 'views' as const,
@@ -893,7 +888,7 @@ export const Dashboard: React.FC = () => {
                             value: recruiterViewCount,
                             subtitle: 'Recruiters opened your profile',
                             icon: VisibilityIcon,
-                            accent: '#7c3aed',
+                            accent: '#D6A73A',
                           },
                           {
                             key: 'resume' as const,
@@ -901,7 +896,7 @@ export const Dashboard: React.FC = () => {
                             value: recruiterResumeCount,
                             subtitle: 'Resume accessed by recruiters',
                             icon: DownloadIcon,
-                            accent: '#0ea5e9',
+                            accent: '#16A34A',
                           },
                         ].map((item) => {
                           const isActive = activeRecruiterFilter === item.key;
@@ -917,14 +912,15 @@ export const Dashboard: React.FC = () => {
                                   borderRadius: 3,
                                   p: 1.6,
                                   border: '1px solid',
-                                  borderColor: isActive ? 'transparent' : 'rgba(148,163,184,0.24)',
-                                  color: isActive ? '#fff' : '#0f172a',
-                                  background: isActive ? 'linear-gradient(135deg, #2563eb, #7c3aed)' : '#fff',
-                                  boxShadow: isActive ? '0 14px 26px rgba(37,99,235,0.28)' : 'none',
+                                  borderColor: isActive ? 'rgba(214,167,58,0.55)' : '#E5EAF0',
+                                  borderLeft: isActive ? '4px solid #D6A73A' : '1px solid #E5EAF0',
+                                  color: '#10233F',
+                                  background: isActive ? '#F3F7FB' : '#fff',
+                                  boxShadow: isActive ? '0 6px 16px rgba(15,35,63,0.07)' : 'none',
                                   transition: 'all 0.2s ease',
                                   '&:hover': {
-                                    background: isActive ? 'linear-gradient(135deg, #1d4ed8, #6d28d9)' : '#f8fafc',
-                                    borderColor: isActive ? 'transparent' : item.accent,
+                                    background: isActive ? '#EAF1F7' : '#F8FAFC',
+                                    borderColor: isActive ? 'rgba(214,167,58,0.72)' : item.accent,
                                     transform: 'translateY(-2px)',
                                   },
                                 }}
@@ -939,8 +935,8 @@ export const Dashboard: React.FC = () => {
                                         borderRadius: 2,
                                         display: 'grid',
                                         placeItems: 'center',
-                                        bgcolor: isActive ? 'rgba(255,255,255,0.2)' : `${item.accent}14`,
-                                        color: isActive ? '#fff' : item.accent,
+                                        bgcolor: isActive ? '#FFF4D6' : `${item.accent}14`,
+                                        color: isActive ? '#A87613' : item.accent,
                                         flexShrink: 0,
                                       }}
                                     >
@@ -948,7 +944,7 @@ export const Dashboard: React.FC = () => {
                                     </Box>
                                   </Box>
                                   <Typography sx={{ fontSize: 26, fontWeight: 800, lineHeight: 1.15, mt: 0.4 }}>{item.value}</Typography>
-                                  <Typography sx={{ fontSize: 12, opacity: isActive ? 0.88 : 1, color: isActive ? '#fff' : '#64748B', fontWeight: 600 }}>
+                                  <Typography sx={{ fontSize: 12, color: '#64748B', fontWeight: 600 }}>
                                     {item.subtitle}
                                   </Typography>
                                 </Box>
@@ -992,7 +988,7 @@ export const Dashboard: React.FC = () => {
                                             borderRadius: '50%',
                                             display: 'grid',
                                             placeItems: 'center',
-                                            bgcolor: item.type === 'views' ? '#7c3aed' : '#0ea5e9',
+                                            bgcolor: item.type === 'views' ? '#D6A73A' : '#123B5D',
                                             color: '#fff',
                                             border: '2px solid #fff',
                                           }}
@@ -1065,7 +1061,7 @@ export const Dashboard: React.FC = () => {
                                 size="small"
                                 variant="contained"
                                 onClick={() => navigate(ROUTES.DASHBOARD_PROFILE)}
-                                sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}
+                                sx={{ textTransform: 'none', fontWeight: 800, borderRadius: 2, background: '#D6A73A', color: '#071D35', boxShadow: 'none', '&:hover': { background: '#F0C75E', boxShadow: 'none' } }}
                               >
                                 Improve profile
                               </Button>
@@ -1081,7 +1077,7 @@ export const Dashboard: React.FC = () => {
                         maxWidth="sm"
                         PaperProps={{ sx: { borderRadius: 3, overflow: 'hidden' } }}
                       >
-                        <Box sx={{ height: 4, background: 'linear-gradient(90deg, #2563eb, #7c3aed)' }} />
+                        <Box sx={{ height: 4, background: '#071D35' }} />
                         <DialogTitle sx={{ fontWeight: 800, pb: 1 }}>Recruiter details</DialogTitle>
                         <DialogContent dividers>
                           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
@@ -1182,7 +1178,7 @@ export const Dashboard: React.FC = () => {
               <Grid container spacing={3}>
                 <Grid item xs={12} lg={8}>
                   <Card sx={{ borderRadius: 4, border: '1px solid rgba(148,163,184,0.18)', boxShadow: '0 18px 34px rgba(15,23,42,0.04)', height: '100%', overflow: 'hidden' }}>
-                    <Box sx={{ height: 4, background: 'linear-gradient(90deg, #2563eb 0%, #7c3aed 100%)' }} />
+                    <Box sx={{ height: 4, background: '#071D35' }} />
                     <CardContent sx={{ p: 2.5 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5, flexWrap: 'wrap', mb: 2.2 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.4 }}>
@@ -1194,8 +1190,8 @@ export const Dashboard: React.FC = () => {
                               display: 'grid',
                               placeItems: 'center',
                               color: '#fff',
-                              background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
-                              boxShadow: '0 10px 22px rgba(37,99,235,0.32)',
+                              background: '#071D35',
+                              boxShadow: '0 8px 18px rgba(7,29,53,0.18)',
                               flexShrink: 0,
                             }}
                           >
@@ -1253,7 +1249,7 @@ export const Dashboard: React.FC = () => {
                                     top: 0,
                                     bottom: 0,
                                     width: 3,
-                                    background: 'linear-gradient(180deg, #2563eb, #7c3aed)',
+                                    background: '#D6A73A',
                                     opacity: 0,
                                     transition: 'opacity 0.2s ease',
                                   },
@@ -1410,8 +1406,8 @@ export const Dashboard: React.FC = () => {
                                         fontWeight: 800,
                                         fontSize: 13,
                                         px: 1.8,
-                                        background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                                        boxShadow: '0 8px 18px rgba(37,99,235,0.3)',
+                                        background: '#004b9b',
+                                        boxShadow: '0 8px 18px rgba(7,29,53,0.18)',
                                       }}
                                     >
                                       Apply
@@ -1429,7 +1425,7 @@ export const Dashboard: React.FC = () => {
                               <Typography sx={{ color: '#475569', maxWidth: 420, mx: 'auto', mb: 1.6, fontSize: 13.5 }}>Complete your profile and add skills to unlock better matches.</Typography>
                               <Stack direction="row" spacing={1} justifyContent="center">
                                 <Button component={RouterLink} to={ROUTES.JOBS} variant="outlined" sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 700 }}>Browse jobs</Button>
-                                <Button component={RouterLink} to={ROUTES.DASHBOARD_PROFILE} variant="contained" sx={{ borderRadius: 2, background: 'linear-gradient(135deg, #2563eb, #7c3aed)', textTransform: 'none', fontWeight: 800 }}>Improve profile</Button>
+                                <Button component={RouterLink} to={ROUTES.DASHBOARD_PROFILE} variant="contained" sx={{ borderRadius: 2, background: '#071D35', textTransform: 'none', fontWeight: 800 }}>Improve profile</Button>
                               </Stack>
                             </Box>
                           )}
@@ -1444,7 +1440,7 @@ export const Dashboard: React.FC = () => {
                     <CardContent sx={{ p: 2.5 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                         <Typography sx={{ fontSize: 24, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.04em' }}>AI Career Coach</Typography>
-                        <AutoAwesomeIcon sx={{ color: '#7c3aed' }} />
+                        <AutoAwesomeIcon sx={{ color: '#D6A73A' }} />
                       </Box>
                       <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2.4 }}>
                         <Box sx={{ position: 'relative', width: 126, height: 126, borderRadius: '50%', background: `conic-gradient(#2563eb 0deg ${heroScore * 3.6}deg, rgba(37,99,235,0.12) ${heroScore * 3.6}deg 360deg)`, display: 'grid', placeItems: 'center' }}>
@@ -1459,7 +1455,7 @@ export const Dashboard: React.FC = () => {
                           </Box>
                         ))}
                       </Stack>
-                      <Button component={RouterLink} to={ROUTES.DASHBOARD_AI_CAREER_HUB} variant="contained" sx={{ mt: 2.2, width: '100%', borderRadius: 999, background: 'linear-gradient(135deg, #2563eb, #7c3aed)', textTransform: 'none', fontWeight: 800 }}>Improve Profile</Button>
+                      <Button component={RouterLink} to={ROUTES.DASHBOARD_AI_CAREER_HUB} variant="contained" sx={{ mt: 2.2, width: '100%', borderRadius: 2, background: '#071D35', textTransform: 'none', fontWeight: 800 }}>Improve Profile</Button>
                     </CardContent>
                   </Card>
                 </Grid>
@@ -1468,7 +1464,7 @@ export const Dashboard: React.FC = () => {
               <Grid container spacing={3}>
                 <Grid item xs={12} lg={7}>
                   <Card sx={{ borderRadius: 4, border: '1px solid rgba(148,163,184,0.18)', boxShadow: '0 18px 34px rgba(15,23,42,0.04)', height: '100%', overflow: 'hidden' }}>
-                    <Box sx={{ height: 4, background: 'linear-gradient(90deg, #0ea5e9 0%, #2563eb 55%, #7c3aed 100%)' }} />
+                    <Box sx={{ height: 4, background: '#071D35' }} />
                     <CardContent sx={{ p: 2.5 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5, flexWrap: 'wrap', mb: 2.2 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.4 }}>
@@ -1480,8 +1476,8 @@ export const Dashboard: React.FC = () => {
                               display: 'grid',
                               placeItems: 'center',
                               color: '#fff',
-                              background: 'linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)',
-                              boxShadow: '0 10px 22px rgba(14,165,233,0.3)',
+                              background: '#123B5D',
+                              boxShadow: '0 8px 18px rgba(7,29,53,0.16)',
                               flexShrink: 0,
                             }}
                           >
@@ -1514,7 +1510,7 @@ export const Dashboard: React.FC = () => {
                             component={RouterLink}
                             to={ROUTES.JOBS}
                             variant="contained"
-                            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800, background: 'linear-gradient(135deg, #2563eb, #7c3aed)' }}
+                            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800, background: '#071D35' }}
                           >
                             Browse jobs
                           </Button>
@@ -1623,7 +1619,7 @@ export const Dashboard: React.FC = () => {
                           ))}
                         </Box>
                         <Typography sx={{ color: '#2563EB', fontWeight: 800 }}>Win more opportunities</Typography>
-                        <Button variant="contained" onClick={() => navigate(ROUTES.DASHBOARD_ASSESSMENTS)} sx={{ mt: 2, borderRadius: 999, background: 'linear-gradient(135deg, #2563eb, #7c3aed)', textTransform: 'none', fontWeight: 800 }}>Take Assessment</Button>
+                        <Button variant="contained" onClick={() => navigate(ROUTES.DASHBOARD_ASSESSMENTS)} sx={{ mt: 2, borderRadius: 2, background: '#071D35', textTransform: 'none', fontWeight: 800 }}>Take Assessment</Button>
                       </CardContent>
                     </Card>
 
@@ -1670,16 +1666,16 @@ export const Dashboard: React.FC = () => {
                 </Grid>
 
                 <Grid item xs={12} lg={4}>
-                  <Card sx={{ borderRadius: 4, background: 'linear-gradient(135deg, #0f172a 0%, #1d4ed8 50%, #7c3aed 100%)', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 20px 50px rgba(37,99,235,0.22)', color: '#fff' }}>
+                  <Card sx={{ borderRadius: 2, background: 'linear-gradient(135deg, #FFF9E8, #FFFFFF)', border: '1px solid rgba(214,167,58,0.2)', boxShadow: '0 6px 20px rgba(15,23,42,0.04)', color: '#10233F' }}>
                     <CardContent sx={{ p: 2.5 }}>
                       <Typography sx={{ fontSize: 28, fontWeight: 800, mb: 0.5 }}>Go Premium</Typography>
-                      <Typography sx={{ color: 'rgba(255,255,255,0.8)', mb: 2 }}>Unlock exclusive career benefits</Typography>
+                      <Typography sx={{ color: '#64748B', mb: 2 }}>Unlock exclusive career benefits</Typography>
                       <Stack spacing={1.1}>
                         {['AI Resume Review', 'Priority Job Alerts', 'See Who Viewed Your Profile', 'Unlimited Applications', 'Interview Preparation', 'Remote Jobs'].map((feature) => (
-                          <Box key={feature} sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#eff6ff', fontWeight: 600 }}><CheckCircleIcon sx={{ color: '#a5b4fc', fontSize: 18 }} /> {feature}</Box>
+                          <Box key={feature} sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#17324D', fontWeight: 600 }}><CheckCircleIcon sx={{ color: '#D6A73A', fontSize: 18 }} /> {feature}</Box>
                         ))}
                       </Stack>
-                      <Button onClick={() => navigate(ROUTES.PRICING)} variant="contained" sx={{ mt: 2.2, width: '100%', borderRadius: 999, background: '#fff', color: '#0f172a', textTransform: 'none', fontWeight: 800 }}>Upgrade Now</Button>
+                      <Button onClick={() => navigate(ROUTES.PRICING)} variant="contained" sx={{ mt: 2.2, width: '100%', borderRadius: 2, background: '#D6A73A', color: '#071D35', textTransform: 'none', fontWeight: 800, '&:hover': { background: '#F0C75E' } }}>Upgrade Now</Button>
                     </CardContent>
                   </Card>
                 </Grid>

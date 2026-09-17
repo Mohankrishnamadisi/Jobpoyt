@@ -67,6 +67,19 @@ const matchesExperienceYears = (jobExperience: unknown, years: number): boolean 
   return false;
 };
 
+const normalizeCompanySearchTerm = (value: unknown): string => String(value ?? '')
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, ' ')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+const matchesCompanySearch = (companyName: unknown, keyword: string): boolean => {
+  const normalizedCompany = normalizeCompanySearchTerm(companyName);
+  const normalizedKeyword = normalizeCompanySearchTerm(keyword);
+  return Boolean(normalizedKeyword)
+    && (normalizedCompany === normalizedKeyword || normalizedCompany.startsWith(`${normalizedKeyword} `));
+};
+
 // User operations
 export const userService = {
   async createProfile(userId: string, profileData: Partial<JobSeeker | Recruiter>) {
@@ -441,8 +454,12 @@ export const jobService = {
       }
 
       const normalizedJobs = data.map(normalizeJob);
+      const companySearchMatches = keywordInput
+        ? normalizedJobs.filter((job) => matchesCompanySearch(job.company_name, keywordInput))
+        : [];
+      const searchableJobs = companySearchMatches.length > 0 ? companySearchMatches : normalizedJobs;
       const baseMatches = keywordInput
-        ? normalizedJobs.filter((job) => {
+        ? searchableJobs.filter((job) => {
             const skills = Array.isArray(job.skills) ? job.skills : [];
             const directMatch = (
               String(job.title || '').toLowerCase().includes(keywordLower)
@@ -461,7 +478,9 @@ export const jobService = {
 
       return {
         data: pageJobs,
-        total: isFrontendUiSearch ? baseMatches.length : count || baseMatches.length || 0,
+        total: companySearchMatches.length > 0 || isFrontendUiSearch
+          ? baseMatches.length
+          : count || baseMatches.length || 0,
       };
     }
 
@@ -477,9 +496,14 @@ export const jobService = {
       );
     }
 
+    const companySearchMatches = keywordInput
+      ? normalizedJobs.filter((job) => matchesCompanySearch(job.company_name, keywordInput))
+      : [];
+    const searchableJobs = companySearchMatches.length > 0 ? companySearchMatches : normalizedJobs;
+
     const matchesKeyword = (value: unknown) => String(value || '').toLowerCase().includes(keywordLower);
 
-    const filteredJobs = keywordInput ? normalizedJobs.filter((job) => {
+    const filteredJobs = keywordInput ? searchableJobs.filter((job) => {
       const skills = Array.isArray(job.skills) ? job.skills : [];
 
       const literalMatch = (

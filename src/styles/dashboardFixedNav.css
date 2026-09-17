@@ -1,46 +1,45 @@
-/* Fixed dashboard sidebar that is collapsed by default and expands on hover */
+/* Fixed dashboard sidebar stays expanded so labels and navigation remain visible. */
 :root {
-  --dash-collapsed: 80px;
-  --dash-expanded: 300px;
+  --dash-expanded: 244px;
   --dash-gap: 24px;
   --dash-left: 16px;
-  --sidebar-width: var(--dash-collapsed);
-}
-
-body.nav-expanded {
   --sidebar-width: var(--dash-expanded);
 }
 
 .dash-nav__cont {
-  position: fixed;
-  top: 80px;
-  left: var(--dash-left);
-  width: var(--dash-collapsed);
-  height: calc(100vh - 96px);
+  position: sticky;
+  top: 96px;
+  width: var(--dash-expanded);
+  height: auto;
+  max-height: none;
+  flex: 0 0 var(--dash-expanded);
   background: rgba(255,255,255,0.96);
   border-radius: 16px;
-  box-shadow: 0 16px 36px rgba(15,23,42,0.08);
-  overflow: hidden;
-  transition: width .28s ease;
+  box-shadow: 0 6px 20px rgba(15,23,42,0.04);
+  overflow: visible;
   z-index: 90;
-  border: 1px solid rgba(148,163,184,0.18);
-}
-.dash-nav__cont:hover,
-body.nav-expanded .dash-nav__cont {
-  width: var(--dash-expanded);
+  border: 1px solid #E5EAF0;
 }
 
 .dash-nav__cont .dash-nav-inner {
-  height: 100%;
-  overflow-y: auto;
+  height: auto;
+  overflow: visible;
 }
 
 /* Content follows the rail width so the expanded menu never covers it */
 .dashboard-content {
   transition: margin-left .28s ease, width .28s ease;
-  margin-left: calc(var(--dash-left) + var(--sidebar-width) + var(--dash-gap));
-  width: calc(100% - var(--dash-left) - var(--sidebar-width) - var(--dash-gap));
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-left: 0;
+  width: auto;
   box-sizing: border-box;
+}
+
+.candidate-dashboard {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--dash-gap);
 }
 
 .candidate-dashboard .dashboard-content {
@@ -48,15 +47,15 @@ body.nav-expanded .dash-nav__cont {
 }
 
 .candidate-dashboard .dashboard-content .MuiCard-root {
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid #E5EAF0;
   border-radius: 16px;
-  box-shadow: 0 12px 28px rgba(15, 39, 75, 0.07);
+  box-shadow: 0 6px 20px rgba(15,23,42,0.04);
   transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
 }
 
 .candidate-dashboard .dashboard-content .MuiCard-root:hover {
-  border-color: rgba(37, 99, 235, 0.32);
-  box-shadow: 0 18px 36px rgba(15, 39, 75, 0.11);
+  border-color: rgba(214,167,58,0.42);
+  box-shadow: 0 12px 26px rgba(15,23,42,0.08);
 }
 
 .candidate-dashboard .dashboard-content .MuiButton-root {
@@ -72,36 +71,74 @@ body.nav-expanded .dash-nav__cont {
 }
 
 .candidate-dashboard .dashboard-content .MuiButton-contained:not(.MuiButton-containedInherit) {
-  background: linear-gradient(135deg, #12305a 0%, #2563a6 100%);
+  background: #071D35;
   color: #fff;
-  box-shadow: 0 8px 18px rgba(18, 48, 90, 0.18);
+  box-shadow: 0 8px 18px rgba(7,29,53,0.16);
 }
 
 .candidate-dashboard .dashboard-content .MuiButton-contained:not(.MuiButton-containedInherit):hover {
-  background: linear-gradient(135deg, #0b2142 0%, #1d4f88 100%);
-  box-shadow: 0 12px 24px rgba(18, 48, 90, 0.24);
+  background: #123B5D;
+  box-shadow: 0 12px 24px rgba(7,29,53,0.22);
 }
 
 .candidate-dashboard .dashboard-content .MuiButton-outlined {
-  border-color: #b8cce3;
-  color: #163b69;
+  border-color: #B7C4D2;
+  color: #123B5D;
   background: rgba(255,255,255,.76);
 }
 
 .candidate-dashboard .dashboard-content .MuiButton-outlined:hover {
-  border-color: #4f88c5;
-  background: #eef6ff;
+  border-color: #D6A73A;
+  background: #FFF9E8;
 }
 
 .candidate-dashboard .dash-nav-button {
   min-height: 42px;
+  border-radius: 10px !important;
   border: 1px solid transparent;
-  color: #294461 !important;
+  color: #294563 !important;
+  justify-content: flex-start !important;
+  text-align: left;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  transition: color .2s ease, background .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.candidate-dashboard .dash-nav-button::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: #D6A73A;
+  opacity: 0;
+  transform: scaleY(.45);
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.candidate-dashboard .dash-nav-scroll > div {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
 }
 
 .candidate-dashboard .dash-nav-button:hover {
-  background: #edf5ff !important;
-  border-color: #c9ddf3;
+  background: linear-gradient(90deg, #FFF8E7 0%, #FFFFFF 88%) !important;
+  border-color: rgba(214,167,58,0.28);
+  color: #071D35 !important;
+  box-shadow: 0 7px 16px rgba(15,35,63,0.07);
+  transform: translateX(2px);
+}
+
+.candidate-dashboard .dash-nav-button:hover::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.candidate-dashboard .dash-nav-button:hover .MuiButton-startIcon {
+  color: #B98517;
 }
 
 .candidate-dashboard .dash-nav-scroll {
@@ -119,59 +156,33 @@ body.nav-expanded .dash-nav__cont {
   border-radius: 99px;
 }
 
-.footer-visible .dash-nav__cont {
-  width: 0 !important;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: width .28s ease, opacity .28s ease;
-}
-
-.footer-visible .dash-nav__cont:hover {
-  width: 0 !important;
-}
-
-.footer-visible .dashboard-content {
-  margin: 0 auto;
-  width: min(1200px, calc(100% - 32px));
-  max-width: 1200px;
-}
-
 @media (max-width: 1200px) {
+  .candidate-dashboard {
+    display: block;
+  }
+
   .dashboard-content {
     margin-left: 0;
     width: 100%;
   }
 }
 
-/* Sidebar scrollbar behavior: hide when collapsed, show when expanded */
+/* Keep the scroll affordance subtle while the full navigation remains visible. */
 .dash-nav-scroll {
-  scrollbar-width: none; /* Firefox */
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  scrollbar-width: none;
 }
 
 .dash-nav-scroll::-webkit-scrollbar {
-  display: none; /* Chrome, Edge, Safari */
+  display: none;
 }
 
-/* Show scrollbar when sidebar is expanded */
-body.nav-expanded .dash-nav-scroll {
-  scrollbar-width: auto; /* Firefox */
+.candidate-dashboard .dash-nav-scroll {
+  scrollbar-width: none;
 }
 
-body.nav-expanded .dash-nav-scroll::-webkit-scrollbar {
-  display: block; /* Chrome, Edge, Safari */
-  width: 8px;
-}
-
-body.nav-expanded .dash-nav-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-body.nav-expanded .dash-nav-scroll::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.3);
-  border-radius: 4px;
-}
-
-body.nav-expanded .dash-nav-scroll::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.5);
+.candidate-dashboard .dash-nav-scroll::-webkit-scrollbar {
+  display: none;
 }

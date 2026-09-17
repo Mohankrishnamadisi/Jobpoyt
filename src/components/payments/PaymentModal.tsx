@@ -24,13 +24,12 @@ import {
 } from '@mui/material';
 import {
   Close as CloseIcon,
+  Lock as LockIcon,
   CreditCard,
   PhonelinkLock,
   QrCode2,
   Visibility,
   VisibilityOff,
-  CheckCircle as CheckCircleIcon,
-  Lock as LockIcon,
   ArrowBack,
   ArrowForward,
   ShoppingCart,
@@ -45,7 +44,6 @@ interface PaymentModalProps {
   open: boolean;
   plan: {
     id: string;
-    name: string;
     price: number;
     durationMonths: number;
     durationLabel: string;
@@ -67,7 +65,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   initialPaymentMethod = 'razorpay',
 }) => {
   const { user } = useAuthStore();
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeStep, setActiveStep] = useState(1);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     'razorpay' | 'phonepe' | 'credit_card' | 'upi'
   >(initialPaymentMethod);
@@ -93,7 +91,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     return Number((plan.price + gstAmount).toFixed(2));
   }, [gstAmount, isCandidatePlan, plan.price]);
 
-  const steps = ['Select Method', 'Review & Confirm', 'Payment Complete'];
+  const steps = ['Razorpay', 'Review & Confirm', 'Payment Complete'];
 
   const handlePayment = async () => {
     if (!user) {
@@ -127,12 +125,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   };
 
   const handleClose = () => {
-    if (activeStep === 2) {
-      setActiveStep(0);
-      onClose();
-    } else {
-      onClose();
-    }
+    setActiveStep(1);
+    onClose();
   };
 
   return (
@@ -188,6 +182,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
         <Stepper
           activeStep={activeStep}
           sx={{
+            display: 'none',
             mb: 3,
             '& .MuiStepLabel-label': {
               fontSize: '0.875rem',
@@ -581,6 +576,26 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                   />
                 </Box>
 
+                <Divider sx={{ my: 2 }} />
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography variant="body2" sx={{ color: '#6B7280' }}>
+                    Base Price
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#1F2937', fontWeight: 600 }}>
+                    ₹{plan.price.toLocaleString('en-IN')}
+                  </Typography>
+                </Box>
+                {isCandidatePlan && (
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                    <Typography variant="body2" sx={{ color: '#6B7280' }}>
+                      GST ({SUBSCRIPTION_GST_PERCENT}%)
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#1F2937', fontWeight: 600 }}>
+                      +₹{gstAmount.toLocaleString('en-IN')}
+                    </Typography>
+                  </Box>
+                )}
                 <Divider sx={{ my: 2 }} />
 
                 <Box

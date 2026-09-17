@@ -37,7 +37,7 @@ import { useAuthStore } from '@store/index';
 import { authService } from '@services/supabase';
 import { notificationService, recruiterService } from '@services/api';
 import { ROUTES, USER_ROLES } from '@constants/index';
-import { generateInitials } from '@utils/index';
+import { formatDate, generateInitials } from '@utils/index';
 import { Logo } from '@components/common/Logo';
 import InstallApp from '@components/InstallApp/InstallApp';
 import { useSubscription, useThemeMode } from '@hooks/index';
@@ -69,6 +69,9 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
   const [supportOpen, setSupportOpen] = useState(false);
   const [ticketNotifCount, setTicketNotifCount] = useState(0);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [notificationAnchor, setNotificationAnchor] = useState<null | HTMLElement>(null);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [recruiterAvatar, setRecruiterAvatar] = useState('');
 
   useEffect(() => {
@@ -91,9 +94,13 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
       try {
         const unread = await notificationService.getUnreadNotifications(user.id);
         if (!mounted) return;
+        setNotifications(unread || []);
         setNotificationCount((unread || []).length);
       } catch {
-        if (mounted) setNotificationCount(0);
+        if (mounted) {
+          setNotifications([]);
+          setNotificationCount(0);
+        }
       }
     };
 
@@ -259,10 +266,23 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
     return route || '/';
   };
 
-  const handleNotificationsClick = () => {
-    if (!user) return;
-    navigate(ROUTES.DASHBOARD_NOTIFICATIONS);
+  const handleNotificationsClick = async (event: React.MouseEvent<HTMLElement>) => {
+    setNotificationAnchor(event.currentTarget);
+    if (!user?.id) return;
+
+    setNotificationsLoading(true);
+    try {
+      const unread = await notificationService.getUnreadNotifications(user.id);
+      setNotifications(unread || []);
+      setNotificationCount((unread || []).length);
+    } catch {
+      setNotifications([]);
+    } finally {
+      setNotificationsLoading(false);
+    }
   };
+
+  const handleNotificationsClose = () => setNotificationAnchor(null);
 
   const handleBackNavigation = () => {
     // If a specific back destination is provided, navigate directly to it
@@ -272,6 +292,11 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
     }
 
     const fallbackRoute = user ? dashboardRoute : ROUTES.HOME;
+
+    if (user?.role === USER_ROLES.JOB_SEEKER && location.pathname.startsWith('/dashboard/')) {
+      navigate(ROUTES.DASHBOARD, { replace: true });
+      return;
+    }
 
     if (window.history.length > 1) {
       const beforeRoute = getCurrentHashRoute();
@@ -678,6 +703,41 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                     <NotificationsIcon fontSize="small" />
                   </Badge>
                 </IconButton>
+                <Menu
+                  anchorEl={notificationAnchor}
+                  open={Boolean(notificationAnchor)}
+                  onClose={handleNotificationsClose}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  slotProps={{ paper: { sx: { mt: 1, width: 330, maxWidth: 'calc(100vw - 24px)', borderRadius: 2, boxShadow: '0 14px 35px rgba(15,23,42,0.16)', overflow: 'hidden' } } }}
+                >
+                  <Box sx={{ px: 2, py: 1.4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #E2E8F0' }}>
+                    <Typography sx={{ fontWeight: 800, color: '#0F172A', fontSize: 14 }}>Notifications</Typography>
+                    {notificationCount > 0 && <Typography sx={{ color: '#2563EB', fontWeight: 700, fontSize: 11 }}>{notificationCount} unread</Typography>}
+                  </Box>
+                  {notificationsLoading ? (
+                    <MenuItem disabled sx={{ py: 2, fontSize: 13 }}>Loading notifications...</MenuItem>
+                  ) : notifications.length === 0 ? (
+                    <MenuItem disabled sx={{ py: 2, fontSize: 13, whiteSpace: 'normal' }}>No new notifications</MenuItem>
+                  ) : (
+                    notifications.slice(0, 5).map((notification) => (
+                      <MenuItem key={notification.id} onClick={handleNotificationsClose} sx={{ display: 'block', px: 2, py: 1.2, whiteSpace: 'normal', borderBottom: '1px solid #F1F5F9' }}>
+                        <Typography sx={{ color: '#0F172A', fontWeight: 750, fontSize: 12.5, lineHeight: 1.35 }}>{notification.title || 'Notification'}</Typography>
+                        <Typography sx={{ color: '#64748B', fontSize: 11.5, mt: 0.35, lineHeight: 1.35 }}>{notification.message}</Typography>
+                        <Typography sx={{ color: '#94A3B8', fontSize: 10.5, mt: 0.45 }}>{formatDate(notification.created_at || notification.createdAt || new Date().toISOString())}</Typography>
+                      </MenuItem>
+                    ))
+                  )}
+                  <MenuItem
+                    onClick={() => {
+                      handleNotificationsClose();
+                      navigate(ROUTES.DASHBOARD_NOTIFICATIONS);
+                    }}
+                    sx={{ justifyContent: 'center', color: '#2563EB', fontWeight: 800, fontSize: 12.5, py: 1.2 }}
+                  >
+                    View all notifications
+                  </MenuItem>
+                </Menu>
                 <button
                   className="navbar-premium-btn"
                   onClick={() => navigate(user?.role === USER_ROLES.RECRUITER ? ROUTES.RECRUITER_SUBSCRIPTION : ROUTES.PRICING)}
@@ -729,26 +789,62 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                   anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
                   PaperProps={{
                     sx: {
-                          background: isDarkMode ? '#111827' : '#FFFFFF',
-                          color: isDarkMode ? '#F8FAFC' : '#0F172A',
-                          border: `1px solid ${isDarkMode ? '#334155' : '#E4E9F2'}`,
+                      background: isDarkMode ? '#111827' : '#FFFFFF',
+                      color: isDarkMode ? '#F8FAFC' : '#10233F',
+                      border: `1px solid ${isDarkMode ? '#334155' : '#E5EAF0'}`,
                       borderRadius: 2,
-                          boxShadow: isDarkMode ? '0 18px 40px rgba(0, 0, 0, 0.55)' : '0 18px 40px rgba(15, 23, 42, 0.12)',
-                      minWidth: 200,
+                      boxShadow: isDarkMode ? '0 18px 40px rgba(0, 0, 0, 0.55)' : '0 12px 35px rgba(15,23,42,0.12)',
+                      minWidth: isRecruiter ? 200 : 310,
+                      overflow: 'hidden',
                       mt: 1,
                           '& .MuiDivider-root': { borderColor: isDarkMode ? '#334155' : undefined },
                           '& .MuiMenuItem-root:hover': { backgroundColor: isDarkMode ? 'rgba(148, 163, 184, 0.14)' : undefined },
                     },
                   }}
                 >
-                  <Box sx={{ px: 2, py: 1.5 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                      {user.name}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {user.email}
-                    </Typography>
-                  </Box>
+                  {!isRecruiter && (
+                    <>
+                      <Box
+                        sx={{
+                          height: 96,
+                          position: 'relative',
+                          backgroundImage: "linear-gradient(90deg, rgba(5,22,42,0.92), rgba(7,29,53,0.45)), url('/images/career-hero.png')",
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center 60%',
+                        }}
+                      >
+                        <Box sx={{ position: 'absolute', left: 18, bottom: 14, width: 38, height: 2, bgcolor: '#D6A73A' }} />
+                      </Box>
+                      <Box sx={{ px: 2, pb: 1.5, pt: 0, position: 'relative' }}>
+                        <Avatar
+                          src={(user as any)?.avatar_url || (user as any)?.avatar || (user as any)?.user_metadata?.avatar_url || undefined}
+                          sx={{ width: 54, height: 54, mt: -3.25, mb: 0.8, bgcolor: '#F0C75E', border: '3px solid #FFFFFF', fontWeight: 800 }}
+                        >
+                          {generateInitials(user.name)}
+                        </Avatar>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#10233F', lineHeight: 1.2 }}>
+                          {user.name}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#64748B' }}>
+                          {(user as any)?.current_designation || (user as any)?.designation || 'Career professional'}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1.4, px: 1.2, py: 0.9, borderRadius: 1.5, bgcolor: '#F5F7FA', border: '1px solid #E5EAF0' }}>
+                          <Typography sx={{ fontSize: 11, color: '#64748B', fontWeight: 800, letterSpacing: 0.3 }}>CAREER SCORE</Typography>
+                          <Typography sx={{ fontSize: 18, color: '#A87613', fontWeight: 800 }}>99</Typography>
+                        </Box>
+                      </Box>
+                    </>
+                  )}
+                  {isRecruiter && (
+                    <Box sx={{ px: 2, py: 1.5 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                        {user.name}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        {user.email}
+                      </Typography>
+                    </Box>
+                  )}
                   <Divider sx={{ borderColor: 'divider' }} />
                   <MenuItem
                     component={RouterLink}

@@ -23,6 +23,7 @@ export const Pricing: React.FC = () => {
   const navigate = useNavigate();
   const [selectedPlanId, setSelectedPlanId] = useState(CANDIDATE_SUBSCRIPTION_PLANS[0]?.id || 'premium_monthly');
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
 
   const selectedPlan = useMemo(
     () => CANDIDATE_SUBSCRIPTION_PLANS.find((plan) => plan.id === selectedPlanId) ?? CANDIDATE_SUBSCRIPTION_PLANS[0],
@@ -38,14 +39,14 @@ export const Pricing: React.FC = () => {
 
   return (
     <Layout>
-      <Container maxWidth="lg" sx={{ py: 6 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
         {/* Header Section */}
         <Box
           sx={{
             textAlign: 'center',
-            mb: 10,
-            p: 4,
-            borderRadius: 4,
+            mb: { xs: 4, md: 6 },
+            p: { xs: 2.5, md: 3 },
+            borderRadius: 2,
             background: isDarkMode 
               ? 'linear-gradient(135deg, rgba(37,99,235,0.15), rgba(59,130,246,0.1))'
               : 'radial-gradient(circle at top, rgba(59,130,246,0.12), transparent 34%), radial-gradient(circle at bottom right, rgba(245,158,11,0.12), transparent 32%)',
@@ -55,10 +56,11 @@ export const Pricing: React.FC = () => {
           }}
         >
           <Typography 
-            variant="h2" 
+            variant="h3" 
             sx={{ 
               fontWeight: 700, 
-              mb: 2,
+              mb: 1,
+              fontSize: { xs: '1.85rem', md: '2.5rem' },
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               backgroundClip: 'text',
               WebkitBackgroundClip: 'text',
@@ -68,12 +70,12 @@ export const Pricing: React.FC = () => {
             Unlock Your Career Potential
           </Typography>
           <Typography 
-            variant="h6" 
+            variant="body1" 
             sx={{ 
               color: 'text.secondary', 
               maxWidth: 720, 
               mx: 'auto',
-              lineHeight: 1.6,
+              lineHeight: 1.5,
             }}
           >
             Get instant access to premium remote & hybrid jobs, AI-powered career tools, and exclusive opportunities. Choose your commitment level.
@@ -81,8 +83,8 @@ export const Pricing: React.FC = () => {
         </Box>
 
         {/* Pricing Cards - Two Column Layout */}
-        <Box sx={{ mb: 10 }}>
-          <Grid container spacing={4} sx={{ justifyContent: 'center' }}>
+        <Box sx={{ mb: { xs: 4, md: 6 } }}>
+          <Grid container spacing={{ xs: 2, md: 3 }} sx={{ justifyContent: 'center' }}>
             {CANDIDATE_SUBSCRIPTION_PLANS.map((plan) => (
               <Grid item xs={12} sm={10} md={6} key={plan.id}>
                 <Card
@@ -97,8 +99,8 @@ export const Pricing: React.FC = () => {
                     borderColor: selectedPlanId === plan.id || plan.recommended 
                       ? 'primary.main' 
                       : 'divider',
-                    transform: plan.recommended ? 'scale(1.02)' : 'scale(1)',
-                    borderRadius: 4,
+                    transform: 'scale(1)',
+                    borderRadius: 2,
                     background: isDarkMode
                       ? plan.recommended 
                         ? 'linear-gradient(180deg, rgba(37,99,235,0.15), rgba(15,23,42,0.8))'
@@ -107,15 +109,15 @@ export const Pricing: React.FC = () => {
                         ? 'linear-gradient(180deg, rgba(37,99,235,0.08), #FFFFFF)'
                         : '#FFFFFF',
                     boxShadow: selectedPlanId === plan.id || plan.recommended 
-                      ? '0 24px 60px rgba(37,99,235,0.14)' 
-                      : '0 12px 32px rgba(15,23,42,0.08)',
+                      ? '0 12px 28px rgba(37,99,235,0.14)' 
+                      : '0 8px 20px rgba(15,23,42,0.08)',
                     cursor: 'pointer',
                     transition: 'all 0.3s ease',
                     '&:hover': {
-                      transform: plan.recommended ? 'translateY(-8px) scale(1.02)' : 'translateY(-8px)',
+                      transform: 'translateY(-4px)',
                       boxShadow: selectedPlanId === plan.id || plan.recommended 
-                        ? '0 32px 80px rgba(37,99,235,0.2)' 
-                        : '0 20px 40px rgba(15,23,42,0.12)',
+                        ? '0 16px 36px rgba(37,99,235,0.2)' 
+                        : '0 12px 28px rgba(15,23,42,0.12)',
                     },
                   }}
                 >
@@ -123,15 +125,15 @@ export const Pricing: React.FC = () => {
                     <Box
                       sx={{
                         position: 'absolute',
-                        top: 15,
-                        right: 14,
+                        top: 12,
+                        right: 12,
                         background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 100%)',
                         color: '#FFFFFF',
-                        px: 3,
-                        py: 0.75,
+                        px: 2,
+                        py: 0.5,
                         borderRadius: '20px',
                         fontWeight: 700,
-                        fontSize: '0.8rem',
+                        fontSize: '0.7rem',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 0.8,
@@ -144,13 +146,13 @@ export const Pricing: React.FC = () => {
                     </Box>
                   )}
 
-                  <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', pt: plan.recommended ? 4 : 3 }}>
+                  <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: { xs: 2, md: 2.25 } }}>
                     {/* Plan Name & Duration */}
                     <Typography 
-                      variant="h5" 
+                      variant="h6" 
                       sx={{ 
                         fontWeight: 700, 
-                        mb: 1,
+                        mb: 0.5,
                         color: isDarkMode ? '#fff' : '#1F2937',
                       }}
                     >
@@ -161,18 +163,18 @@ export const Pricing: React.FC = () => {
                       sx={{ 
                         color: 'primary.main', 
                         fontWeight: 600,
-                        mb: 3,
-                        fontSize: '1rem',
+                        mb: 2,
+                        fontSize: '0.9rem',
                       }}
                     >
                       {plan.planType}
                     </Typography>
 
                     {/* Pricing Section */}
-                    <Box sx={{ mb: 4, pb: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
+                    <Box sx={{ mb: 2, pb: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
                       <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 1 }}>
                         <Typography 
-                          variant="h2" 
+                          variant="h3" 
                           sx={{ 
                             fontWeight: 700, 
                             color: 'primary.main',
@@ -194,7 +196,7 @@ export const Pricing: React.FC = () => {
                         variant="body2" 
                         sx={{ 
                           color: 'text.secondary',
-                          mb: 2,
+                          mb: 1,
                         }}
                       >
                         Gross: ₹{plan.grossPriceInr}
@@ -219,32 +221,32 @@ export const Pricing: React.FC = () => {
                     </Box>
 
                     {/* Features List */}
-                    <Box sx={{ mb: 4, flex: 1 }}>
+                    <Box sx={{ mb: 2, flex: 1 }}>
                       <Typography 
                         variant="subtitle2" 
                         sx={{ 
                           fontWeight: 600, 
-                          mb: 2,
+                          mb: 1,
                           color: isDarkMode ? 'rgba(255,255,255,0.9)' : '#1F2937',
                         }}
                       >
                         Included Features:
                       </Typography>
-                      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
-                        {plan.features.map((feature, idx) => (
+                      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, columnGap: 2, rowGap: 0.75 }}>
+                        {(expandedPlanId === plan.id ? plan.features : plan.features.slice(0, 8)).map((feature, idx) => (
                           <Box 
                             key={`${plan.id}-${idx}`}
                             sx={{ 
                               display: 'flex', 
                               alignItems: 'flex-start', 
-                              gap: 1,
+                              gap: 0.75,
                             }}
                           >
                             <CheckCircleIcon 
                               sx={{ 
-                                fontSize: 18, 
+                                fontSize: 16,
                                 color: 'success.main',
-                                mt: 0.3,
+                                mt: 0.15,
                                 flexShrink: 0,
                               }} 
                             />
@@ -252,7 +254,8 @@ export const Pricing: React.FC = () => {
                               variant="body2" 
                               sx={{ 
                                 color: isDarkMode ? 'rgba(255,255,255,0.8)' : 'text.secondary',
-                                lineHeight: 1.3,
+                                fontSize: '0.8rem',
+                                lineHeight: 1.25,
                               }}
                             >
                               {feature}
@@ -260,6 +263,18 @@ export const Pricing: React.FC = () => {
                           </Box>
                         ))}
                       </Box>
+                      <Button
+                        size="small"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setExpandedPlanId(expandedPlanId === plan.id ? null : plan.id);
+                        }}
+                        sx={{ mt: 1.25, px: 0, minWidth: 0, textTransform: 'none', fontWeight: 700 }}
+                      >
+                        {expandedPlanId === plan.id
+                          ? 'Show fewer features'
+                          : `View all ${plan.features.length} features`}
+                      </Button>
                     </Box>
 
                     {/* CTA Button */}
@@ -273,7 +288,7 @@ export const Pricing: React.FC = () => {
                       size="large"
                       sx={{
                         textTransform: 'none',
-                        py: 1.8,
+                        py: 1,
                         fontWeight: 700,
                         fontSize: '1rem',
                         borderRadius: 2,
