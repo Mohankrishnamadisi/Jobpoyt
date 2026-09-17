@@ -3,6 +3,7 @@ import type { JobSeeker, Recruiter, Job } from '../types';
 import { getFreshnessDate, diversifyJobsByCompany } from '@utils/index';
 import { isCandidatePremium, isSubscriptionActive } from '@utils/candidateSubscriptionHelpers';
 import { ensureRecruiterWelcomeBenefit, restoreRecruiterWelcomeJobPost, reserveRecruiterWelcomeJobPost } from '@utils/recruiterWelcomeBenefits';
+import { buildKeywordSearchVariants, detectRoleFamily, matchesRoleSearchIntent, scoreRoleSearchMatch } from '@utils/roleSearch';
 
 const normalizeJob = (job: Record<string, any>): Job => ({
   ...job,
@@ -321,6 +322,8 @@ export const jobService = {
 
     const keywordInput = filters?.keyword ? String(filters.keyword).trim() : '';
     const keywordLower = keywordInput.toLowerCase();
+    const keywordVariants = keywordInput ? buildKeywordSearchVariants(keywordInput) : [];
+    const isFrontendUiSearch = Boolean(keywordInput) && detectRoleFamily(keywordInput) === 'frontend_ui';
     const experienceInput = filters?.experience ? String(filters.experience).trim() : '';
     const numericExperienceYears = parseNumericExperienceYears(experienceInput);
 
@@ -332,11 +335,19 @@ export const jobService = {
         ? query.ilike('location', `%${locationTerms[0]}%`)
         : query.or(locationTerms.map((term) => `location.ilike.%${term.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`).join(','));
     }
-    if (keywordInput) {
+    if (keywordInput && !isFrontendUiSearch) {
       const escapedKeyword = keywordInput.replace(/%/g, '\\%').replace(/_/g, '\\_');
-      query = query.or(
-        `title.ilike.%${escapedKeyword}%,company_name.ilike.%${escapedKeyword}%,description.ilike.%${escapedKeyword}%,skills.cs.{${keywordInput}}`,
-      );
+      const variantClauses = keywordVariants.length > 0
+        ? keywordVariants.map((term) => {
+            const escapedTerm = term.replace(/%/g, '\\%').replace(/_/g, '\\_');
+            return `title.ilike.%${escapedTerm}%,company_name.ilike.%${escapedTerm}%,description.ilike.%${escapedTerm}%,skills.cs.{${escapedTerm}}`;
+          })
+        : [`title.ilike.%${escapedKeyword}%,company_name.ilike.%${escapedKeyword}%,description.ilike.%${escapedKeyword}%,skills.cs.{${escapedKeyword}}`];
+
+      query = query.or([
+        `title.ilike.%${escapedKeyword}%,company_name.ilike.%${escapedKeyword}%,description.ilike.%${escapedKeyword}%,skills.cs.{${escapedKeyword}}`,
+        ...variantClauses,
+      ].join(','));
     }
     if (Array.isArray(filters?.jobType) && filters.jobType.length > 0) {
       query = query.in('job_type', filters.jobType as string[]);
@@ -393,21 +404,65 @@ export const jobService = {
     const needsInMemoryFiltering = numericExperienceYears !== null;
 
     if (!needsInMemoryFiltering) {
-      // Fetch a larger window for diversification (2.5x the requested limit)
-      // This ensures better company distribution across all pages
-      const windowSize = Math.max(limit * 3, 50);
-      const { data, error, count } = await query
-        .order('created_at', { ascending: false })
-        .range((page - 1) * windowSize, (page - 1) * windowSize + windowSize - 1);
+      let data: Record<string, any>[] = [];
+      let count: number | null = null;
 
-      if (error) throw error;
+      if (isFrontendUiSearch) {
+        const batchSize = 1000;
+        let offset = 0;
 
-      // Diversify the fetched window and return only requested page size
-      const normalizedJobs = (data || []).map(normalizeJob);
-      const diversified = diversifyJobsByCompany(normalizedJobs);
-      const pageJobs = diversified.slice(0, limit);
+        while (true) {
+          const response = await query
+            .order('created_at', { ascending: false })
+            .range(offset, offset + batchSize - 1);
 
-      return { data: pageJobs, total: count || 0 };
+          if (response.error) throw response.error;
+
+          const batch = response.data || [];
+          data = data.concat(batch);
+          count = response.count;
+          offset += batch.length;
+
+          if (batch.length < batchSize || (count !== null && offset >= count)) {
+            break;
+          }
+        }
+      } else {
+        const pageStart = (page - 1) * limit;
+        const windowSize = Math.max(limit * 20, 500);
+        const response = await query
+          .order('created_at', { ascending: false })
+          .range(pageStart, pageStart + windowSize - 1);
+
+        if (response.error) throw response.error;
+
+        data = response.data || [];
+        count = response.count;
+      }
+
+      const normalizedJobs = data.map(normalizeJob);
+      const baseMatches = keywordInput
+        ? normalizedJobs.filter((job) => {
+            const skills = Array.isArray(job.skills) ? job.skills : [];
+            const directMatch = (
+              String(job.title || '').toLowerCase().includes(keywordLower)
+              || String(job.company_name || '').toLowerCase().includes(keywordLower)
+              || String(job.description || '').toLowerCase().includes(keywordLower)
+              || skills.some((skill) => String(skill || '').toLowerCase().includes(keywordLower))
+            );
+
+            return directMatch || matchesRoleSearchIntent(job as Record<string, unknown>, keywordInput);
+          })
+        : normalizedJobs;
+
+      const diversified = diversifyJobsByCompany(baseMatches);
+      const startIndex = (page - 1) * limit;
+      const pageJobs = diversified.slice(startIndex, startIndex + limit);
+
+      return {
+        data: pageJobs,
+        total: isFrontendUiSearch ? baseMatches.length : count || baseMatches.length || 0,
+      };
     }
 
     const { data, error } = await query.order('created_at', { ascending: false });
@@ -427,16 +482,21 @@ export const jobService = {
     const filteredJobs = keywordInput ? normalizedJobs.filter((job) => {
       const skills = Array.isArray(job.skills) ? job.skills : [];
 
-      return (
+      const literalMatch = (
         matchesKeyword(job.title)
         || matchesKeyword(job.company_name)
         || matchesKeyword(job.description)
         || skills.some((skill) => matchesKeyword(skill))
       );
+
+      return literalMatch || matchesRoleSearchIntent(job as Record<string, unknown>, keywordInput);
     }) : normalizedJobs;
 
-    // Diversify before pagination for consistent UX across pages
-    const diversified = diversifyJobsByCompany(filteredJobs);
+    const rankedJobs = keywordInput
+      ? [...filteredJobs].sort((a, b) => scoreRoleSearchMatch(b as Record<string, unknown>, keywordInput) - scoreRoleSearchMatch(a as Record<string, unknown>, keywordInput))
+      : filteredJobs;
+
+    const diversified = diversifyJobsByCompany(rankedJobs);
 
     const startIndex = (page - 1) * limit;
     const paginatedJobs = diversified.slice(startIndex, startIndex + limit);
@@ -732,24 +792,24 @@ export const jobService = {
       })
       .join(',');
 
-    // Fetch a larger window for diversification (2.5x the requested limit)
-    const windowSize = Math.max(limit * 3, 50);
+    const pageStart = (page - 1) * limit;
+    const windowSize = Math.max(limit * 20, 500);
     const { data, error, count } = await supabase
       .from('jobs')
       .select('*', { count: 'exact' })
       .eq('status', 'published')
       .or(skillQueries)
       .order('created_at', { ascending: false })
-      .range((page - 1) * windowSize, (page - 1) * windowSize + windowSize - 1);
+      .range(pageStart, pageStart + windowSize - 1);
 
     if (error) throw error;
 
-    // Diversify the fetched window and return only requested page size
     const normalizedJobs = (data || []).map(normalizeJob);
     const diversified = diversifyJobsByCompany(normalizedJobs);
-    const pageJobs = diversified.slice(0, limit);
+    const startIndex = (page - 1) * limit;
+    const pageJobs = diversified.slice(startIndex, startIndex + limit);
 
-    return { data: pageJobs, total: count || 0 };
+    return { data: pageJobs, total: count || diversified.length || 0 };
   },
 
   async getCategories() {

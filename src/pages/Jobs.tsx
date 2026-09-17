@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Box,
   Container,
@@ -53,21 +53,6 @@ const getMultiValues = (params: URLSearchParams, key: string, fallback: string[]
   return rawValue.split(',').map((value) => value.trim()).filter(Boolean);
 };
 
-const DEFAULT_LOCATIONS = [
-  'India',
-  'Hyderabad',
-  'Bengaluru',
-  'Chennai',
-  'Mumbai',
-  'Delhi',
-  'Pune',
-  'Kolkata',
-  'Coimbatore',
-  'Visakhapatnam',
-  'Noida',
-  'Gurgaon',
-];
-
 export const Jobs: React.FC = () => {
   const theme = useTheme();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -76,6 +61,7 @@ export const Jobs: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const latestRequestRef = useRef(0);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [showFilters, setShowFilters] = useState(false);
@@ -91,7 +77,7 @@ export const Jobs: React.FC = () => {
 
   const [filters, setFilters] = useState({
     keyword: searchParams.get('keyword') || '',
-    location: getMultiValues(searchParams, 'location', DEFAULT_LOCATIONS),
+    location: getMultiValues(searchParams, 'location'),
     experience: searchParams.get('experience') || '',
     education: searchParams.get('education') || '',
     freshness: searchParams.get('freshness') || '',
@@ -143,6 +129,22 @@ export const Jobs: React.FC = () => {
     });
   }, [debouncedKeyword, setSearchParams]);
 
+  const syncKeywordToUrl = useCallback((nextKeyword: string) => {
+    const normalizedKeyword = nextKeyword.trim();
+
+    setSearchParams((prev) => {
+      const currentKeyword = prev.get('keyword') || '';
+      if (currentKeyword === normalizedKeyword) {
+        return prev;
+      }
+
+      const params = new URLSearchParams(prev);
+      params.delete('keyword');
+      if (normalizedKeyword) params.set('keyword', normalizedKeyword);
+      return params;
+    });
+  }, [setSearchParams]);
+
   useEffect(() => {
     setFilters((previousFilters) => ({
       keyword: searchParams.get('keyword') || '',
@@ -161,6 +163,7 @@ export const Jobs: React.FC = () => {
   }, [searchParams]);
 
   const fetchJobs = useCallback(async () => {
+    const requestId = ++latestRequestRef.current;
     setLoading(true);
     setError(null);
     try {
@@ -175,9 +178,11 @@ export const Jobs: React.FC = () => {
       if (filters.category.length > 0) params.category = filters.category;
 
       const { data, total: count } = await jobService.getJobs(params, page, 12);
+      if (requestId !== latestRequestRef.current) return;
       setJobs(data);
       setTotal(count);
     } catch (err) {
+      if (requestId !== latestRequestRef.current) return;
       let loadError = 'Failed to load jobs';
       if (err && typeof err === 'object' && 'message' in err && typeof (err as any).message === 'string') {
         loadError = (err as any).message;
@@ -186,7 +191,9 @@ export const Jobs: React.FC = () => {
       }
       setError(loadError);
     } finally {
-      setLoading(false);
+      if (requestId === latestRequestRef.current) {
+        setLoading(false);
+      }
     }
   }, [
     debouncedKeyword,
@@ -217,6 +224,7 @@ export const Jobs: React.FC = () => {
     setPage(1);
 
     if (filterName === 'keyword') {
+      syncKeywordToUrl(String(value ?? ''));
       return;
     }
 
@@ -240,6 +248,7 @@ export const Jobs: React.FC = () => {
   };
 
   const clearFilters = () => {
+    setDebouncedKeyword('');
     setFilters({
       keyword: '',
       location: [],
@@ -254,6 +263,15 @@ export const Jobs: React.FC = () => {
     setPage(1);
   };
 
+  const itemsPerPage = 12;
+  const totalPages = Math.ceil(total / itemsPerPage);
+
+  useEffect(() => {
+    if (page > Math.max(totalPages, 1)) {
+      setPage(1);
+    }
+  }, [page, totalPages]);
+
   if (error) {
     return (
       <Layout>
@@ -262,8 +280,6 @@ export const Jobs: React.FC = () => {
     );
   }
 
-  const itemsPerPage = 12;
-  const totalPages = Math.ceil(total / itemsPerPage);
   const searchCount = (filters.keyword ? 1 : 0) + filters.location.length;
   const profileCount = [filters.experience, filters.education, filters.freshness].filter(Boolean).length;
   const jobTypeCount = filters.jobType.length;
@@ -818,7 +834,7 @@ export const Jobs: React.FC = () => {
                         if (chip.key === 'location') {
                           handleFilterChange('location', []);
                         } else if (chip.key === 'keyword') {
-                          handleFilterChange(chip.key, filters[chip.key].filter((value) => value !== chip.value));
+                          handleFilterChange('keyword', '');
                         } else {
                           handleFilterChange(chip.key, '');
                         }
