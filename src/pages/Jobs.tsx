@@ -53,6 +53,21 @@ const getMultiValues = (params: URLSearchParams, key: string, fallback: string[]
   return rawValue.split(',').map((value) => value.trim()).filter(Boolean);
 };
 
+const DEFAULT_LOCATIONS = [
+  'India',
+  'Hyderabad',
+  'Bengaluru',
+  'Chennai',
+  'Mumbai',
+  'Delhi',
+  'Pune',
+  'Kolkata',
+  'Coimbatore',
+  'Visakhapatnam',
+  'Noida',
+  'Gurgaon',
+];
+
 export const Jobs: React.FC = () => {
   const theme = useTheme();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -77,7 +92,7 @@ export const Jobs: React.FC = () => {
 
   const [filters, setFilters] = useState({
     keyword: searchParams.get('keyword') || '',
-    location: getMultiValues(searchParams, 'location'),
+    location: getMultiValues(searchParams, 'location', DEFAULT_LOCATIONS),
     experience: searchParams.get('experience') || '',
     education: searchParams.get('education') || '',
     freshness: searchParams.get('freshness') || '',
