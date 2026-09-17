@@ -828,10 +828,6 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                         <Typography variant="caption" sx={{ color: '#64748B' }}>
                           {(user as any)?.current_designation || (user as any)?.designation || 'Career professional'}
                         </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1.4, px: 1.2, py: 0.9, borderRadius: 1.5, bgcolor: '#F5F7FA', border: '1px solid #E5EAF0' }}>
-                          <Typography sx={{ fontSize: 11, color: '#64748B', fontWeight: 800, letterSpacing: 0.3 }}>CAREER SCORE</Typography>
-                          <Typography sx={{ fontSize: 18, color: '#A87613', fontWeight: 800 }}>99</Typography>
-                        </Box>
                       </Box>
                     </>
                   )}

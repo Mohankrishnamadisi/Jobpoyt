@@ -1,8 +1,12 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Box,
+  Button,
   Chip,
   IconButton,
+  InputAdornment,
+  InputBase,
   List,
   ListItemButton,
   ListItemText,
@@ -12,14 +16,17 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { DeleteOutline, DragIndicator, StickyNote2 } from '@mui/icons-material';
+import { BookOpenText, CheckCircle2, Code2, FileText, GripVertical, MessageSquarePlus, PenLine, Search, Trash2 } from 'lucide-react';
 import { LearningEditor } from './LearningEditor';
+import { LearningCodeEditor } from './LearningCodeEditor';
 import { LearningVideo } from '@services/learningVideos';
 import { type LearningNote } from '@services/learningNotes';
+import { CODE_LANGUAGES, hasLearningCodeSnippet, readLearningCodeSnippet } from '@utils/learningCodeNote';
 
 interface EnhancedLearningNotesPanelProps {
   selectedVideo?: LearningVideo | null;
   noteTitle: string;
+  noteTitleError?: boolean;
   noteContent: string;
   onNoteTitleChange: (title: string) => void;
   onNoteChange: (content: string) => void;
@@ -35,6 +42,7 @@ interface EnhancedLearningNotesPanelProps {
   onCreateNewNote: () => void;
   onSaveNote: () => void;
   onDeleteHistoryNote: (noteId: string) => void;
+  savedNotesPortalTarget?: HTMLElement | null;
 }
 
 const toPlainText = (html: string) =>
@@ -58,6 +66,7 @@ const formatSavedAt = (timestamp: number) => {
 export const EnhancedLearningNotesPanel: React.FC<EnhancedLearningNotesPanelProps> = ({
   selectedVideo,
   noteTitle,
+  noteTitleError = false,
   noteContent,
   onNoteTitleChange,
   onNoteChange,
@@ -73,10 +82,16 @@ export const EnhancedLearningNotesPanel: React.FC<EnhancedLearningNotesPanelProp
   onCreateNewNote,
   onSaveNote,
   onDeleteHistoryNote,
+  savedNotesPortalTarget,
 }) => {
   const orderStorageKey = `actro_learning_notes_order:${userId}`;
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [orderedIds, setOrderedIds] = useState<string[]>([]);
+  const [notesSearch, setNotesSearch] = useState('');
+  const [editorFocusRequest, setEditorFocusRequest] = useState(0);
+  const [editorMode, setEditorMode] = useState<'write' | 'code'>('write');
+  const editorSectionRef = useRef<HTMLDivElement | null>(null);
+  const notesSectionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!userId) {
@@ -92,6 +107,10 @@ export const EnhancedLearningNotesPanel: React.FC<EnhancedLearningNotesPanelProp
     }
   }, [orderStorageKey, userId]);
 
+  useEffect(() => {
+    setEditorMode(hasLearningCodeSnippet(noteContent) ? 'code' : 'write');
+  }, [activeNoteId]);
+
   const orderedHistory = useMemo(() => {
     if (!notesHistory.length) return [];
     const rank = new Map(orderedIds.map((id, index) => [id, index]));
@@ -104,6 +123,14 @@ export const EnhancedLearningNotesPanel: React.FC<EnhancedLearningNotesPanelProp
     });
     return rows;
   }, [notesHistory, orderedIds]);
+
+  const filteredHistory = useMemo(() => {
+    const query = notesSearch.trim().toLowerCase();
+    if (!query) return orderedHistory;
+    return orderedHistory.filter((note) =>
+      [note.title, toPlainText(note.content || '')].some((value) => String(value || '').toLowerCase().includes(query))
+    );
+  }, [notesSearch, orderedHistory]);
 
   const persistOrder = (ids: string[]) => {
     setOrderedIds(ids);
@@ -136,119 +163,248 @@ export const EnhancedLearningNotesPanel: React.FC<EnhancedLearningNotesPanelProp
     setDraggedId(null);
   };
 
+  const focusEditor = () => {
+    setEditorMode('write');
+    editorSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setEditorFocusRequest((request) => request + 1);
+  };
+
+  const handleNewChat = () => {
+    onCreateNewNote();
+    editorSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (editorMode === 'write') setEditorFocusRequest((request) => request + 1);
+  };
+
   return (
     <Paper
       elevation={0}
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
+        height: 'auto',
         width: '100%',
         minHeight: 0,
+        p: { xs: 0.75, sm: 1 },
         borderRadius: 3,
-        border: (theme) => `1px solid ${theme.palette.divider}`,
-        overflow: 'hidden',
-        bgcolor: 'background.paper',
-        boxShadow: (theme) =>
-          theme.palette.mode === 'dark'
-            ? '0 4px 16px rgba(0, 0, 0, 0.3)'
-            : '0 4px 16px rgba(15, 23, 42, 0.08)',
+        border: '1px solid #E2E8F0',
+        overflowY: 'visible',
+        overflowX: 'hidden',
+        bgcolor: '#F4F7FB',
+        boxShadow: '0 8px 28px rgba(15, 35, 63, 0.08)',
       }}
     >
-      {/* Header */}
+      {/* Notes hero */}
       <Box
         sx={{
-          px: 1.5,
-          py: 1.2,
-          flexShrink: 0,
-          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)',
+          position: 'relative',
+          p: { xs: 1.1, sm: 1.25 },
+          borderRadius: 2.5,
+          overflow: 'hidden',
+          color: '#fff',
+          backgroundColor: '#071D35',
+          backgroundImage:
+            "linear-gradient(90deg, rgba(5, 20, 40, 0.97) 0%, rgba(7, 29, 53, 0.9) 46%, rgba(7, 29, 53, 0.48) 76%, rgba(7, 29, 53, 0.2) 100%), url('/images/notes.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center right',
+          backgroundRepeat: 'no-repeat',
+          boxShadow: '0 12px 28px rgba(7, 29, 53, 0.2)',
         }}
       >
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-          <StickyNote2 sx={{ fontSize: 19, color: 'primary.main' }} />
-          <Typography fontWeight={800} sx={{ fontSize: '0.9rem' }}>
-            Learning Notes
-          </Typography>
-          <Box sx={{ flex: 1 }} />
-          {isSavingNote && (
-            <Typography variant="caption" sx={{ fontSize: '0.68rem', color: 'primary.main', fontWeight: 700 }}>
-              Saving…
-            </Typography>
-          )}
-          {!isSavingNote && lastSavedAt && (
-            <Typography variant="caption" sx={{ fontSize: '0.68rem', color: 'success.main', fontWeight: 700 }}>
-              ✓ Saved
-            </Typography>
-          )}
+        <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
+          <Stack direction="row" spacing={0.9} alignItems="center" sx={{ minWidth: 0 }}>
+            <Box
+              sx={{
+                width: { xs: 32, sm: 34 },
+                height: { xs: 32, sm: 34 },
+                flexShrink: 0,
+                borderRadius: 1.6,
+                display: 'grid',
+                placeItems: 'center',
+                color: '#F4C95D',
+                bgcolor: 'rgba(255,255,255,0.12)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                backdropFilter: 'blur(8px)',
+              }}
+            >
+              <BookOpenText size={17} />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                component="h2"
+                sx={{ fontFamily: 'Manrope, sans-serif', fontWeight: 800, fontSize: { xs: '1rem', sm: '1.08rem' }, lineHeight: 1.1 }}
+              >
+                Learning Notes
+              </Typography>
+              <Typography sx={{ mt: 0.55, maxWidth: 280, color: 'rgba(255,255,255,0.8)', fontSize: { xs: '0.62rem', sm: '0.67rem' }, lineHeight: 1.35 }}>
+                Capture ideas. Build your knowledge. Grow your career.
+              </Typography>
+            </Box>
+          </Stack>
+
+          <Stack spacing={0.4} alignItems="flex-end" sx={{ flexShrink: 0 }}>
+            <Chip
+              size="small"
+              icon={<CheckCircle2 size={13} />}
+              label={isSavingNote ? 'Saving...' : lastSavedAt ? 'Saved' : 'Ready'}
+              sx={{
+                height: 22,
+                fontSize: '0.68rem',
+                color: '#fff',
+                fontWeight: 800,
+                bgcolor: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.18)',
+                backdropFilter: 'blur(10px)',
+                '& .MuiChip-icon': { color: isSavingNote ? '#F4C95D' : '#4ADE80' },
+              }}
+            />
+            <Chip
+              size="small"
+              label={`${orderedHistory.length} ${orderedHistory.length === 1 ? 'Note' : 'Notes'}`}
+              sx={{ height: 22, fontSize: '0.68rem', color: '#fff', fontWeight: 800, bgcolor: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.18)' }}
+            />
+          </Stack>
         </Stack>
 
+      {/* Workspace navigation */}
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        alignItems={{ xs: 'stretch', sm: 'center' }}
+        gap={0.7}
+        sx={{ mt: 0.8, mb: 0.7 }}
+      >
+        <Stack direction="row" spacing={0.5} sx={{ overflowX: 'auto', flex: 1, scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
+          <Button
+            size="small"
+            startIcon={<PenLine size={13} />}
+            onClick={focusEditor}
+            sx={{ minHeight: 28, height: 28, px: 1, py: 0.25, flexShrink: 0, color: editorMode === 'write' ? '#071D35' : '#fff', fontSize: '0.7rem', fontWeight: 800, bgcolor: editorMode === 'write' ? '#D6A73A' : 'rgba(7,29,53,0.4)', border: `1px solid ${editorMode === 'write' ? '#D6A73A' : 'rgba(255,255,255,0.18)'}`, '& .MuiButton-startIcon': { mr: 0.6 }, '&:hover': { bgcolor: editorMode === 'write' ? '#D6A73A' : 'rgba(255,255,255,0.14)' } }}
+          >
+            Write
+          </Button>
+          <Button
+            size="small"
+            startIcon={<Code2 size={13} />}
+            onClick={() => setEditorMode('code')}
+            disabled={!selectedVideo}
+            sx={{ minHeight: 28, height: 28, px: 1, py: 0.25, flexShrink: 0, color: editorMode === 'code' ? '#071D35' : '#fff', fontSize: '0.7rem', fontWeight: 800, bgcolor: editorMode === 'code' ? '#D6A73A' : 'rgba(7,29,53,0.4)', border: `1px solid ${editorMode === 'code' ? '#D6A73A' : 'rgba(255,255,255,0.18)'}`, backdropFilter: 'blur(8px)', '& .MuiButton-startIcon': { mr: 0.6 }, '&:hover': { bgcolor: editorMode === 'code' ? '#D6A73A' : '#071D35' } }}
+          >
+            Code
+          </Button>
+          <Button
+            size="small"
+            startIcon={<MessageSquarePlus size={13} />}
+            onClick={handleNewChat}
+            disabled={!selectedVideo}
+            sx={{ minHeight: 28, height: 28, px: 1, py: 0.25, flexShrink: 0, color: '#fff', fontSize: '0.7rem', fontWeight: 700, bgcolor: 'rgba(37,99,235,0.45)', border: '1px solid rgba(147,197,253,0.32)', backdropFilter: 'blur(8px)', '& .MuiButton-startIcon': { mr: 0.6 }, '&:hover': { bgcolor: 'rgba(37,99,235,0.65)' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.4)', borderColor: 'rgba(255,255,255,0.12)' } }}
+          >
+            New Chat
+          </Button>
+        </Stack>
+
+        <Paper
+          elevation={0}
+          sx={{ display: 'flex', alignItems: 'center', gap: 0.7, px: 1, height: 32, minWidth: { sm: 175 }, borderRadius: 1.7, border: '1px solid rgba(255,255,255,0.28)', bgcolor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(10px)' }}
+        >
+          <Search size={14} color="#64748B" />
+          <InputBase
+            value={notesSearch}
+            onChange={(event) => setNotesSearch(event.target.value)}
+            placeholder="Search notes..."
+            inputProps={{ 'aria-label': 'Search saved notes' }}
+            sx={{ flex: 1, minWidth: 0, fontSize: '0.72rem', color: '#10233F' }}
+          />
+        </Paper>
+      </Stack>
+
+      <Box ref={editorSectionRef}>
         <TextField
-          size="small"
           fullWidth
+          error={noteTitleError}
           value={noteTitle}
           onChange={(event) => onNoteTitleChange(event.target.value)}
           placeholder="Note title — e.g. React hooks class 2"
           disabled={!selectedVideo}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <FileText size={18} color={noteTitleError ? '#DC2626' : '#D6A73A'} />
+              </InputAdornment>
+            ),
+          }}
           sx={{
             '& .MuiInputBase-root': {
-              bgcolor: 'background.paper',
-              borderRadius: 1.5,
-              fontSize: '0.85rem',
+              height: 40,
+              bgcolor: noteTitleError ? 'rgba(254,226,226,0.96)' : 'rgba(255,255,255,0.94)',
+              borderRadius: 2,
+              fontSize: '0.78rem',
+              fontWeight: 650,
+              color: '#10233F',
             },
-            '& .MuiInputBase-input': { py: 0.85 },
+            '& .MuiOutlinedInput-notchedOutline': { borderColor: noteTitleError ? '#DC2626' : 'rgba(255,255,255,0.45)', borderWidth: noteTitleError ? 2 : 1 },
+            '& .Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: noteTitleError ? '#DC2626' : '#2563EB', borderWidth: noteTitleError ? 2 : 1 },
+            '& .Mui-focused': { boxShadow: noteTitleError ? '0 0 0 3px rgba(220,38,38,0.16)' : '0 0 0 3px rgba(37,99,235,0.1)' },
           }}
         />
+      </Box>
       </Box>
 
       {/* Editor */}
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden' }}>
-        <LearningEditor
-          content={noteContent}
-          onChange={onNoteChange}
-          onTimestamp={onAddTimestamp}
-          onClear={onClearNote}
-          onSave={onSaveNote}
-          onNewChat={onCreateNewNote}
-          disabled={!selectedVideo}
-          isSaving={isSavingNote}
-        />
+      <Box sx={{ minHeight: 430, mt: 1.25 }}>
+        {editorMode === 'write' ? (
+          <LearningEditor
+            content={noteContent}
+            onChange={onNoteChange}
+            onTimestamp={onAddTimestamp}
+            onClear={onClearNote}
+            onSave={onSaveNote}
+            onNewChat={onCreateNewNote}
+            disabled={!selectedVideo}
+            isSaving={isSavingNote}
+            lastSavedAt={lastSavedAt}
+            focusRequest={editorFocusRequest}
+          />
+        ) : (
+          <LearningCodeEditor
+            content={noteContent}
+            onChange={onNoteChange}
+            onSave={onSaveNote}
+            disabled={!selectedVideo}
+            isSaving={isSavingNote}
+          />
+        )}
       </Box>
 
-      <Box
-        sx={{
-          p: 1.1,
-          flexShrink: 0,
-          borderTop: (theme) => `1px solid ${theme.palette.divider}`,
-          bgcolor: (theme) =>
-            theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(15, 23, 42, 0.02)',
-        }}
-      >
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.7 }}>
-          <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-            Saved Records
-          </Typography>
-          <Chip size="small" label={orderedHistory.length} sx={{ height: 20, fontWeight: 700, fontSize: '0.7rem' }} />
-        </Stack>
-
+      {savedNotesPortalTarget && createPortal(
         <Box
+          ref={notesSectionRef}
           sx={{
-            maxHeight: 156,
-            overflowY: 'auto',
-            mx: -0.4,
-            px: 0.4,
+            p: { xs: 1.25, sm: 1.5 },
+            borderRadius: 2.5,
+            border: '1px solid #E2E8F0',
+            bgcolor: '#fff',
+            boxShadow: '0 6px 20px rgba(15, 35, 63, 0.05)',
           }}
         >
-          {orderedHistory.length === 0 && (
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.1 }}>
+          <Box>
+            <Typography sx={{ color: '#10233F', fontWeight: 800, fontSize: '0.9rem' }}>Saved Notes</Typography>
+            <Typography sx={{ color: '#64748B', fontSize: '0.7rem' }}>Your recent notes and ideas</Typography>
+          </Box>
+          <Chip size="small" label={`${orderedHistory.length} saved`} sx={{ height: 23, fontWeight: 800, fontSize: '0.68rem', color: '#123B5D', bgcolor: '#EFF6FF' }} />
+        </Stack>
+
+        <Box>
+          {filteredHistory.length === 0 && (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', py: 0.5 }}>
-              No saved records yet.
+              {notesSearch ? 'No notes match your search.' : 'No saved notes yet.'}
             </Typography>
           )}
 
-          <List disablePadding dense sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-            {orderedHistory.map((note) => {
+          <List disablePadding sx={{ display: 'flex', flexDirection: 'column', gap: 0.8 }}>
+            {filteredHistory.map((note) => {
               const isActive = activeNoteId === note.id;
               const preview = toPlainText(note.content || '');
+              const codeSnippet = readLearningCodeSnippet(note.content || '');
+              const isCodeNote = hasLearningCodeSnippet(note.content || '');
+              const languageLabel = CODE_LANGUAGES.find((language) => language.value === codeSnippet.language)?.label;
               return (
                 <ListItemButton
                   key={note.id}
@@ -261,34 +417,32 @@ export const EnhancedLearningNotesPanel: React.FC<EnhancedLearningNotesPanelProp
                   onDragEnd={handleDragEnd}
                   onClick={() => onOpenHistoryNote(note.id)}
                   sx={{
-                    py: 0.6,
-                    pl: 0.6,
-                    pr: 0.6,
-                    gap: 0.6,
-                    borderRadius: 1.5,
-                    alignItems: 'center',
-                    border: (theme) =>
-                      `1px solid ${isActive ? theme.palette.primary.main : theme.palette.divider}`,
+                    py: 1,
+                    pl: 0.8,
+                    pr: 0.7,
+                    gap: 0.8,
+                    borderRadius: 2,
+                    alignItems: 'flex-start',
+                    border: `1px solid ${isActive ? 'rgba(214,167,58,0.55)' : '#E2E8F0'}`,
+                    borderLeft: `3px solid ${isActive ? '#D6A73A' : '#E2E8F0'}`,
+                    bgcolor: isActive ? '#FFFCF3' : '#fff',
                     opacity: draggedId === note.id ? 0.5 : 1,
-                    transition: 'border-color 0.18s ease, background-color 0.18s ease',
-                    '&.Mui-selected': {
-                      bgcolor: (theme) =>
-                        theme.palette.mode === 'dark' ? 'rgba(25, 103, 210, 0.14)' : 'rgba(25, 103, 210, 0.07)',
-                    },
-                    '&:hover': { borderColor: 'primary.main' },
+                    transition: 'border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease',
+                    '&.Mui-selected': { bgcolor: '#FFFCF3' },
+                    '&:hover': { borderColor: '#93C5FD', transform: 'translateY(-1px)', boxShadow: '0 5px 14px rgba(15,35,63,0.06)' },
                     '&:hover .note-drag, &:hover .note-delete': { opacity: 1 },
                   }}
                 >
-                  <DragIndicator
-                    className="note-drag"
-                    sx={{
-                      fontSize: 16,
-                      color: 'text.disabled',
-                      cursor: 'grab',
-                      opacity: { xs: 1, md: 0.25 },
-                      transition: 'opacity 0.18s ease',
-                    }}
-                  />
+                  {isCodeNote ? (
+                    <Code2 size={16} color="#2563EB" style={{ marginTop: 2, flexShrink: 0 }} />
+                  ) : (
+                    <GripVertical
+                      className="note-drag"
+                      size={16}
+                      color="#94A3B8"
+                      style={{ cursor: 'grab', marginTop: 2, flexShrink: 0 }}
+                    />
+                  )}
 
                   <ListItemText
                     sx={{ my: 0, minWidth: 0 }}
@@ -297,10 +451,10 @@ export const EnhancedLearningNotesPanel: React.FC<EnhancedLearningNotesPanelProp
                         <Typography
                           noWrap
                           sx={{
-                            fontSize: '0.79rem',
-                            fontWeight: 700,
+                            fontSize: '0.8rem',
+                            fontWeight: 800,
                             lineHeight: 1.35,
-                            color: isActive ? 'primary.main' : 'text.primary',
+                            color: isActive ? '#8A681D' : '#10233F',
                           }}
                         >
                           {note.title || 'Learning Note'}
@@ -311,6 +465,9 @@ export const EnhancedLearningNotesPanel: React.FC<EnhancedLearningNotesPanelProp
                         >
                           {formatSavedAt(note.updatedAt)}
                         </Typography>
+                        {isCodeNote && (
+                          <Chip size="small" label={languageLabel} sx={{ height: 18, fontSize: '0.6rem', fontWeight: 800, color: '#1D4ED8', bgcolor: '#EFF6FF' }} />
+                        )}
                       </Stack>
                     }
                     secondary={
@@ -335,15 +492,15 @@ export const EnhancedLearningNotesPanel: React.FC<EnhancedLearningNotesPanelProp
                       }}
                       sx={{
                         flexShrink: 0,
-                        width: 26,
-                        height: 26,
-                        color: 'text.secondary',
+                        width: 28,
+                        height: 28,
+                        color: '#64748B',
                         opacity: { xs: 1, md: 0.35 },
                         transition: 'opacity 0.18s ease, color 0.18s ease',
                         '&:hover': { color: 'error.main', bgcolor: 'error.light' },
                       }}
                     >
-                      <DeleteOutline sx={{ fontSize: 16 }} />
+                      <Trash2 size={15} />
                     </IconButton>
                   </Tooltip>
                 </ListItemButton>
@@ -351,7 +508,9 @@ export const EnhancedLearningNotesPanel: React.FC<EnhancedLearningNotesPanelProp
             })}
           </List>
         </Box>
-      </Box>
+        </Box>,
+        savedNotesPortalTarget
+      )}
     </Paper>
   );
 };

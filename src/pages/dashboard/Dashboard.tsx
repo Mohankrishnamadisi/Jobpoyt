@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Avatar,
+  Alert,
   Badge,
   Box,
   Button,
@@ -259,6 +260,32 @@ export const Dashboard: React.FC = () => {
 
     loadProfile();
   }, [user?.id, user?.name, user?.email]);
+
+  useEffect(() => {
+    if (!user?.id || profileCompletion >= 70) return undefined;
+
+    let mounted = true;
+    const sendProfileReminder = async () => {
+      try {
+        await notificationService.createNotification(
+          user.id,
+          'profile_reminder',
+          'Please update your profile',
+          `Your profile is ${profileCompletion}% complete. Update your profile to improve your job matches.`,
+          { route: ROUTES.DASHBOARD_PROFILE, profileCompletion },
+        );
+        if (mounted) setNotificationsCount((count) => count + 1);
+      } catch (error) {
+        console.error('Failed to send profile reminder:', error);
+      }
+    };
+
+    const interval = window.setInterval(sendProfileReminder, 10 * 60 * 1000);
+    return () => {
+      mounted = false;
+      window.clearInterval(interval);
+    };
+  }, [profileCompletion, user?.id]);
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -741,6 +768,24 @@ export const Dashboard: React.FC = () => {
                                 <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: 13 }}>{Math.min(100, profileCompletion)}%</Typography>
                               </Box>
                               <Typography sx={{ color: 'rgba(255,255,255,0.62)', fontSize: 11, mt: 0.65 }}>Updated {profile?.updated_at ? formatDate(profile.updated_at) : 'recently'}</Typography>
+                              {profileCompletion < 70 && (
+                                <Alert
+                                  severity="warning"
+                                  action={(
+                                    <Button
+                                      color="inherit"
+                                      size="small"
+                                      onClick={() => navigate(ROUTES.DASHBOARD_PROFILE)}
+                                      sx={{ fontWeight: 800, textTransform: 'none', whiteSpace: 'nowrap' }}
+                                    >
+                                      Update Profile
+                                    </Button>
+                                  )}
+                                  sx={{ mt: 1.2, py: 0, alignItems: 'center', '& .MuiAlert-message': { fontSize: 12, fontWeight: 700 } }}
+                                >
+                                  Please update your profile to improve your job matches.
+                                </Alert>
+                              )}
                             </Box>
                           </Grid>
                         </Grid>

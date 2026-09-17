@@ -84,6 +84,7 @@ export const LearningPage: React.FC = () => {
   const [isPlayerFullscreen, setIsPlayerFullscreen] = useState(false);
   const [noteContent, setNoteContent] = useState('');
   const [noteTitle, setNoteTitle] = useState('');
+  const [noteTitleError, setNoteTitleError] = useState(false);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [activeNoteVideoId, setActiveNoteVideoId] = useState<string | null>(null);
   const [isCreatingNewNote, setIsCreatingNewNote] = useState(false);
@@ -91,6 +92,7 @@ export const LearningPage: React.FC = () => {
   const [isSavingNote, setIsSavingNote] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
   const [notesCreated, setNotesCreated] = useState(0);
+  const [savedNotesPortalTarget, setSavedNotesPortalTarget] = useState<HTMLElement | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -268,52 +270,37 @@ export const LearningPage: React.FC = () => {
   useEffect(() => {
     if (!user?.id || !selectedVideo?.video_id) {
       setNoteTitle('');
+      setNoteTitleError(false);
       setNoteContent('');
       setLastSavedAt(null);
       setActiveNoteId(null);
       setActiveNoteVideoId(null);
+      setIsCreatingNewNote(false);
       return;
     }
-    let active = true;
-    (async () => {
-      try {
-        const savedNote = await learningNotesService.getLatestNoteForVideo(user.id, selectedVideo.video_id);
-        if (!active) return;
-        if (savedNote) {
-          setNoteTitle(savedNote.title || '');
-          setNoteContent(savedNote.content);
-          setLastSavedAt(savedNote.updatedAt);
-          setActiveNoteId(savedNote.id);
-          setActiveNoteVideoId(savedNote.videoId || selectedVideo.video_id);
-          setIsCreatingNewNote(false);
-        } else {
-          setNoteTitle('');
-          setNoteContent('');
-          setLastSavedAt(null);
-          setActiveNoteId(null);
-          setActiveNoteVideoId(selectedVideo.video_id);
-          setIsCreatingNewNote(false);
-        }
-      } catch (loadError) {
-        if (active) {
-          console.error('Failed to load learning note:', loadError);
-          setNoteTitle('');
-          setNoteContent('');
-          setLastSavedAt(null);
-          setActiveNoteId(null);
-          setActiveNoteVideoId(selectedVideo.video_id);
-          setIsCreatingNewNote(false);
-        }
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
+    setNoteTitle('');
+    setNoteTitleError(false);
+    setNoteContent('');
+    setLastSavedAt(null);
+    setActiveNoteId(null);
+    setActiveNoteVideoId(selectedVideo.video_id);
+    setIsCreatingNewNote(true);
   }, [selectedVideo?.video_id, user?.id]);
 
   const handleSaveNote = useCallback(async () => {
     if (!user?.id) return;
+
+    if (!noteTitle.trim()) {
+      setNoteTitleError(true);
+      void Swal.fire({
+        icon: 'warning',
+        title: 'Note title required',
+        text: 'Please add a note title before saving.',
+        confirmButtonText: 'OK',
+      });
+      return;
+    }
+    setNoteTitleError(false);
 
     const noteVideoId = activeNoteVideoId || selectedVideo?.video_id;
     if (!noteVideoId) return;
@@ -329,6 +316,7 @@ export const LearningPage: React.FC = () => {
         forceCreate: isCreatingNewNote,
       });
       setNoteTitle(saved.title || noteTitle);
+      setNoteTitleError(false);
       setActiveNoteId(saved.id);
       setActiveNoteVideoId(saved.videoId || noteVideoId);
       setIsCreatingNewNote(false);
@@ -472,6 +460,7 @@ export const LearningPage: React.FC = () => {
       setActiveNoteVideoId(note.videoId || null);
       setIsCreatingNewNote(false);
       setNoteTitle(note.title || '');
+      setNoteTitleError(false);
       setNoteContent(note.content);
       setLastSavedAt(note.updatedAt);
     } catch (historyOpenError) {
@@ -531,6 +520,7 @@ export const LearningPage: React.FC = () => {
     setActiveNoteId(null);
     setActiveNoteVideoId(selectedVideo.video_id);
     setNoteTitle('');
+    setNoteTitleError(false);
     setNoteContent('');
     setLastSavedAt(null);
     setIsCreatingNewNote(true);
@@ -570,7 +560,8 @@ export const LearningPage: React.FC = () => {
   );
 
   const sidebar = (
-    <LearningStudioSidebar      activeView={activeView}
+    <LearningStudioSidebar
+      activeView={activeView}
       onViewChange={setActiveView}
       counts={sidebarCounts}
       activeCategory={activeCategory}
@@ -589,7 +580,11 @@ export const LearningPage: React.FC = () => {
       selectedVideo={selectedVideo}
       noteTitle={noteTitle}
       noteContent={noteContent}
-      onNoteTitleChange={setNoteTitle}
+      onNoteTitleChange={(title) => {
+        setNoteTitle(title);
+        if (title.trim()) setNoteTitleError(false);
+      }}
+      noteTitleError={noteTitleError}
       onNoteChange={setNoteContent}
       onAddTimestamp={handleAddTimestamp}
       onClearNote={handleClearNote}
@@ -603,6 +598,7 @@ export const LearningPage: React.FC = () => {
       userId={user?.id || ''}
       onCreateNewNote={handleCreateNewNote}
       onDeleteHistoryNote={handleDeleteHistoryNote}
+      savedNotesPortalTarget={savedNotesPortalTarget}
     />
   );
 
@@ -673,7 +669,7 @@ export const LearningPage: React.FC = () => {
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: { xs: '1fr', lg: '200px minmax(0, 1fr)' },
+              gridTemplateColumns: 'minmax(0, 1fr)',
               gap: { xs: 2.5, md: 3 },
               alignItems: 'start',
             }}
@@ -715,8 +711,8 @@ export const LearningPage: React.FC = () => {
                 display: 'grid',
                 gridTemplateColumns: {
                   xs: '1fr',
-                  lg: 'minmax(0, 2.5fr) minmax(300px, 1fr)',
-                  xl: 'minmax(0, 2.7fr) minmax(310px, 1fr)',
+                  lg: 'minmax(0, 1.8fr) minmax(360px, 1fr)',
+                  xl: 'minmax(0, 1.9fr) minmax(400px, 1fr)',
                 },
                 gap: { xs: 2.5, md: 3 },
                 alignItems: 'start',
@@ -801,13 +797,13 @@ export const LearningPage: React.FC = () => {
                   sx={{
                     display: isPlayerFullscreen ? 'none' : 'flex',
                     minWidth: 0,
-                    height: { xs: 600, sm: 640, lg: 'calc(100vh - 150px)' },
-                    minHeight: { lg: 600 },
-                    maxHeight: { lg: 840 },
+                    height: 'auto',
                   }}
                 >
                   {!isPlayerFullscreen && notesPanel}
                 </Box>
+
+                <Box ref={setSavedNotesPortalTarget} />
 
                 <Paper
                   elevation={0}

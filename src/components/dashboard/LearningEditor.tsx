@@ -1,11 +1,13 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useEditor, useEditorState, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import CodeBlock from '@tiptap/extension-code-block';
 import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
 import {
   Box,
   Button,
+  Chip,
   FormControl,
   IconButton,
   Divider,
@@ -20,16 +22,41 @@ import { KeyboardArrowDownRounded } from '@mui/icons-material';
 import {
   Bold,
   Clock,
+  Code2,
   Heading2,
   List,
   ListOrdered,
+  PenLine,
   Redo as RedoIcon,
   Type,
   Trash2,
+  Save,
   Undo as UndoIcon,
   Italic,
 } from 'lucide-react';
 import '@styles/tiptapEditor.css';
+
+const LearningCodeBlock = CodeBlock.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      learningCode: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('data-learning-code'),
+        renderHTML: (attributes) => attributes.learningCode
+          ? { 'data-learning-code': attributes.learningCode }
+          : {},
+      },
+      language: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('data-language'),
+        renderHTML: (attributes) => attributes.language
+          ? { 'data-language': attributes.language }
+          : {},
+      },
+    };
+  },
+});
 
 interface LearningEditorProps {
   content: string;
@@ -40,6 +67,8 @@ interface LearningEditorProps {
   onNewChat: () => void;
   disabled?: boolean;
   isSaving?: boolean;
+  lastSavedAt?: number | null;
+  focusRequest?: number;
 }
 
 export const LearningEditor: React.FC<LearningEditorProps> = ({
@@ -48,9 +77,9 @@ export const LearningEditor: React.FC<LearningEditorProps> = ({
   onTimestamp,
   onClear,
   onSave,
-  onNewChat,
   disabled = false,
   isSaving = false,
+  focusRequest = 0,
 }) => {
   const onChangeRef = useRef(onChange);
   const onSaveRef = useRef(onSave);
@@ -98,10 +127,12 @@ export const LearningEditor: React.FC<LearningEditorProps> = ({
       TextStyle,
       Color.configure({ types: ['textStyle'] }),
       StarterKit.configure({
+        codeBlock: false,
         heading: {
           levels: [1, 2, 3],
         },
       }),
+      LearningCodeBlock,
     ],
     content,
     immediatelyRender: false,
@@ -126,6 +157,11 @@ export const LearningEditor: React.FC<LearningEditorProps> = ({
     editor?.setEditable(!disabled);
   }, [disabled, editor]);
 
+  useEffect(() => {
+    if (!editor || disabled || focusRequest === 0) return;
+    requestAnimationFrame(() => editor.chain().focus('end').run());
+  }, [disabled, editor, focusRequest]);
+
   const toolbarState = useEditorState({
     editor,
     selector: ({ editor: instance }) => {
@@ -138,9 +174,11 @@ export const LearningEditor: React.FC<LearningEditorProps> = ({
         h3: instance.isActive('heading', { level: 3 }),
         bulletList: instance.isActive('bulletList'),
         orderedList: instance.isActive('orderedList'),
+        codeBlock: instance.isActive('codeBlock'),
         color: String(instance.getAttributes('textStyle')?.color || ''),
         canUndo: instance.can().undo(),
         canRedo: instance.can().redo(),
+        isEmpty: instance.isEmpty,
       };
     },
   });
@@ -185,39 +223,100 @@ export const LearningEditor: React.FC<LearningEditorProps> = ({
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        borderRadius: 2,
+        minHeight: 430,
+        borderRadius: 2.5,
         overflow: 'hidden',
-        border: (theme) => `1px solid ${theme.palette.divider}`,
-        bgcolor: 'background.paper',
+        border: '1px solid #E2E8F0',
+        bgcolor: '#fff',
+        boxShadow: '0 6px 20px rgba(15, 35, 63, 0.05)',
       }}
     >
       {/* Toolbar */}
       <Paper
         elevation={0}
         sx={{
-          px: 0.9,
-          py: 0.6,
+          order: 2,
+          px: 1,
+          py: 0.75,
           borderRadius: 0,
-          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-          bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)',
+          borderTop: '1px solid #E2E8F0',
+          bgcolor: '#F8FAFC',
           display: 'flex',
-          gap: 0.15,
-          rowGap: 0.4,
+          gap: 0.25,
+          rowGap: 0.5,
+          overflowX: 'hidden',
           flexWrap: 'wrap',
           alignItems: 'center',
-          '& .MuiIconButton-root': { width: 28, height: 28, borderRadius: 1.2 },
+          '& .MuiIconButton-root': {
+            width: 30,
+            height: 30,
+            flexShrink: 0,
+            borderRadius: 1.25,
+            color: '#475569',
+            '&:hover': { bgcolor: '#EFF6FF', color: '#1D4ED8' },
+          },
         }}
       >
+        <Tooltip title="Undo">
+          <IconButton
+            size="small"
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={disabled || !toolbarState.canUndo}
+          >
+            <UndoIcon size={16} />
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title="Redo">
+          <IconButton
+            size="small"
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={disabled || !toolbarState.canRedo}
+          >
+            <RedoIcon size={16} />
+          </IconButton>
+        </Tooltip>
+
+        <Divider orientation="vertical" sx={{ height: 24, mx: 0.45, borderColor: '#CBD5E1' }} />
+
+        <FormControl size="small" sx={{ minWidth: 108, flexShrink: 0 }}>
+          <Select
+            value={currentHeading}
+            onChange={(e) => applyHeading(e.target.value)}
+            disabled={disabled}
+            IconComponent={KeyboardArrowDownRounded}
+            sx={{
+              height: 30,
+              fontSize: '0.74rem',
+              fontWeight: 650,
+              color: '#334155',
+              borderRadius: 1.25,
+              bgcolor: '#fff',
+              '& .MuiSelect-select': { py: 0.4, pl: 1.1, pr: '26px !important' },
+              '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E2E8F0' },
+              '& .MuiSelect-icon': { fontSize: 18, right: 5, top: '50%', transform: 'translateY(-50%)', color: '#64748B' },
+              '& .MuiSelect-iconOpen': { transform: 'translateY(-50%) rotate(180deg)' },
+            }}
+          >
+            <MenuItem value="p">Paragraph</MenuItem>
+            <MenuItem value="h1">Header 1</MenuItem>
+            <MenuItem value="h2">Header 2</MenuItem>
+            <MenuItem value="h3">Header 3</MenuItem>
+          </Select>
+        </FormControl>
+
+        <Divider orientation="vertical" sx={{ height: 24, mx: 0.45, borderColor: '#CBD5E1' }} />
+
         <Tooltip title="Bold">
           <IconButton
             size="small"
             onClick={() => editor.chain().focus().toggleBold().run()}
             disabled={disabled}
             sx={{
-              bgcolor: isMarkActive('bold') ? 'primary.main' : 'transparent',
-              color: isMarkActive('bold') ? 'white' : 'inherit',
+              bgcolor: isMarkActive('bold') ? '#DBEAFE' : 'transparent',
+              color: isMarkActive('bold') ? '#1D4ED8' : '#475569',
               '&:hover': {
-                bgcolor: isMarkActive('bold') ? 'primary.dark' : 'action.hover',
+                bgcolor: '#DBEAFE',
               },
             }}
           >
@@ -231,10 +330,10 @@ export const LearningEditor: React.FC<LearningEditorProps> = ({
             onClick={() => editor.chain().focus().toggleItalic().run()}
             disabled={disabled}
             sx={{
-              bgcolor: isMarkActive('italic') ? 'primary.main' : 'transparent',
-              color: isMarkActive('italic') ? 'white' : 'inherit',
+              bgcolor: isMarkActive('italic') ? '#DBEAFE' : 'transparent',
+              color: isMarkActive('italic') ? '#1D4ED8' : '#475569',
               '&:hover': {
-                bgcolor: isMarkActive('italic') ? 'primary.dark' : 'action.hover',
+                bgcolor: '#DBEAFE',
               },
             }}
           >
@@ -242,45 +341,14 @@ export const LearningEditor: React.FC<LearningEditorProps> = ({
           </IconButton>
         </Tooltip>
 
-        <Divider orientation="vertical" flexItem sx={{ mx: 0.35, my: 0.4 }} />
-
-        <FormControl size="small" sx={{ minWidth: 112 }}>
-          <Select
-            value={currentHeading}
-            onChange={(e) => applyHeading(e.target.value)}
-            disabled={disabled}
-            IconComponent={KeyboardArrowDownRounded}
-            sx={{
-              height: 28,
-              fontSize: '0.75rem',
-              borderRadius: 1.2,
-              '& .MuiSelect-select': { py: 0.4, pl: 1.1, pr: '26px !important' },
-              '& .MuiSelect-icon': {
-                fontSize: 18,
-                right: 5,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: 'text.secondary',
-                transition: 'transform 0.2s ease',
-              },
-              '& .MuiSelect-iconOpen': { transform: 'translateY(-50%) rotate(180deg)' },
-            }}
-          >
-            <MenuItem value="p">Paragraph</MenuItem>
-            <MenuItem value="h1">Header 1</MenuItem>
-            <MenuItem value="h2">Header 2</MenuItem>
-            <MenuItem value="h3">Header 3</MenuItem>
-          </Select>
-        </FormControl>
-
         <Tooltip title="Header Quick">
           <IconButton
             size="small"
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
             disabled={disabled}
             sx={{
-              bgcolor: toolbarState.h2 ? 'primary.main' : 'transparent',
-              color: toolbarState.h2 ? 'white' : 'inherit',
+              bgcolor: toolbarState.h2 ? '#DBEAFE' : 'transparent',
+              color: toolbarState.h2 ? '#1D4ED8' : '#475569',
             }}
           >
             <Heading2 size={16} />
@@ -293,10 +361,10 @@ export const LearningEditor: React.FC<LearningEditorProps> = ({
             onClick={() => editor.chain().focus().toggleBulletList().run()}
             disabled={disabled}
             sx={{
-              bgcolor: toolbarState.bulletList ? 'primary.main' : 'transparent',
-              color: toolbarState.bulletList ? 'white' : 'inherit',
+              bgcolor: toolbarState.bulletList ? '#DBEAFE' : 'transparent',
+              color: toolbarState.bulletList ? '#1D4ED8' : '#475569',
               '&:hover': {
-                bgcolor: toolbarState.bulletList ? 'primary.dark' : 'action.hover',
+                bgcolor: '#DBEAFE',
               },
             }}
           >
@@ -310,10 +378,10 @@ export const LearningEditor: React.FC<LearningEditorProps> = ({
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             disabled={disabled}
             sx={{
-              bgcolor: toolbarState.orderedList ? 'primary.main' : 'transparent',
-              color: toolbarState.orderedList ? 'white' : 'inherit',
+              bgcolor: toolbarState.orderedList ? '#DBEAFE' : 'transparent',
+              color: toolbarState.orderedList ? '#1D4ED8' : '#475569',
               '&:hover': {
-                bgcolor: toolbarState.orderedList ? 'primary.dark' : 'action.hover',
+                bgcolor: '#DBEAFE',
               },
             }}
           >
@@ -321,7 +389,21 @@ export const LearningEditor: React.FC<LearningEditorProps> = ({
           </IconButton>
         </Tooltip>
 
-        <Divider orientation="vertical" flexItem sx={{ mx: 0.35, my: 0.4 }} />
+        <Tooltip title="Code Block">
+          <IconButton
+            size="small"
+            onClick={() => editor.chain().focus().toggleCodeBlock({ learningCode: 'true', language: 'javascript' }).run()}
+            disabled={disabled}
+            sx={{
+              bgcolor: toolbarState.codeBlock ? '#DBEAFE' : 'transparent',
+              color: toolbarState.codeBlock ? '#1D4ED8' : '#475569',
+            }}
+          >
+            <Code2 size={16} />
+          </IconButton>
+        </Tooltip>
+
+        <Divider orientation="vertical" sx={{ height: 24, mx: 0.45, borderColor: '#CBD5E1' }} />
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
           <Type size={14} color="#64748b" />
@@ -361,62 +443,59 @@ export const LearningEditor: React.FC<LearningEditorProps> = ({
           </Tooltip>
         </Box>
 
-        <Divider orientation="vertical" flexItem sx={{ mx: 0.35, my: 0.4 }} />
+        <Divider orientation="vertical" sx={{ height: 24, mx: 0.45, borderColor: '#CBD5E1' }} />
 
-        <Tooltip title="Undo">
-          <IconButton
+        <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 0.35 }}>
+          <Tooltip title="Add Timestamp">
+            <IconButton
+              size="small"
+              onClick={onTimestamp}
+              disabled={disabled}
+              sx={{ color: '#2563EB' }}
+            >
+              <Clock size={16} />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Clear Note">
+            <IconButton
+              size="small"
+              onClick={onClear}
+              disabled={disabled || isSaving || isNoteEmpty}
+              sx={{ color: 'error.main' }}
+            >
+              <Trash2 size={16} />
+            </IconButton>
+          </Tooltip>
+
+          <Button
             size="small"
-            onClick={() => editor.chain().focus().undo().run()}
-            disabled={disabled || !toolbarState.canUndo}
+            variant="contained"
+            startIcon={<Save size={13} />}
+            onClick={handleSave}
+            disabled={disabled || isSaving || isNoteEmpty}
+            sx={{ minWidth: 0, height: 28, px: 1, color: '#071D35', bgcolor: '#D6A73A', fontSize: '0.66rem', fontWeight: 800, whiteSpace: 'nowrap', boxShadow: 'none', '& .MuiButton-startIcon': { mr: 0.45 }, '&:hover': { bgcolor: '#F4C95D', boxShadow: 'none' } }}
           >
-            <UndoIcon size={16} />
-          </IconButton>
-        </Tooltip>
-
-        <Tooltip title="Redo">
-          <IconButton
-            size="small"
-            onClick={() => editor.chain().focus().redo().run()}
-            disabled={disabled || !toolbarState.canRedo}
-          >
-            <RedoIcon size={16} />
-          </IconButton>
-        </Tooltip>
-
-        <Box sx={{ flex: 1 }} />
-
-        <Tooltip title="Add Timestamp">
-          <IconButton
-            size="small"
-            onClick={onTimestamp}
-            disabled={disabled}
-            sx={{ color: 'primary.main' }}
-          >
-            <Clock size={16} />
-          </IconButton>
-        </Tooltip>
-
-        <Tooltip title="Clear Note">
-          <IconButton
-            size="small"
-            onClick={onClear}
-            disabled={disabled || !content}
-            sx={{ color: 'error.main' }}
-          >
-            <Trash2 size={16} />
-          </IconButton>
-        </Tooltip>
+            {isSaving ? 'Saving...' : 'Save Note'}
+          </Button>
+        </Box>
       </Paper>
 
       {/* Editor Content */}
       <Box
         sx={{
+          order: 1,
           flex: 1,
+          position: 'relative',
+          minHeight: 300,
           overflow: 'auto',
-          p: 1.5,
+          p: { xs: 2, sm: 2.5 },
+          bgcolor: '#fff',
           '& .ProseMirror': {
             outline: 'none',
-            minHeight: 240,
+            minHeight: 270,
+            color: '#10233F',
+            fontSize: '0.94rem',
             '& h2': {
               fontSize: '1.25rem',
               fontWeight: 700,
@@ -437,7 +516,7 @@ export const LearningEditor: React.FC<LearningEditorProps> = ({
             },
             '& p': {
               margin: '0.5rem 0',
-              lineHeight: 1.6,
+              lineHeight: 1.75,
             },
             '& ul, & ol': {
               paddingLeft: '1.5rem',
@@ -451,46 +530,37 @@ export const LearningEditor: React.FC<LearningEditorProps> = ({
         }}
       >
         <EditorContent editor={editor} />
+        {toolbarState.isEmpty && (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: { xs: '62px 18px auto', sm: '72px 24px auto' },
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              pointerEvents: 'none',
+              color: '#64748B',
+            }}
+          >
+            <Box sx={{ width: 42, height: 42, display: 'grid', placeItems: 'center', borderRadius: 2, color: '#D6A73A', bgcolor: '#FFF8E7', border: '1px solid rgba(214,167,58,0.28)' }}>
+              <PenLine size={21} />
+            </Box>
+            <Typography sx={{ mt: 1.2, color: '#10233F', fontWeight: 800, fontSize: '0.95rem' }}>
+              Start writing your notes...
+            </Typography>
+            <Typography sx={{ mt: 0.45, maxWidth: 390, fontSize: '0.75rem', lineHeight: 1.5 }}>
+              Take notes, highlight key points, add code snippets, and save your learning journey.
+            </Typography>
+            <Stack direction="row" useFlexGap flexWrap="wrap" justifyContent="center" gap={0.65} sx={{ mt: 1.2 }}>
+              {['Capture key concepts', 'Add code snippets', 'Save important points'].map((suggestion) => (
+                <Chip key={suggestion} size="small" label={suggestion} sx={{ height: 24, color: '#475569', fontSize: '0.65rem', bgcolor: '#F8FAFC', border: '1px solid #E2E8F0' }} />
+              ))}
+            </Stack>
+          </Box>
+        )}
       </Box>
 
-      {/* Save Status Footer */}
-      {isSaving !== undefined && (
-        <Box
-          sx={{
-            p: 1,
-            fontSize: '0.75rem',
-            color: 'text.secondary',
-            bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)',
-            borderTop: (theme) => `1px solid ${theme.palette.divider}`,
-          }}
-        >
-          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-            <Typography variant="caption" sx={{ fontSize: '0.75rem', fontWeight: 600 }}>
-              {isSaving ? '⏳ Saving...' : '✓ Saved'}
-            </Typography>
-            <Stack direction="row" spacing={1}>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={onNewChat}
-                disabled={disabled || isSaving}
-                sx={{ minWidth: 72, fontSize: '0.72rem', py: 0.2, px: 1.1 }}
-              >
-                New Chat
-              </Button>
-              <Button
-                size="small"
-                variant="contained"
-                onClick={handleSave}
-                disabled={disabled || isSaving || isNoteEmpty}
-                sx={{ minWidth: 64, fontSize: '0.72rem', py: 0.2, px: 1.2 }}
-              >
-                Save
-              </Button>
-            </Stack>
-          </Stack>
-        </Box>
-      )}
     </Box>
   );
 };

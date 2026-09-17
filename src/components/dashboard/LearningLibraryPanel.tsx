@@ -528,14 +528,38 @@ export const LearningLibraryPanel: React.FC<LearningLibraryPanelProps> = ({
   }
 
   return (
-    <Box>
-      <SectionHeader
-        title="My Notes"
-        subtitle={`${notes.length} note${notes.length === 1 ? '' : 's'} saved from your learning sessions`}
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Search notes"
-      />
+    <Box sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 3, bgcolor: '#F4F7FB', border: '1px solid #E2E8F0' }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ xs: 'stretch', sm: 'center' }}
+        gap={1.5}
+        sx={{ mb: 2 }}
+      >
+        <Stack direction="row" alignItems="center" spacing={1.2}>
+          <Box sx={{ width: 38, height: 38, display: 'grid', placeItems: 'center', borderRadius: 2, color: '#D6A73A', bgcolor: '#071D35' }}>
+            <FileText size={19} />
+          </Box>
+          <Box>
+            <Typography sx={{ color: '#10233F', fontWeight: 800, fontSize: '1.05rem' }}>Saved Notes</Typography>
+            <Typography sx={{ color: '#64748B', fontSize: '0.78rem' }}>Your recent notes and ideas</Typography>
+          </Box>
+          <Chip size="small" label={`${notes.length} saved`} sx={{ height: 22, ml: 0.5, color: '#123B5D', fontWeight: 800, fontSize: '0.67rem', bgcolor: '#E8F1FC' }} />
+        </Stack>
+
+        <Paper
+          elevation={0}
+          sx={{ display: 'flex', alignItems: 'center', gap: 0.8, px: 1.2, py: 0.5, minWidth: { sm: 230 }, borderRadius: 2, border: '1px solid #D9E2EF', bgcolor: '#fff', '&:focus-within': { borderColor: '#2563EB', boxShadow: '0 0 0 3px rgba(37,99,235,0.1)' } }}
+        >
+          <Search size={15} color="#64748B" />
+          <InputBase
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search notes..."
+            sx={{ fontSize: '0.82rem', flex: 1, color: '#10233F' }}
+          />
+        </Paper>
+      </Stack>
       {filteredNotes.length === 0 ? (
         <EmptyState
           icon={<FileText size={40} />}
@@ -548,8 +572,8 @@ export const LearningLibraryPanel: React.FC<LearningLibraryPanelProps> = ({
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
-            gap: 1.5,
+            gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' },
+            gap: 1.2,
           }}
         >
           {filteredNotes.map((note) => (
@@ -557,32 +581,43 @@ export const LearningLibraryPanel: React.FC<LearningLibraryPanelProps> = ({
               key={note.id}
               elevation={0}
               sx={{
-                p: 1.6,
-                borderRadius: 2.5,
-                border: (theme) => `1px solid ${theme.palette.divider}`,
+                p: 1.5,
+                borderRadius: 2.25,
+                border: '1px solid #E2E8F0',
+                borderLeft: '3px solid #D6A73A',
+                bgcolor: '#fff',
                 display: 'flex',
                 flexDirection: 'column',
-                transition: 'border-color 0.18s ease, transform 0.18s ease',
-                '&:hover': { borderColor: 'primary.main', transform: 'translateY(-2px)' },
+                transition: 'border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease',
+                '&:hover': { borderColor: '#93C5FD', borderLeftColor: '#D6A73A', transform: 'translateY(-1px)', boxShadow: '0 7px 18px rgba(15,35,63,0.07)' },
               }}
             >
               <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
-                <Typography
-                  onClick={() => onOpenNote(note.id)}
-                  sx={{
-                    fontWeight: 800,
-                    fontSize: '0.9rem',
-                    cursor: 'pointer',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    '&:hover': { color: 'primary.main' },
-                  }}
-                >
-                  {note.title || 'Untitled Note'}
-                </Typography>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
+                  <Box sx={{ width: 30, height: 30, flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: 1.5, color: '#D6A73A', bgcolor: '#FFF8E7' }}>
+                    <FileText size={15} />
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography
+                      onClick={() => onOpenNote(note.id)}
+                      sx={{
+                        color: '#10233F',
+                        fontWeight: 800,
+                        fontSize: '0.86rem',
+                        cursor: 'pointer',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        '&:hover': { color: '#2563EB' },
+                      }}
+                    >
+                      {note.title || 'Untitled Note'}
+                    </Typography>
+                    <Typography sx={{ color: '#94A3B8', fontSize: '0.66rem' }}>Updated {relativeTime(note.updatedAt)}</Typography>
+                  </Box>
+                </Stack>
                 <Tooltip title="Delete note">
-                  <IconButton size="small" color="error" onClick={() => onDeleteNote(note.id)}>
+                  <IconButton size="small" onClick={() => onDeleteNote(note.id)} sx={{ color: '#64748B', '&:hover': { color: 'error.main', bgcolor: '#FEF2F2' } }}>
                     <Trash2 size={15} />
                   </IconButton>
                 </Tooltip>
@@ -591,27 +626,26 @@ export const LearningLibraryPanel: React.FC<LearningLibraryPanelProps> = ({
                 variant="body2"
                 color="text.secondary"
                 sx={{
-                  mt: 0.6,
+                  mt: 1,
                   flex: 1,
-                  fontSize: '0.8rem',
+                  color: '#64748B',
+                  fontSize: '0.78rem',
+                  lineHeight: 1.55,
                   display: '-webkit-box',
-                  WebkitLineClamp: 3,
+                  WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
                   overflow: 'hidden',
                 }}
               >
                 {stripHtml(note.content) || 'Empty note'}
               </Typography>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1.2 }}>
-                <Typography variant="caption" color="text.secondary">
-                  Updated {relativeTime(note.updatedAt)}
-                </Typography>
+              <Stack direction="row" justifyContent="flex-end" alignItems="center" sx={{ mt: 1 }}>
                 <Button
                   size="small"
                   onClick={() => onOpenNote(note.id)}
-                  sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem' }}
+                  sx={{ minWidth: 0, px: 1, color: '#123B5D', textTransform: 'none', fontWeight: 800, fontSize: '0.72rem' }}
                 >
-                  Open
+                  Open note
                 </Button>
               </Stack>
             </Paper>

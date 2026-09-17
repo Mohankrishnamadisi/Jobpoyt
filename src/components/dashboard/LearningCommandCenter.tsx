@@ -26,7 +26,6 @@ import {
   BookOpenText,
   ChevronLeft,
   ChevronRight,
-  Circle,
   Clock4,
   Compass,
   Flame,
@@ -289,30 +288,27 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
   const stats = [
     {
       key: 'watched',
-      label: 'Watched',
+      label: 'Videos Watched',
       value: videosWatched,
       Icon: Play,
-      iconColor: '#1d4ed8',
-      tint: 'linear-gradient(135deg, rgba(219, 234, 254, 0.95) 0%, rgba(239, 246, 255, 1) 100%)',
-      border: 'rgba(147, 197, 253, 0.7)',
+      iconColor: '#60A5FA',
+      glow: 'rgba(37, 99, 235, 0.4)',
     },
     {
       key: 'streak',
-      label: 'Streak',
+      label: 'Learning Streak',
       value: learningStreak,
       Icon: Flame,
-      iconColor: '#ea580c',
-      tint: 'linear-gradient(135deg, rgba(255, 237, 213, 0.95) 0%, rgba(255, 247, 237, 1) 100%)',
-      border: 'rgba(253, 186, 116, 0.8)',
+      iconColor: '#FB923C',
+      glow: 'rgba(249, 115, 22, 0.4)',
     },
     {
       key: 'notes',
-      label: 'Notes',
+      label: 'Notes Created',
       value: notesCreated,
       Icon: NotebookPen,
-      iconColor: '#7e22ce',
-      tint: 'linear-gradient(135deg, rgba(243, 232, 255, 0.95) 0%, rgba(250, 245, 255, 1) 100%)',
-      border: 'rgba(196, 181, 253, 0.9)',
+      iconColor: '#C4B5FD',
+      glow: 'rgba(124, 58, 237, 0.42)',
     },
   ];
 
@@ -322,161 +318,172 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
       elevation={0}
-      className="relative overflow-hidden rounded-[24px]"
       sx={{
-        mb: 2,
-        p: { xs: 2, sm: 2.5, md: 3 },
-        border: '1px solid rgba(148, 163, 184, 0.32)',
-        background:
-          'linear-gradient(135deg, rgba(255,255,255,0.96) 0%, rgba(248,250,252,0.98) 48%, rgba(241,245,249,0.95) 100%)',
-        boxShadow: '0 14px 34px rgba(15, 23, 42, 0.09)',
-        backdropFilter: 'blur(2px)',
+        position: 'relative',
+        isolation: 'isolate',
+        width: '100%',
+        minHeight: { xs: 0, sm: 500, lg: 520 },
+        mb: 2.5,
+        borderRadius: { xs: '20px', sm: '26px' },
+        overflow: 'hidden',
+        border: '1px solid rgba(148, 197, 255, 0.28)',
+        backgroundImage: "url('/images/learning-hero.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: { xs: '66% center', sm: '62% center', lg: 'center center' },
+        backgroundRepeat: 'no-repeat',
+        boxShadow: '0 24px 60px rgba(3, 15, 35, 0.28)',
       }}
     >
       <Box
         sx={{
           position: 'absolute',
           inset: 0,
+          zIndex: -1,
           pointerEvents: 'none',
           background:
-            'radial-gradient(140% 90% at -10% 0%, rgba(37, 99, 235, 0.14) 0%, rgba(37, 99, 235, 0) 52%), radial-gradient(75% 75% at 110% 100%, rgba(14, 165, 233, 0.1) 0%, rgba(14, 165, 233, 0) 65%)',
+            'linear-gradient(90deg, rgba(3, 15, 35, 0.96) 0%, rgba(3, 15, 35, 0.88) 34%, rgba(4, 20, 42, 0.6) 58%, rgba(4, 20, 42, 0.16) 100%)',
+          '@media (max-width: 899px)': {
+            background:
+              'linear-gradient(90deg, rgba(3, 15, 35, 0.96) 0%, rgba(3, 15, 35, 0.84) 58%, rgba(4, 20, 42, 0.48) 100%)',
+          },
         }}
       />
 
-      <Box className="relative z-10">
-        <Box className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start lg:gap-5">
-          <Box>
-            <Box className="mb-2 inline-flex items-center gap-2 rounded-full border border-slate-300/70 bg-white/80 px-3 py-1 shadow-sm">
-              <Circle size={8} fill="#2563eb" color="#2563eb" />
+      <Box
+        sx={{
+          position: 'relative',
+          zIndex: 1,
+          width: { xs: '100%', lg: '64%' },
+          minHeight: 'inherit',
+          p: { xs: 2, sm: 2.75, md: 3.25, lg: 3.5 },
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <Box>
+          <Box
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 1,
+              px: 1.5,
+              py: 0.75,
+              mb: 1.4,
+              borderRadius: '999px',
+              color: '#fff',
+              bgcolor: 'rgba(7, 26, 51, 0.48)',
+              border: '1px solid rgba(147, 197, 253, 0.35)',
+              backdropFilter: 'blur(10px)',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.16)',
+            }}
+          >
+              <Box
+                sx={{
+                  width: 24,
+                  height: 24,
+                  display: 'grid',
+                  placeItems: 'center',
+                  borderRadius: '50%',
+                  color: '#FBBF24',
+                  bgcolor: 'rgba(251, 191, 36, 0.12)',
+                  boxShadow: '0 0 18px rgba(251, 191, 36, 0.25)',
+                }}
+              >
+                <BookOpenText size={14} />
+              </Box>
               <Typography
                 sx={{
                   fontSize: '0.72rem',
                   fontWeight: 800,
-                  letterSpacing: 1.2,
+                  letterSpacing: 1.3,
                   textTransform: 'uppercase',
-                  color: '#334155',
+                  color: '#fff',
                 }}
               >
                 Learning Studio
               </Typography>
-            </Box>
-
-            <Typography
-              sx={{
-                fontFamily: 'Sora, Manrope, sans-serif',
-                fontSize: { xs: '1.45rem', md: '1.8rem' },
-                fontWeight: 800,
-                letterSpacing: '-0.02em',
-                lineHeight: 1.18,
-                color: '#0f172a',
-                textAlign: 'left',
-              }}
-            >
-              Continue learning, {firstName}
-            </Typography>
-            <Typography
-              sx={{
-                mt: 0.6,
-                color: '#475569',
-                fontSize: { xs: '0.9rem', md: '0.96rem' },
-                maxWidth: 620,
-                textAlign: 'left',
-              }}
-            >
-              Personalized videos shaped by your skills and career goals.
-            </Typography>
           </Box>
 
-          <Stack
-            direction={{ xs: 'row', sm: 'row' }}
-            spacing={1.2}
-            useFlexGap
-            flexWrap="wrap"
-            className="justify-start lg:justify-end"
+          <Typography
+            component="h1"
+            sx={{
+              m: 0,
+              maxWidth: 720,
+              fontFamily: 'Sora, Manrope, sans-serif',
+              fontSize: { xs: '1.85rem', sm: '2.3rem', md: '2.65rem', lg: '2.8rem' },
+              fontWeight: 800,
+              letterSpacing: 0,
+              lineHeight: 1.06,
+              color: '#fff',
+              textShadow: '0 4px 24px rgba(0, 0, 0, 0.24)',
+            }}
           >
-            {stats.map(({ key, label, value, Icon, iconColor, tint, border }, index) => (
-              <MotionBox
-                key={key}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: 0.08 + index * 0.06 }}
+            Learn Today,
+            <Box component="span" sx={{ display: 'block', whiteSpace: { md: 'nowrap' } }}>
+              Build a{' '}
+              <Box
+                component="span"
                 sx={{
-                  borderRadius: 2.8,
-                  p: 1.2,
-                  minWidth: { xs: 98, sm: 116, md: 122 },
-                  border: `1px solid ${border}`,
-                  background: tint,
-                  transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-                  '&:hover': {
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 10px 20px rgba(15, 23, 42, 0.1)',
-                  },
+                  color: '#FBBF24',
+                  background: 'linear-gradient(90deg, #FDE68A 0%, #FBBF24 58%, #F59E0B 100%)',
+                  backgroundClip: 'text',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
                 }}
               >
-                <Stack direction="row" alignItems="center" justifyContent="space-between" gap={0.8} sx={{ mb: 0.7 }}>
-                  <Box
-                    sx={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: '50%',
-                      display: 'grid',
-                      placeItems: 'center',
-                      bgcolor: 'rgba(255,255,255,0.8)',
-                      border: '1px solid rgba(148, 163, 184, 0.25)',
-                    }}
-                  >
-                    <Icon size={13} color={iconColor} />
-                  </Box>
-                  <Typography sx={{ fontSize: '0.67rem', fontWeight: 700, color: '#334155' }}>
-                    {label}
-                  </Typography>
-                </Stack>
-                <Typography sx={{ fontSize: '1.15rem', fontWeight: 800, lineHeight: 1.1, color: '#0f172a', textAlign: 'left' }}>
-                  {value}
-                </Typography>
-              </MotionBox>
-            ))}
-          </Stack>
+                Brighter Tomorrow
+              </Box>
+            </Box>
+          </Typography>
+
+          <Typography
+            sx={{
+              mt: 1.1,
+              color: 'rgba(255, 255, 255, 0.94)',
+              fontSize: { xs: '0.9rem', sm: '0.96rem' },
+              lineHeight: 1.5,
+              maxWidth: 630,
+              textShadow: '0 2px 14px rgba(0, 0, 0, 0.3)',
+            }}
+          >
+            Gain in-demand skills, learn from industry experts and get closer to your dream career.
+          </Typography>
+          <Typography sx={{ mt: 0.45, color: '#BFDBFE', fontSize: '0.8rem', fontWeight: 600 }}>
+            Continue your learning journey, {firstName}.
+          </Typography>
         </Box>
 
         <MotionBox
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.18 }}
-          sx={{ mt: { xs: 2, md: 2.2 } }}
+          sx={{ mt: { xs: 1.8, md: 2 } }}
         >
-          <Paper
-            elevation={0}
-            sx={{
-              p: { xs: 1.1, sm: 1.2 },
-              borderRadius: 3,
-              border: '1px solid rgba(148, 163, 184, 0.34)',
-              bgcolor: 'rgba(255, 255, 255, 0.94)',
-              transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
-              '&:focus-within': {
-                borderColor: 'primary.main',
-                boxShadow: '0 0 0 3px rgba(37, 99, 235, 0.18)',
-              },
-            }}
-          >
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.1} alignItems={{ xs: 'stretch', md: 'center' }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems="stretch">
               <Paper
                 elevation={0}
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  minHeight: 54,
-                  px: 1.4,
-                  borderRadius: 2.5,
-                  border: '1px solid rgba(148, 163, 184, 0.35)',
-                  bgcolor: 'white',
+                  minHeight: { xs: 52, sm: 54 },
+                  p: 0.65,
+                  pl: 1.5,
+                  borderRadius: '16px',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  bgcolor: 'rgba(255, 255, 255, 0.94)',
                   flex: 1,
+                  boxShadow: '0 14px 32px rgba(0, 0, 0, 0.2)',
+                  transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
+                  '&:focus-within': {
+                    borderColor: 'rgba(251, 191, 36, 0.85)',
+                    boxShadow: '0 0 0 3px rgba(251, 191, 36, 0.2), 0 14px 32px rgba(0, 0, 0, 0.22)',
+                  },
                 }}
               >
-                <Search size={18} color="#64748b" />
+                <Search size={19} color="#475569" />
                 <InputBase
                   fullWidth
-                  placeholder="Search videos..."
+                  placeholder="Search for courses, skills, or topics..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => {
@@ -486,28 +493,51 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                     }
                   }}
                   disabled={isLoading}
-                  sx={{ ml: 1.1, fontSize: '0.95rem' }}
+                  sx={{ ml: 1.1, fontSize: { xs: '0.88rem', sm: '0.95rem' }, color: '#0F172A' }}
                 />
                 {searchQuery && (
                   <Tooltip title="Clear search">
-                    <IconButton onClick={handleClearSearch} size="small">
+                    <IconButton onClick={handleClearSearch} size="small" sx={{ color: '#475569' }}>
                       <X size={16} />
                     </IconButton>
                   </Tooltip>
                 )}
-              </Paper>
-
-              <Box className="grid grid-cols-2 gap-2 md:flex md:items-center md:gap-2">
                 <Button
                   variant="contained"
                   onClick={handleSearch}
                   disabled={!searchQuery.trim() || isLoading}
-                  className="h-[54px]"
+                  endIcon={<ArrowRight size={16} />}
                   sx={{
-                    px: 2.8,
-                    borderRadius: 2.2,
-                    fontWeight: 700,
-                    boxShadow: '0 6px 16px rgba(37, 99, 235, 0.28)',
+                    display: { xs: 'none', sm: 'inline-flex' },
+                    minHeight: 42,
+                    px: 2.2,
+                    borderRadius: '12px',
+                    color: '#172033',
+                    bgcolor: '#FBBF24',
+                    fontWeight: 800,
+                    boxShadow: '0 8px 20px rgba(245, 158, 11, 0.3)',
+                    '&:hover': { bgcolor: '#F59E0B', transform: 'scale(1.02)' },
+                    '&.Mui-disabled': { bgcolor: 'rgba(251, 191, 36, 0.45)', color: 'rgba(23, 32, 51, 0.55)' },
+                  }}
+                >
+                  Search
+                </Button>
+              </Paper>
+
+              <Stack direction="row" spacing={1}>
+                <Button
+                  variant="contained"
+                  onClick={handleSearch}
+                  disabled={!searchQuery.trim() || isLoading}
+                  sx={{
+                    display: { xs: 'inline-flex', sm: 'none' },
+                    flex: 1,
+                    minHeight: 52,
+                    borderRadius: '14px',
+                    color: '#172033',
+                    bgcolor: '#FBBF24',
+                    fontWeight: 800,
+                    '&:hover': { bgcolor: '#F59E0B' },
                   }}
                   startIcon={<Search size={16} />}
                 >
@@ -516,13 +546,17 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                 <Button
                   variant="outlined"
                   onClick={handleOpenFilters}
-                  className="h-[54px]"
                   sx={{
-                    px: 2.2,
-                    borderRadius: 2.2,
-                    fontWeight: 700,
-                    borderColor: 'rgba(100, 116, 139, 0.35)',
-                    color: '#334155',
+                    flex: { xs: 1, sm: '0 0 auto' },
+                    minHeight: { xs: 48, sm: 54 },
+                    px: 2,
+                    borderRadius: '14px',
+                    fontWeight: 800,
+                    borderColor: 'rgba(255, 255, 255, 0.35)',
+                    color: '#fff',
+                    bgcolor: 'rgba(7, 26, 51, 0.46)',
+                    backdropFilter: 'blur(10px)',
+                    '&:hover': { borderColor: '#FBBF24', bgcolor: 'rgba(7, 26, 51, 0.68)' },
                   }}
                   startIcon={
                     <Badge badgeContent={activeFiltersCount} color="primary" invisible={!activeFiltersCount}>
@@ -532,8 +566,8 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                 >
                   Filters
                 </Button>
-              </Box>
-            </Stack>
+              </Stack>
+          </Stack>
 
             {activeFilterChips.length > 0 && (
               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1.3 }}>
@@ -544,54 +578,37 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                     onDelete={chip.onDelete}
                     size="small"
                     sx={{
-                      fontWeight: 600,
-                      bgcolor: 'rgba(37, 99, 235, 0.08)',
-                      border: '1px solid rgba(37, 99, 235, 0.24)',
+                      color: '#fff',
+                      fontWeight: 700,
+                      bgcolor: 'rgba(37, 99, 235, 0.32)',
+                      border: '1px solid rgba(147, 197, 253, 0.38)',
+                      backdropFilter: 'blur(8px)',
+                      '& .MuiChip-deleteIcon': { color: 'rgba(255,255,255,0.8)' },
                     }}
                   />
                 ))}
               </Stack>
             )}
-          </Paper>
         </MotionBox>
-
-        <Divider sx={{ my: { xs: 1.4, md: 1.7 }, borderColor: 'rgba(100, 116, 139, 0.22)' }} />
 
         <MotionBox
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.24 }}
+          sx={{ mt: { xs: 1.5, md: 1.6 }, minWidth: 0 }}
         >
           <Stack
             direction="row"
             alignItems="center"
             justifyContent="space-between"
             spacing={1}
-            sx={{ mb: 1.3 }}
+            sx={{ mb: 0.8 }}
           >
             <Stack direction="row" alignItems="center" spacing={1.1}>
-              <Box
-                sx={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: 1.6,
-                  display: 'grid',
-                  placeItems: 'center',
-                  color: '#fff',
-                  background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
-                  boxShadow: '0 6px 14px rgba(79, 70, 229, 0.32)',
-                }}
-              >
-                <BookOpenText size={16} />
-              </Box>
-              <Box>
-                <Typography sx={{ fontSize: '0.92rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
-                  Popular learning paths
-                </Typography>
-                <Typography sx={{ fontSize: '0.74rem', color: '#64748B', fontWeight: 500 }}>
-                  Curated from your skills · tap a card to start
-                </Typography>
-              </Box>
+              <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#fff' }}>Popular:</Typography>
+              <Typography sx={{ display: { xs: 'none', sm: 'block' }, fontSize: '0.74rem', color: 'rgba(255,255,255,0.64)' }}>
+                Personalized learning paths
+              </Typography>
             </Stack>
 
             <Stack direction="row" spacing={0.5} sx={{ display: { xs: 'none', sm: 'flex' } }}>
@@ -601,8 +618,9 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                 aria-label="Scroll learning paths left"
                 sx={{
                   border: '1px solid rgba(148, 163, 184, 0.35)',
-                  bgcolor: 'rgba(255,255,255,0.9)',
-                  '&:hover': { bgcolor: '#fff', borderColor: 'primary.main', color: 'primary.main' },
+                  color: '#fff',
+                  bgcolor: 'rgba(7, 26, 51, 0.45)',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.14)', borderColor: '#FBBF24', color: '#FBBF24' },
                 }}
               >
                 <ChevronLeft size={16} />
@@ -613,8 +631,9 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                 aria-label="Scroll learning paths right"
                 sx={{
                   border: '1px solid rgba(148, 163, 184, 0.35)',
-                  bgcolor: 'rgba(255,255,255,0.9)',
-                  '&:hover': { bgcolor: '#fff', borderColor: 'primary.main', color: 'primary.main' },
+                  color: '#fff',
+                  bgcolor: 'rgba(7, 26, 51, 0.45)',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.14)', borderColor: '#FBBF24', color: '#FBBF24' },
                 }}
               >
                 <ChevronRight size={16} />
@@ -629,9 +648,8 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                 display: 'flex',
                 gap: 1.2,
                 overflowX: 'auto',
-                // Padding keeps the hover lift, border and shadow from being clipped by the scroller
-                pt: 1.2,
-                pb: 1.6,
+                pt: 0.3,
+                pb: 0.6,
                 px: 0.4,
                 mx: -0.4,
                 scrollSnapType: 'x mandatory',
@@ -655,56 +673,58 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                     transition={{ type: 'spring', stiffness: 320, damping: 22 }}
                     sx={{
                       flex: '0 0 auto',
-                      width: { xs: 186, sm: 208 },
-                      p: 1.25,
+                      width: 'auto',
+                      maxWidth: 230,
+                      px: 1.3,
+                      py: 0.65,
                       cursor: 'pointer',
-                      borderRadius: 2.5,
+                      borderRadius: '999px',
                       scrollSnapAlign: 'start',
-                      border: '1px solid',
-                      borderColor: selected ? 'transparent' : 'rgba(148, 163, 184, 0.3)',
-                      background: selected ? palette.gradient : 'rgba(255, 255, 255, 0.96)',
-                      color: selected ? '#fff' : '#0f172a',
+                      border: '1px solid rgba(255, 255, 255, 0.24)',
+                      background: selected ? palette.gradient : 'rgba(7, 26, 51, 0.42)',
+                      backdropFilter: 'blur(10px)',
+                      color: '#fff',
                       boxShadow: selected
-                        ? '0 12px 24px rgba(15, 23, 42, 0.2)'
-                        : '0 1px 2px rgba(15, 23, 42, 0.05)',
+                        ? '0 8px 24px rgba(0, 0, 0, 0.24)'
+                        : '0 4px 14px rgba(0, 0, 0, 0.12)',
                       transition: 'box-shadow 0.22s ease, border-color 0.22s ease',
                       '&:hover': {
-                        borderColor: selected ? 'transparent' : palette.color,
+                        borderColor: selected ? 'rgba(255,255,255,0.35)' : 'rgba(251, 191, 36, 0.65)',
                         boxShadow: selected
                           ? '0 14px 28px rgba(15, 23, 42, 0.24)'
-                          : `0 10px 22px ${palette.soft}, 0 4px 10px rgba(15, 23, 42, 0.08)`,
+                          : `0 10px 22px ${palette.soft}, 0 4px 12px rgba(0, 0, 0, 0.18)`,
                       },
                     }}
                   >
                     <Stack direction="row" alignItems="center" spacing={1.1}>
                       <Box
                         sx={{
-                          width: 34,
-                          height: 34,
+                          width: 27,
+                          height: 27,
                           flexShrink: 0,
                           borderRadius: 1.6,
                           display: 'grid',
                           placeItems: 'center',
-                          bgcolor: selected ? 'rgba(255, 255, 255, 0.22)' : palette.soft,
-                          color: selected ? '#fff' : palette.color,
+                          bgcolor: selected ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255,255,255,0.1)',
+                          color: selected ? '#fff' : '#FBBF24',
                         }}
                       >
-                        <Icon size={17} />
+                        <Icon size={14} />
                       </Box>
 
                       <Box sx={{ minWidth: 0, flex: 1 }}>
                         <Typography
                           noWrap
-                          sx={{ fontSize: '0.86rem', fontWeight: 800, lineHeight: 1.25, textTransform: 'capitalize' }}
+                          sx={{ fontSize: '0.78rem', fontWeight: 800, lineHeight: 1.2, textTransform: 'capitalize' }}
                         >
                           {title}
                         </Typography>
                         <Typography
                           noWrap
                           sx={{
-                            fontSize: '0.7rem',
+                            fontSize: '0.64rem',
                             fontWeight: 600,
-                            color: selected ? 'rgba(255,255,255,0.85)' : '#64748B',
+                            color: 'rgba(255,255,255,0.65)',
                           }}
                         >
                           {kind}
@@ -721,6 +741,71 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
             </Box>
           </Box>
         </MotionBox>
+
+        <Stack
+          direction="row"
+          divider={<Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(255,255,255,0.18)' }} />}
+          sx={{
+            mt: 'auto',
+            pt: { xs: 0.8, sm: 1 },
+            width: '100%',
+            overflow: 'hidden',
+          }}
+        >
+          {stats.map(({ key, label, value, Icon, iconColor, glow }, index) => (
+            <MotionBox
+              key={key}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.34 + index * 0.08 }}
+              sx={{
+                flex: 1,
+                minWidth: 0,
+                px: { xs: 0.7, sm: 1.5 },
+                py: 0.75,
+                display: 'flex',
+                alignItems: 'center',
+                gap: { xs: 0.7, sm: 1 },
+                bgcolor: 'rgba(7, 26, 51, 0.3)',
+                backdropFilter: 'blur(8px)',
+                '&:first-of-type': { borderRadius: '14px 0 0 14px' },
+                '&:last-of-type': { borderRadius: '0 14px 14px 0' },
+              }}
+            >
+              <Box
+                sx={{
+                  width: { xs: 28, sm: 34 },
+                  height: { xs: 28, sm: 34 },
+                  flexShrink: 0,
+                  display: 'grid',
+                  placeItems: 'center',
+                  borderRadius: '50%',
+                  color: iconColor,
+                  bgcolor: 'rgba(255,255,255,0.08)',
+                  boxShadow: `0 0 18px ${glow}`,
+                }}
+              >
+                <Icon size={16} />
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ color: '#fff', fontSize: { xs: '0.95rem', sm: '1.18rem' }, fontWeight: 800, lineHeight: 1 }}>
+                  {value}
+                </Typography>
+                <Typography
+                  sx={{
+                    mt: 0.35,
+                    color: 'rgba(255,255,255,0.7)',
+                    fontSize: { xs: '0.57rem', sm: '0.68rem' },
+                    fontWeight: 600,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {label}
+                </Typography>
+              </Box>
+            </MotionBox>
+          ))}
+        </Stack>
       </Box>
 
       <Popover

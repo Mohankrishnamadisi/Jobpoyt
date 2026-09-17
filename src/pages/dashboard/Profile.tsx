@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
+  Alert,
   Box,
   Container,
   Card,
@@ -56,7 +57,7 @@ import {
 import { Layout } from '@components/layout/Layout';
 import { ProfileSkeleton } from '@components/common/LoadingSkeleton';
 import { useAuthStore } from '@store/index';
-import { userService } from '@services/api';
+import { notificationService, userService } from '@services/api';
 import {
   GENDER_OPTIONS,
   COUNTRIES,
@@ -488,6 +489,31 @@ export const ProfilePage: React.FC = () => {
     return Math.round((sections.filter(Boolean).length / sections.length) * 100);
   })();
 
+  useEffect(() => {
+    if (!user?.id || completion >= 80) return undefined;
+
+    let mounted = true;
+    const sendProfileReminder = async () => {
+      try {
+        await notificationService.createNotification(
+          user.id,
+          'profile_reminder',
+          'Please update your profile',
+          `Your profile is ${completion}% complete. Update your profile to improve your job matches.`,
+          { route: '/dashboard/profile', profileCompletion: completion },
+        );
+      } catch (error) {
+        if (mounted) console.error('Failed to send profile reminder:', error);
+      }
+    };
+
+    const interval = window.setInterval(sendProfileReminder, 10 * 60 * 1000);
+    return () => {
+      mounted = false;
+      window.clearInterval(interval);
+    };
+  }, [completion, user?.id]);
+
   const experienceLabel = formData.isFresher
     ? 'Fresher'
     : formatExperienceString(formData.experienceYears, formData.experienceMonths) || 'Not specified';
@@ -772,6 +798,25 @@ export const ProfilePage: React.FC = () => {
                 </Grid>
               </Grid>
             </Box>
+
+            {completion < 80 && (
+              <Alert
+                severity="warning"
+                action={(
+                  <Button
+                    color="inherit"
+                    size="small"
+                    onClick={() => document.getElementById('sec-resume')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                    sx={{ fontWeight: 800, textTransform: 'none', whiteSpace: 'nowrap' }}
+                  >
+                    Update Profile
+                  </Button>
+                )}
+                sx={{ mx: 3, mb: 2, alignItems: 'center', '& .MuiAlert-message': { fontWeight: 700 } }}
+              >
+                Please update your profile to improve your job matches. Current completion: {completion}%.
+              </Alert>
+            )}
 
             {/* Photo-save prompt */}
             {profileImage && (
