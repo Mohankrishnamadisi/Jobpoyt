@@ -3,18 +3,36 @@ import { supportService } from './support';
 
 export const adminService = {
   async getDashboardStats() {
-    const [{ count: usersCount }, { count: candidatesCount }, { count: recruitersCount }, { count: activeJobsCount }] = await Promise.all([
+    const results = await Promise.all([
       supabase.from('profiles').select('id', { count: 'exact' }),
       supabase.from('profiles').select('id', { count: 'exact' }).eq('role', 'job_seeker'),
       supabase.from('recruiters').select('id', { count: 'exact' }),
       supabase.from('jobs').select('id', { count: 'exact' }).eq('status', 'published'),
-    ]).then((res) => res.map((r) => r));
+      supabase.from('job_applications').select('id', { count: 'exact', head: true }),
+      supabase.from('payments').select('amount, created_at'),
+    ]);
+
+    const failedQuery = results.find((result) => result.error);
+    if (failedQuery?.error) throw failedQuery.error;
+
+    const [{ count: usersCount }, { count: candidatesCount }, { count: recruitersCount }, { count: activeJobsCount }, { count: applicationsCount }, paymentsResult] = results;
+    const totalRevenue = (paymentsResult.data || []).reduce((total, item) => total + Number(item.amount || 0), 0);
+    const now = new Date();
+    const monthlyRevenue = (paymentsResult.data || []).reduce((total, item) => {
+      const createdAt = item.created_at ? new Date(item.created_at) : null;
+      return createdAt && createdAt.getFullYear() === now.getFullYear() && createdAt.getMonth() === now.getMonth()
+        ? total + Number(item.amount || 0)
+        : total;
+    }, 0);
 
     return {
       totalUsers: usersCount || 0,
       totalCandidates: candidatesCount || 0,
       totalRecruiters: recruitersCount || 0,
       activeJobs: activeJobsCount || 0,
+      totalApplications: applicationsCount || 0,
+      totalRevenue,
+      monthlyRevenue,
     };
   },
 

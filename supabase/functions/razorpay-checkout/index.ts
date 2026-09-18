@@ -194,6 +194,8 @@ Deno.serve(async (request) => {
           status: 'active',
           start_date: startDate.toISOString(),
           end_date: expiryDate.toISOString(),
+          amount: plan.amount,
+          auto_renew: Boolean(body.autoRenew),
         })
         .select()
         .single();

@@ -955,11 +955,16 @@ export const billingSubscriptionService = {
 
     let applicationsReceived = 0;
     if (jobIds.length > 0) {
-      const { count } = await supabase
-        .from('job_applications')
-        .select('id', { count: 'exact', head: true })
-        .in('job_id', jobIds);
-      applicationsReceived = Number(count || 0);
+      try {
+        const { count, error } = await supabase
+          .from('job_applications')
+          .select('id', { count: 'exact', head: true })
+          .in('job_id', jobIds);
+        if (error) throw error;
+        applicationsReceived = Number(count || 0);
+      } catch (error) {
+        console.error('Failed to count applications for billing usage snapshot:', error);
+      }
     }
 
     const aiUsage = aiHiringAssistantService.listRequestHistory(ownerId).length;

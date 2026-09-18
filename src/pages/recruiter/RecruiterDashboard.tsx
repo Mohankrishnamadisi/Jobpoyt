@@ -7,6 +7,7 @@ import {
   Typography,
   Button,
   Dialog,
+  DialogContent,
   CircularProgress,
   Autocomplete,
   InputAdornment,
@@ -26,7 +27,9 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@store/index';
 import { ROUTES } from '@constants/index';
-import { recruiterService, statsService, notificationService, jobService } from '@services/api';
+import { recruiterService, statsService, notificationService, jobService, subscriptionService } from '@services/api';
+import { useSubscription } from '@hooks/index';
+import { SubscriptionSummaryCard } from '@components/common/SubscriptionSummaryCard';
 import { messagingService } from '@services/messaging';
 import { billingSubscriptionService } from '@services/billingSubscription';
 import { getRecruiterWelcomeUsage } from '@utils/recruiterWelcomeBenefits';
@@ -113,6 +116,8 @@ export const RecruiterDashboard: React.FC = () => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
+  const { subscription, loading: subscriptionLoading, refetch: refetchSubscription } = useSubscription(user?.id || null);
+  const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
 
   // State
   const [currentTab, setCurrentTab] = useState<DashboardTab>('overview');
@@ -199,20 +204,40 @@ export const RecruiterDashboard: React.FC = () => {
 
       const [statsData, profileData, unreadNotif, conversations, recruiterJobs, billingOverview, onboarding] =
         await Promise.all([
-          statsService.getRecruiterStats(recruiterId),
-          recruiterService.getRecruiterProfile(recruiterId),
-          notificationService.getUnreadNotifications(recruiterId),
-          messagingService.getConversations(recruiterId),
-          jobService.getRecruiterJobs(recruiterId),
-          billingSubscriptionService.getBillingOverview(recruiterId, recruiterId),
+          statsService.getRecruiterStats(recruiterId).catch((error) => {
+            console.error('Failed to load recruiter stats:', error);
+            return null;
+          }),
+          recruiterService.getRecruiterProfile(recruiterId).catch((error) => {
+            console.error('Failed to load recruiter profile:', error);
+            return null;
+          }),
+          notificationService.getUnreadNotifications(recruiterId).catch((error) => {
+            console.error('Failed to load notifications:', error);
+            return [];
+          }),
+          messagingService.getConversations(recruiterId).catch((error) => {
+            console.error('Failed to load conversations:', error);
+            return [];
+          }),
+          jobService.getRecruiterJobs(recruiterId).catch((error) => {
+            console.error('Failed to load recruiter jobs:', error);
+            return [];
+          }),
+          billingSubscriptionService.getBillingOverview(recruiterId, recruiterId).catch((error) => {
+            console.error('Failed to load billing overview:', error);
+            return null;
+          }),
           getRecruiterWelcomeUsage(recruiterId).catch(() => null),
         ]);
 
-      setStats((previous) => ({
-        ...previous,
-        ...statsData,
-        priority_applicants: (statsData as any)?.priority_applicants || 0,
-      }));
+      if (statsData) {
+        setStats((previous) => ({
+          ...previous,
+          ...statsData,
+          priority_applicants: (statsData as any)?.priority_applicants || 0,
+        }));
+      }
       setRecruiterProfile(profileData);
       setJobs(recruiterJobs || []);
       setNotificationsCount(unreadNotif?.length || 0);
@@ -350,6 +375,30 @@ export const RecruiterDashboard: React.FC = () => {
               onPostJob={() => setJobPostingFormOpen(true)}
             />
 
+            <Dialog open={subscriptionDialogOpen} onClose={() => setSubscriptionDialogOpen(false)} maxWidth="md" fullWidth>
+              <DialogContent sx={{ p: { xs: 1.5, md: 2 } }}>
+                <SubscriptionSummaryCard
+                  subscription={subscription}
+                  loading={subscriptionLoading}
+                  onRenew={() => {
+                    setSubscriptionDialogOpen(false);
+                    navigate(ROUTES.RECRUITER_SUBSCRIPTION);
+                  }}
+                  onToggleAutoRenew={async (autoRenew) => {
+                    if (!subscription?.id) return;
+                    try {
+                      await subscriptionService.setAutoRenew(subscription.id, autoRenew);
+                      toast.success(autoRenew ? 'Auto-renewal enabled' : 'Auto-renewal disabled');
+                      refetchSubscription();
+                    } catch (error) {
+                      console.error('Failed to update auto-renew:', error);
+                      toast.error('Could not update auto-renewal. Please try again.');
+                    }
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+
             {/* Quick Actions Section */}
             <Grid container spacing={3} sx={{ mt: 2 }}>
               {/* Post New Job Card */}
@@ -475,6 +524,51 @@ export const RecruiterDashboard: React.FC = () => {
                           }}
                         >
                           Manage your hiring stages and candidate flow with confidence.
+                        </Typography>
+                      </Box>
+                      <ArrowRightIcon sx={{ color: themeColors.primary, fontSize: '2rem' }} />
+                    </Box>
+                  </CardContent>
+                </MotionCard>
+              </Grid>
+
+              {/* My Subscription Card */}
+              <Grid item xs={12}>
+                <MotionCard
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, delay: 0.16 }}
+                  whileHover={{ y: -8, boxShadow: '0 18px 44px rgba(15, 23, 42, 0.14)' }}
+                  onClick={() => setSubscriptionDialogOpen(true)}
+                  sx={{
+                    borderRadius: '22px',
+                    border: `1px solid ${themeColors.border}`,
+                    background: `linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(255,251,235,0.96) 100%)`,
+                    cursor: 'pointer',
+                    transition: 'all 0.25s ease-in-out',
+                    minHeight: 120,
+                    overflow: 'hidden',
+                    position: 'relative',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: 6,
+                      background: 'linear-gradient(90deg, #D6A73A 0%, #B78317 100%)',
+                    }}
+                  />
+                  <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 800, color: themeColors.text.primary, mb: 1 }}>
+                          My Subscription
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: themeColors.text.secondary, fontSize: '0.9rem', lineHeight: 1.6 }}>
+                          View your plan, amount paid, and renewal date.
                         </Typography>
                       </Box>
                       <ArrowRightIcon sx={{ color: themeColors.primary, fontSize: '2rem' }} />

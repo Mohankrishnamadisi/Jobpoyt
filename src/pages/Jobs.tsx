@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Box,
   Container,
@@ -14,7 +15,6 @@ import {
   FormControlLabel,
   Typography,
   Pagination,
-  InputAdornment,
   Paper,
   Autocomplete,
   Chip,
@@ -32,15 +32,20 @@ import {
   WorkOutline as WorkOutlineIcon,
   PlaceOutlined as PlaceOutlinedIcon,
   AutoAwesome as AutoAwesomeIcon,
+  BusinessCenterOutlined as BusinessCenterOutlinedIcon,
+  ApartmentOutlined as ApartmentOutlinedIcon,
+  VerifiedOutlined as VerifiedOutlinedIcon,
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { Layout } from '@components/layout/Layout';
 import { HorizontalJobListItem } from '@components/jobs/HorizontalJobListItem';
 import { JobListSkeleton } from '@components/common/LoadingSkeleton';
 import { Error } from '@components/common/Error';
-import { jobService } from '@services/api';
+import { companyService, jobService } from '@services/api';
 import { EMPLOYMENT_TYPES, WORK_MODES, EDUCATION_OPTIONS, FRESHNESS_OPTIONS, INDIAN_CITIES } from '@constants/index';
+import { JOB_SEARCH_SUGGESTION_GROUPS } from '@constants/jobSearchSuggestions';
 import type { Job } from '../types';
 
 const MotionPaper = motion(Paper);
@@ -79,6 +84,8 @@ export const Jobs: React.FC = () => {
   const latestRequestRef = useRef(0);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [allJobsTotal, setAllJobsTotal] = useState(0);
+  const [companyTotal, setCompanyTotal] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
@@ -92,6 +99,7 @@ export const Jobs: React.FC = () => {
 
   const [filters, setFilters] = useState({
     keyword: searchParams.get('keyword') || '',
+    company: searchParams.get('company') || '',
     location: getMultiValues(searchParams, 'location', DEFAULT_LOCATIONS),
     experience: searchParams.get('experience') || '',
     education: searchParams.get('education') || '',
@@ -101,6 +109,33 @@ export const Jobs: React.FC = () => {
     category: [] as string[],
   });
   const [debouncedKeyword, setDebouncedKeyword] = useState(searchParams.get('keyword') || '');
+  const [keywordDraft, setKeywordDraft] = useState('');
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+
+  useEffect(() => {
+    let isActive = true;
+
+    const fetchAllJobsTotal = async () => {
+      try {
+        const [{ total: jobsCount }, companiesCount] = await Promise.all([
+          jobService.getJobs({}, 1, 1),
+          companyService.getCompanyCount(),
+        ]);
+        if (isActive) {
+          setAllJobsTotal(jobsCount);
+          setCompanyTotal(companiesCount);
+        }
+      } catch (err) {
+        console.error('Failed to fetch hero totals:', err);
+      }
+    };
+
+    fetchAllJobsTotal();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -163,6 +198,7 @@ export const Jobs: React.FC = () => {
   useEffect(() => {
     setFilters((previousFilters) => ({
       keyword: searchParams.get('keyword') || '',
+      company: searchParams.get('company') || '',
       // Keep the default or an explicitly cleared value when the URL has no location.
       location: searchParams.has('location')
         ? getMultiValues(searchParams, 'location')
@@ -184,6 +220,7 @@ export const Jobs: React.FC = () => {
     try {
       const params: Record<string, unknown> = {};
       if (debouncedKeyword) params.keyword = debouncedKeyword;
+      if (filters.company) params.company = filters.company;
       if (filters.location.length > 0) params.location = filters.location;
       if (filters.experience) params.experience = filters.experience;
       if (filters.education) params.education = filters.education;
@@ -212,6 +249,7 @@ export const Jobs: React.FC = () => {
     }
   }, [
     debouncedKeyword,
+    filters.company,
     filters.location,
     filters.experience,
     filters.education,
@@ -262,10 +300,33 @@ export const Jobs: React.FC = () => {
     });
   };
 
+  const addKeywordTerms = (terms: string[]) => {
+    const existingTerms = filters.keyword.split(',').map((term) => term.trim()).filter(Boolean);
+    const nextTerms = [...existingTerms];
+
+    terms
+      .flatMap((term) => term.split(','))
+      .map((term) => term.trim())
+      .filter(Boolean)
+      .forEach((term) => {
+        if (!nextTerms.some((existing) => existing.toLowerCase() === term.toLowerCase())) {
+          nextTerms.push(term);
+        }
+      });
+
+    handleFilterChange('keyword', nextTerms.join(', '));
+    setKeywordDraft('');
+  };
+
+  const openSuggestionPopup = () => {
+    setSuggestionsOpen(true);
+  };
+
   const clearFilters = () => {
     setDebouncedKeyword('');
     setFilters({
       keyword: '',
+      company: '',
       location: [],
       experience: '',
       education: '',
@@ -295,13 +356,24 @@ export const Jobs: React.FC = () => {
     );
   }
 
-  const searchCount = (filters.keyword ? 1 : 0) + filters.location.length;
+  const keywordValues = filters.keyword.split(',').map((value) => value.trim()).filter(Boolean);
+  const selectedKeywordSet = new Set(keywordValues.map((value) => value.toLowerCase()));
+  const filteredSuggestionGroups = JOB_SEARCH_SUGGESTION_GROUPS
+    .map((group) => ({
+      ...group,
+      options: group.options.filter((option) =>
+        !selectedKeywordSet.has(option.toLowerCase())
+      ),
+    }))
+    .filter((group) => group.options.length > 0);
+  const searchCount = keywordValues.length + (filters.company ? 1 : 0) + filters.location.length;
   const profileCount = [filters.experience, filters.education, filters.freshness].filter(Boolean).length;
   const jobTypeCount = filters.jobType.length;
   const workModeCount = filters.workMode.length;
   const categoryCount = filters.category.length;
   const activeFiltersCount = [
     filters.keyword,
+    filters.company,
     ...filters.location,
     filters.experience,
     filters.education,
@@ -319,6 +391,7 @@ export const Jobs: React.FC = () => {
 
   const activeFilterChips = [
     filters.keyword ? { key: 'keyword', label: `Keyword: ${filters.keyword}`, value: '' } : null,
+    filters.company ? { key: 'company', label: `Company: ${filters.company}`, value: '' } : null,
     filters.location.length > 0
       ? { key: 'location', label: `Location: ${filters.location.join(', ')}`, value: '' }
       : null,
@@ -333,28 +406,30 @@ export const Jobs: React.FC = () => {
 
   return (
     <Layout>
-      <Container maxWidth="xl" sx={{ py: { xs: 1.5, md: 2 } }}>
+      <Container maxWidth="xl" className="find-jobs-page" sx={{ py: { xs: 1.5, md: 3 }, backgroundColor: 'transparent' }}>
         <MotionPaper
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
+          className="find-jobs-hero"
           sx={{
-            mb: 2,
-            p: { xs: 1.5, md: 2 },
-            borderRadius: 4,
-            border: '1px solid',
-            borderColor: 'divider',
-            background:
-              'radial-gradient(circle at 15% 25%, rgba(56, 189, 248, 0.22), transparent 40%), radial-gradient(circle at 85% 20%, rgba(59, 130, 246, 0.18), transparent 44%), linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.94))',
-            color: '#f8fafc',
-            boxShadow: '0 30px 70px rgba(15, 23, 42, 0.26)',
+            mb: { xs: 2, md: 3 },
+            p: { xs: 1.8, sm: 2.4, md: 3 },
+            minHeight: { xs: 0, sm: 0, md: 0 },
+            borderRadius: { xs: 3, md: 4 },
+            border: '1px solid rgba(125, 211, 252, 0.24)',
+            backgroundImage: "linear-gradient(90deg, rgba(4, 18, 40, 0.96) 0%, rgba(7, 28, 57, 0.9) 36%, rgba(8, 31, 63, 0.64) 67%, rgba(8, 31, 63, 0.3) 100%), url('/images/find.png')",
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            color: '#fff',
+            boxShadow: '0 28px 70px rgba(7, 26, 51, 0.3)',
             overflow: 'hidden',
           }}
         >
-          <Grid container spacing={2.5} alignItems="center">
+          <Grid container spacing={{ xs: 1.5, md: 1.8 }}>
             <Grid item xs={12} md={8}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.6 }}>
-                <AutoAwesomeIcon sx={{ fontSize: 20, color: '#7dd3fc' }} />
-                <Typography variant="overline" sx={{ letterSpacing: 1.4, color: 'rgba(226, 232, 240, 0.9)' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 1 }}>
+                <AutoAwesomeIcon sx={{ fontSize: 18, color: '#7dd3fc' }} />
+                <Typography variant="overline" sx={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: 1.6, color: '#7dd3fc' }}>
                   Career Discovery
                 </Typography>
               </Box>
@@ -362,19 +437,23 @@ export const Jobs: React.FC = () => {
                 variant="h3"
                 sx={{
                   fontWeight: 800,
-                  lineHeight: 1.15,
-                  fontSize: { xs: '1.4rem', md: '1.8rem' },
-                  mb: 0.5,
+                  lineHeight: 1.08,
+                  fontSize: { xs: '1.8rem', sm: '2.25rem', md: '2.75rem' },
+                  letterSpacing: '-0.035em',
+                  maxWidth: 650,
+                  mb: 1,
                 }}
               >
-                Find jobs You Will Actually Love
+                <Box component="span" sx={{ display: 'block', color: '#fff', fontWeight: 400, fontSize: { xs: '2.45rem', sm: '2.8rem', md: '3.05rem' }, lineHeight: 1.15, letterSpacing: 0 }}>Find Your</Box>
+                <Box component="span" sx={{ color: '#00aef0', fontSize: { xs: '3.15rem', sm: '3.75rem', md: '4.15rem' } }}>Dream</Box>{' '}
+                <Box component="span" sx={{ color: '#f4c95d', fontSize: { xs: '3.15rem', sm: '3.75rem', md: '4.15rem' } }}>Job</Box>
               </Typography>
-              <Typography variant="body1" sx={{ color: 'rgba(226, 232, 240, 0.9)', maxWidth: 680 }}>
-                Discover {total} verified openings with smart filters across roles, cities, and work styles.
+              <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.82)', maxWidth: 'none', whiteSpace: { xs: 'normal', md: 'nowrap' }, fontSize: { xs: '0.95rem', md: '1.05rem' } }}>
+                Explore {(allJobsTotal || total).toLocaleString()}+ opportunities from top companies and take the next step in your career.
               </Typography>
               {topLocations ? (
-                <Typography variant="body2" sx={{ color: 'rgba(191, 219, 254, 0.95)', mt: 0.6 }}>
-                  Trending locations: {topLocations}
+                <Typography variant="body2" sx={{ color: '#bae6fd', mt: 1, maxWidth: 690, lineHeight: 1.6 }}>
+                  <Box component="span" sx={{ color: '#fff', fontWeight: 700 }}>Trending locations:</Box> {topLocations}
                 </Typography>
               ) : null}
             </Grid>
@@ -382,51 +461,107 @@ export const Jobs: React.FC = () => {
             <Grid item xs={12} md={4}>
               <Box
                 sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 1,
-                  height: '100%',
-                  minHeight: 160,
+                  ml: 'auto',
+                  maxWidth: 225,
+                  p: 1.5,
+                  borderRadius: 2.5,
+                  background: 'rgba(255,255,255,0.1)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  backdropFilter: 'blur(14px)',
+                  boxShadow: '0 16px 35px rgba(2, 12, 27, 0.18)',
                 }}
               >
-                <Box
-                  component="img"
-                  src="/main.svg"
-                  alt="Find Jobs"
-                  sx={{
-                    maxWidth: '100%',
-                    maxHeight: 200,
-                    width: 'auto',
-                    height: 'auto',
-                  }}
-                />
-                <Button
-                  startIcon={<TuneIcon />}
-                  variant="contained"
-                  onClick={() => setShowFilters(!showFilters)}
-                  sx={{
-                    display: { xs: 'flex', md: 'none' },
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontWeight: 700,
-                    bgcolor: '#0ea5e9',
-                    '&:hover': { bgcolor: '#0284c7' },
-                  }}
-                >
-                  {showFilters ? 'Hide Filters' : 'Show Filters'}
-                </Button>
+                {[
+                  { value: (allJobsTotal || total).toLocaleString(), label: 'Active Jobs', icon: <BusinessCenterOutlinedIcon /> },
+                  { value: companyTotal === null ? '—' : companyTotal.toLocaleString(), label: 'Companies', icon: <ApartmentOutlinedIcon /> },
+                  { value: jobs.filter((job) => job.featured).length.toLocaleString(), label: 'Featured Roles', icon: <VerifiedOutlinedIcon /> },
+                ].map((stat) => (
+                  <Box key={stat.label} sx={{ display: 'flex', alignItems: 'center', gap: 1.1, '& + &': { mt: 1.3, pt: 1.3, borderTop: '1px solid rgba(255,255,255,0.14)' } }}>
+                    <Box sx={{ width: 34, height: 34, borderRadius: 1.4, display: 'grid', placeItems: 'center', color: '#7dd3fc', background: 'rgba(34,211,238,0.14)' }}>{stat.icon}</Box>
+                    <Box>
+                      <Typography sx={{ fontSize: '1.1rem', lineHeight: 1.1, fontWeight: 800 }}>{stat.value}</Typography>
+                      <Typography sx={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)' }}>{stat.label}</Typography>
+                    </Box>
+                  </Box>
+                ))}
+                <Typography sx={{ mt: 1.4, pt: 1.2, borderTop: '1px solid rgba(255,255,255,0.14)', color: 'rgba(255,255,255,0.75)', fontSize: '0.78rem', fontStyle: 'italic', lineHeight: 1.4 }}>
+                  Opportunities don&apos;t happen. You create them.
+                </Typography>
               </Box>
             </Grid>
+
+            <Grid item xs={12}>
+              <Button startIcon={<TuneIcon />} variant="outlined" onClick={() => setShowFilters(!showFilters)} sx={{ display: { xs: 'flex', md: 'none' }, borderColor: 'rgba(255,255,255,0.4)', color: '#fff', borderRadius: 1.5, textTransform: 'none', fontWeight: 700 }}>
+                {showFilters ? 'Hide Filters' : 'Show Filters'}
+              </Button>
+            </Grid>
           </Grid>
+
+          <Box
+            className="find-jobs-hero-summary"
+            sx={{
+              mt: { xs: 1.5, md: 1.8 },
+              p: { xs: 1.2, md: 1.5 },
+              borderRadius: 2.25,
+              border: '1px solid rgba(255,255,255,0.22)',
+              background: 'rgba(7, 26, 51, 0.48)',
+              backdropFilter: 'blur(14px)',
+              boxShadow: '0 12px 30px rgba(2, 12, 27, 0.18)',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.2 }}>
+              <Box>
+                <Typography variant="h6" sx={{ color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                  <WorkOutlineIcon sx={{ color: '#7dd3fc' }} />
+                  Showing {jobs.length} of {total} roles
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)', mt: 0.2, display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                  <PlaceOutlinedIcon sx={{ fontSize: 18, color: '#7dd3fc' }} />
+                  {filters.location.length > 0 ? `Focused on ${filters.location.join(', ')}` : 'All locations'}
+                </Typography>
+              </Box>
+              <Button
+                variant="outlined"
+                onClick={clearFilters}
+                disabled={activeFiltersCount === 0}
+                sx={{ color: '#fff', background: 'transparent', borderColor: 'rgba(255,255,255,0.42)', textTransform: 'none', fontWeight: 600, '&:hover': { borderColor: '#fff', background: 'rgba(255,255,255,0.08)' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.42)', background: 'transparent', borderColor: 'rgba(255,255,255,0.2)' } }}
+              >
+                Reset All Filters
+              </Button>
+            </Box>
+
+            <Box sx={{ mt: 1.5, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              {activeFilterChips.length > 0 ? (
+                activeFilterChips.map((chip) => (
+                  <Chip
+                    key={`${chip.key}-${chip.value}`}
+                    label={chip.label}
+                    onDelete={() => {
+                      if (chip.key === 'location') {
+                        handleFilterChange('location', []);
+                      } else if (chip.key === 'keyword') {
+                        handleFilterChange('keyword', '');
+                      } else {
+                        handleFilterChange(chip.key, '');
+                      }
+                    }}
+                    size="small"
+                    sx={{ color: '#e0f2fe', background: 'rgba(191,219,254,0.16)', '& .MuiChip-deleteIcon': { color: 'rgba(255,255,255,0.62)' } }}
+                  />
+                ))
+              ) : (
+                <Chip label="No active filters" size="small" variant="outlined" sx={{ color: 'rgba(255,255,255,0.62)', background: 'transparent', borderColor: 'rgba(255,255,255,0.2)' }} />
+              )}
+            </Box>
+          </Box>
         </MotionPaper>
 
         <Grid container spacing={3}>
           <Grid item xs={12} md={3} sx={{ display: { xs: showFilters ? 'block' : 'none', md: 'block' } }}>
             <MotionPaper
+              className="find-jobs-filters"
               sx={{
-                p: { xs: 2.6, md: 3.2 },
+                p: { xs: 2, md: 2.5 },
                 position: { md: 'sticky' },
                 top: { md: 80 },
                 minHeight: { md: 'calc(100vh - 120px)' },
@@ -439,7 +574,7 @@ export const Jobs: React.FC = () => {
                   : 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(241, 248, 255, 0.96))',
                 border: '1px solid',
                 borderColor: 'divider',
-                borderRadius: 4,
+                borderRadius: 2.75,
                 boxShadow: '0 24px 60px rgba(15, 23, 42, 0.11)',
               }}
               initial={{ opacity: 0, x: -20 }}
@@ -476,20 +611,189 @@ export const Jobs: React.FC = () => {
 
                 <Collapse in={openSections.search}>
                   <Box sx={{ pt: 1.8 }}>
-                    <TextField
-                      fullWidth
-                      placeholder="Job title, skill, or company"
-                      value={filters.keyword}
-                      onChange={(e) => handleFilterChange('keyword', e.target.value)}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <SearchIcon />
-                          </InputAdornment>
-                        ),
-                      }}
-                      sx={{ mb: 2.5, '& .MuiOutlinedInput-root': { height: 54, fontSize: '0.97rem' } }}
-                    />
+                    <Box sx={{ position: 'relative', mb: 2.5 }}>
+                      <Box
+                        sx={{
+                          minHeight: 54,
+                          display: 'flex',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: 0.75,
+                          px: 1.5,
+                          border: '1px solid',
+                          borderColor: suggestionsOpen ? 'primary.main' : 'rgba(148, 163, 184, 0.55)',
+                          borderRadius: 1.5,
+                          background: '#fff',
+                          '&:focus-within': { borderColor: 'primary.main', boxShadow: '0 0 0 1px rgba(37, 99, 235, 0.18)' },
+                        }}
+                        onClick={openSuggestionPopup}
+                      >
+                        <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />
+                        {keywordValues.map((keyword) => (
+                          <Chip
+                            key={keyword}
+                            label={keyword}
+                            size="small"
+                            onDelete={() => handleFilterChange('keyword', keywordValues.filter((value) => value !== keyword).join(', '))}
+                            sx={{
+                              flexShrink: 0,
+                              height: 30,
+                              maxWidth: '100%',
+                              px: 0.35,
+                              fontWeight: 600,
+                              border: '1px solid #dbe4f0',
+                              background: '#f1f5f9',
+                              '& .MuiChip-label': { px: 1 },
+                              '& .MuiChip-deleteIcon': { ml: 0.35, mr: 0.35 },
+                            }}
+                          />
+                        ))}
+                        <input
+                          aria-label="Search job title or skill"
+                          value={keywordDraft}
+                          onFocus={openSuggestionPopup}
+                          onChange={(event) => setKeywordDraft(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter') {
+                              event.preventDefault();
+                              addKeywordTerms([keywordDraft]);
+                            }
+                            if (event.key === ',' && keywordDraft.trim()) {
+                              event.preventDefault();
+                              addKeywordTerms([keywordDraft]);
+                            }
+                          }}
+                          placeholder={keywordValues.length > 0 ? 'Add another keyword' : 'Press ENTER - Job title or skill'}
+                          style={{ border: 0, outline: 0, flex: 1, minWidth: 160, height: 36, font: 'inherit', color: '#1e293b', background: 'transparent' }}
+                        />
+                      </Box>
+
+                      <TextField
+                        fullWidth
+                        aria-label="Search company"
+                        placeholder="Company name"
+                        value={filters.company}
+                        onChange={(event) => handleFilterChange('company', event.target.value)}
+                        InputProps={{ startAdornment: <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} /> }}
+                        sx={{
+                          mt: 1.5,
+                          '& .MuiOutlinedInput-root': { minHeight: 54, fontSize: '0.97rem' },
+                        }}
+                      />
+
+                      {suggestionsOpen ? createPortal(
+                        <>
+                          <Box
+                            onClick={() => setSuggestionsOpen(false)}
+                            sx={{ position: 'fixed', inset: 0, zIndex: 1599, background: 'rgba(15, 23, 42, 0.34)' }}
+                          />
+                          <Box
+                            sx={{
+                              position: 'fixed',
+                              zIndex: 1600,
+                              top: '50%',
+                              left: '50%',
+                              transform: 'translate(-50%, -50%)',
+                              width: 'min(1320px, calc(100vw - 48px))',
+                              maxWidth: 'calc(100vw - 32px)',
+                              height: 'min(720px, calc(100vh - 40px))',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              overflow: 'hidden',
+                              p: { xs: 1.2, md: 1.8 },
+                              border: '1px solid #dbe4f0',
+                              borderRadius: 2.5,
+                              background: '#fff',
+                              opacity: 1,
+                              boxShadow: '0 24px 70px rgba(15, 23, 42, 0.32)',
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, pb: 1.5, borderBottom: '1px solid #e2e8f0' }}>
+                              <Box>
+                                <Typography sx={{ color: '#0f172a', fontSize: '1.2rem', fontWeight: 800 }}>Choose a job role</Typography>
+                                <Typography sx={{ color: 'text.secondary', fontSize: '0.84rem', mt: 0.3 }}>Select one or more roles to filter jobs.</Typography>
+                              </Box>
+                              <IconButton aria-label="Close job role suggestions" onClick={() => setSuggestionsOpen(false)} size="medium">
+                                <CloseIcon />
+                              </IconButton>
+                            </Box>
+                            <Box
+                              sx={{
+                                minHeight: 54,
+                                display: 'flex',
+                                alignItems: 'center',
+                                flexWrap: 'wrap',
+                                gap: 0.75,
+                                px: 1.5,
+                                mb: 2,
+                                border: '1px solid #2563eb',
+                                borderRadius: 1.5,
+                                background: '#fff',
+                              }}
+                            >
+                              <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />
+                              {keywordValues.map((keyword) => (
+                                <Chip
+                                  key={`modal-${keyword}`}
+                                  label={keyword}
+                                  size="small"
+                                  onDelete={() => handleFilterChange('keyword', keywordValues.filter((value) => value !== keyword).join(', '))}
+                                  sx={{
+                                    flexShrink: 0,
+                                    height: 30,
+                                    maxWidth: '100%',
+                                    px: 0.35,
+                                    fontWeight: 600,
+                                    border: '1px solid #dbe4f0',
+                                    background: '#f1f5f9',
+                                    '& .MuiChip-label': { px: 1 },
+                                    '& .MuiChip-deleteIcon': { ml: 0.35, mr: 0.35 },
+                                  }}
+                                />
+                              ))}
+                              <input
+                                aria-label="Search job title or skill"
+                                value={keywordDraft}
+                                onChange={(event) => setKeywordDraft(event.target.value)}
+                                onKeyDown={(event) => {
+                                  if (event.key === 'Enter' || (event.key === ',' && keywordDraft.trim())) {
+                                    event.preventDefault();
+                                    addKeywordTerms([keywordDraft]);
+                                  }
+                                }}
+                                placeholder={keywordValues.length > 0 ? 'Add another keyword' : 'Job title or skill'}
+                                style={{ border: 0, outline: 0, flex: 1, minWidth: 180, height: 36, font: 'inherit', color: '#1e293b', background: 'transparent' }}
+                              />
+                            </Box>
+                            <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', pr: 0.5 }}>
+                              <Box sx={{ columnCount: { xs: 1, sm: 2, md: 5 }, columnGap: { xs: 1, md: 0.9 } }}>
+                                {filteredSuggestionGroups.map((group) => (
+                                  <Box key={group.label} sx={{ display: 'inline-block', width: '100%', mb: { xs: 1, md: 0.9 }, p: 0.75, border: '1px solid #e2e8f0', borderRadius: 1.25, background: '#f8fafc', breakInside: 'avoid' }}>
+                                  <Typography sx={{ display: 'block', px: 0.7, py: 0.45, mb: 0.55, color: '#164e9b', fontSize: '0.66rem', fontWeight: 800, letterSpacing: 0.35, textTransform: 'uppercase', background: 'linear-gradient(135deg, #dbeafe, #e0f2fe)', border: '1px solid #bfdbfe', borderRadius: 0.9, boxShadow: '0 2px 6px rgba(37, 99, 235, 0.08)' }}>
+                                    {group.label}
+                                  </Typography>
+                                  {group.options.map((option) => (
+                                    <Button
+                                      key={option}
+                                      fullWidth
+                                      onClick={() => addKeywordTerms([option])}
+                                      sx={{ justifyContent: 'flex-start', px: 0.45, py: 0.18, minHeight: 25, color: 'text.primary', textTransform: 'none', fontSize: '0.7rem', lineHeight: 1.2, fontWeight: 500, textAlign: 'left', '&:hover': { background: 'rgba(37, 99, 235, 0.1)' } }}
+                                    >
+                                      {option}
+                                    </Button>
+                                  ))}
+                                  </Box>
+                                ))}
+                              </Box>
+                              {filteredSuggestionGroups.length === 0 ? (
+                                <Typography sx={{ px: 0.8, py: 1, color: 'text.secondary', fontSize: '0.85rem' }}>No matching suggestions</Typography>
+                              ) : null}
+                            </Box>
+                          </Box>
+                        </>,
+                        document.body,
+                      ) : null}
+                    </Box>
 
                     <Autocomplete
                       multiple
@@ -792,7 +1096,6 @@ export const Jobs: React.FC = () => {
               </Box>
 
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-                {filters.keyword && <Chip label={filters.keyword} size="small" />}
                 {filters.location.length > 0 && <Chip label={filters.location.join(', ')} size="small" />}
                 {filters.experience && <Chip label={filters.experience} size="small" />}
                 {filters.education && <Chip label={filters.education} size="small" />}
@@ -805,64 +1108,6 @@ export const Jobs: React.FC = () => {
           </Grid>
 
           <Grid item xs={12} md={9}>
-            <Paper
-              sx={{
-                mb: 2.5,
-                p: { xs: 1.5, md: 2 },
-                borderRadius: 3,
-                border: '1px solid',
-                borderColor: 'divider',
-                background: theme.palette.mode === 'dark'
-                  ? 'linear-gradient(180deg, #111827, #0F172A)'
-                  : 'linear-gradient(180deg, #ffffff, #f8fbff)',
-                boxShadow: '0 14px 36px rgba(15, 23, 42, 0.06)',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.2 }}>
-                <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                    <WorkOutlineIcon sx={{ color: 'primary.main' }} />
-                    Showing {jobs.length} of {total} roles
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.2, display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                    <PlaceOutlinedIcon sx={{ fontSize: 18 }} />
-                    {filters.location.length > 0 ? `Focused on ${filters.location.join(', ')}` : 'All locations'}
-                  </Typography>
-                </Box>
-                <Button
-                  variant="outlined"
-                  onClick={clearFilters}
-                  disabled={activeFiltersCount === 0}
-                  sx={{ textTransform: 'none', fontWeight: 600 }}
-                >
-                  Reset All Filters
-                </Button>
-              </Box>
-
-              <Box sx={{ mt: 1.5, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {activeFilterChips.length > 0 ? (
-                  activeFilterChips.map((chip) => (
-                    <Chip
-                      key={`${chip.key}-${chip.value}`}
-                      label={chip.label}
-                      onDelete={() => {
-                        if (chip.key === 'location') {
-                          handleFilterChange('location', []);
-                        } else if (chip.key === 'keyword') {
-                          handleFilterChange('keyword', '');
-                        } else {
-                          handleFilterChange(chip.key, '');
-                        }
-                      }}
-                      size="small"
-                    />
-                  ))
-                ) : (
-                  <Chip label="No active filters" size="small" variant="outlined" />
-                )}
-              </Box>
-            </Paper>
-
             {loading ? (
               <JobListSkeleton count={6} />
             ) : jobs.length === 0 ? (

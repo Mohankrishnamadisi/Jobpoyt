@@ -21,6 +21,7 @@ import {
   Stepper,
   Step,
   StepLabel,
+  Switch,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -71,6 +72,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   >(initialPaymentMethod);
   const [loading, setLoading] = useState(false);
   const [paymentError, setPaymentError] = useState('');
+  const [autoRenew, setAutoRenew] = useState(true);
   const [showCardDetails, setShowCardDetails] = useState(false);
   const [cardData, setCardData] = useState({
     cardNumber: '',
@@ -112,7 +114,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       }, (reason) => {
         setPaymentError(reason);
         onError?.(reason);
-      });
+      }, autoRenew);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Payment failed';
       console.error('Payment error:', error);
@@ -626,6 +628,34 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 </Box>
               </CardContent>
             </Card>
+
+            <Paper
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 1.5,
+                p: 2,
+                background: '#F0F4FF',
+                border: '1px solid #C7D2FE',
+                borderRadius: '8px',
+                mb: 2,
+              }}
+            >
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#1F2937' }}>
+                  Auto-renew my plan
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#6B7280' }}>
+                  Like Netflix/Prime — we'll automatically renew before expiry so you never lose access.
+                </Typography>
+              </Box>
+              <Switch
+                checked={autoRenew}
+                onChange={(event) => setAutoRenew(event.target.checked)}
+                color="primary"
+              />
+            </Paper>
 
             <Paper
               sx={{

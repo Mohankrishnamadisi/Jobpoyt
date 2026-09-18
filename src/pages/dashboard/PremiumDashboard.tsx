@@ -34,6 +34,7 @@ import {
   Videocam as VideocamIcon,
   Visibility as VisibilityIcon,
   Work as WorkIcon,
+  WorkspacePremium as WorkspacePremiumIcon,
   Favorite as FavoriteIcon,
   Logout as LogoutIcon,
   Settings as SettingsIcon,
@@ -52,9 +53,11 @@ import toast from 'react-hot-toast';
 
 import { Layout } from '@components/layout/Layout';
 import RecruiterActivityCenter, { type RecruiterActivityQuickAction } from '@components/dashboard/RecruiterActivityCenter';
+import { SubscriptionSummaryCard } from '@components/common/SubscriptionSummaryCard';
 import { useAuthStore } from '@store/index';
 import { authService } from '@services/supabase';
-import { userService, applicationService, savedService, notificationService, jobService } from '@services/api';
+import { userService, applicationService, savedService, notificationService, jobService, subscriptionService } from '@services/api';
+import { useSubscription } from '@hooks/index';
 import { messagingService } from '@services/messaging';
 import {
   getCandidateProfileViewCount,
@@ -137,6 +140,8 @@ const sectionTabs: Array<{ key: PremiumSectionKey; label: string; icon: React.El
 
 export const PremiumDashboard: React.FC = () => {
   const { user, logout } = useAuthStore();
+  const { subscription, loading: subscriptionLoading, refetch: refetchSubscription } = useSubscription(user?.id || null);
+  const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
   const theme = useTheme();
   const navigate = useNavigate();
   const isDarkMode = theme.palette.mode === 'dark';
@@ -340,7 +345,7 @@ export const PremiumDashboard: React.FC = () => {
         actionLabel: 'View profile views',
       },
     ],
-    [applicationCount, navigate, profileViewCount, resumeDownloadCount, savedJobsCount, theme.palette.error.main, theme.palette.primary.main, theme.palette.secondary.main, theme.palette.success.main],
+    [applicationCount, navigate, profileViewCount, resumeDownloadCount, savedJobsCount, subscription, theme.palette.error.main, theme.palette.primary.main, theme.palette.secondary.main, theme.palette.success.main],
   );
 
 
@@ -891,6 +896,30 @@ export const PremiumDashboard: React.FC = () => {
             </Grid>
           ))}
         </Grid>
+
+        <Dialog open={subscriptionDialogOpen} onClose={() => setSubscriptionDialogOpen(false)} maxWidth="md" fullWidth>
+          <DialogContent sx={{ p: { xs: 1.5, md: 2 } }}>
+            <SubscriptionSummaryCard
+              subscription={subscription}
+              loading={subscriptionLoading}
+              onRenew={() => {
+                setSubscriptionDialogOpen(false);
+                navigate(ROUTES.PRICING);
+              }}
+              onToggleAutoRenew={async (autoRenew) => {
+                if (!subscription?.id) return;
+                try {
+                  await subscriptionService.setAutoRenew(subscription.id, autoRenew);
+                  toast.success(autoRenew ? 'Auto-renewal enabled' : 'Auto-renewal disabled');
+                  refetchSubscription();
+                } catch (error) {
+                  console.error('Failed to update auto-renew:', error);
+                  toast.error('Could not update auto-renewal. Please try again.');
+                }
+              }}
+            />
+          </DialogContent>
+        </Dialog>
 
         <Box
           sx={{
@@ -1443,9 +1472,9 @@ export const PremiumDashboard: React.FC = () => {
                       accent: '#0EA5E9',
                     },
                     {
-                      label: 'Referrals',
-                      icon: BoltIcon,
-                      action: () => navigate(ROUTES.DASHBOARD_REFERRALS),
+                      label: 'My Subscription',
+                      icon: WorkspacePremiumIcon,
+                      action: () => setSubscriptionDialogOpen(true),
                       iconGradient: 'linear-gradient(135deg, rgba(251,191,36,0.16), rgba(254,243,199,0.34))',
                       accent: '#F59E0B',
                     },

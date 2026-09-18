@@ -4,42 +4,76 @@ import { Layout } from 'antd';
 import AdminSidebar from './AdminSidebar';
 import AdminTopbar from './AdminTopbar';
 import SupportWidget from '@components/common/SupportWidget';
+import '../styles/fixedSideNav.css';
 
 const { Content } = Layout;
-const drawerWidth = 268;
+const EXPANDED_SIDEBAR_WIDTH = 260;
+const COLLAPSED_SIDEBAR_WIDTH = 80;
 
 const AdminLayout: React.FC = () => {
   const [collapsed, setCollapsed] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(() => typeof window !== 'undefined' ? window.innerWidth <= 1024 : false);
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const update = () => {
+      const mobile = window.innerWidth <= 1024;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setMobileOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', update);
+    update();
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  const sidebarWidth = collapsed ? COLLAPSED_SIDEBAR_WIDTH : EXPANDED_SIDEBAR_WIDTH;
 
   return (
-    <Layout style={{ minHeight: '100vh', background: '#f5f7fb' }}>
+    <div
+      className="admin-shell"
+      data-collapsed={collapsed}
+      data-mobile={isMobile}
+      data-mobile-open={mobileOpen}
+      style={{
+        ['--admin-sidebar-width' as string]: `${sidebarWidth}px`,
+        ['--admin-topbar-height' as string]: '72px',
+      }}
+    >
       <AdminSidebar
-        drawerWidth={drawerWidth}
         collapsed={collapsed}
-        onCollapsedChange={setCollapsed}
+        isMobile={isMobile}
+        mobileOpen={mobileOpen}
+        onToggleCollapsed={() => setCollapsed((prev) => !prev)}
+        onMobileOpenChange={setMobileOpen}
       />
-      <Layout>
+
+      <div className="admin-main-shell">
         <AdminTopbar
-          drawerWidth={drawerWidth}
           collapsed={collapsed}
-          onToggleCollapsed={() => setCollapsed((prev) => !prev)}
+          isMobile={isMobile}
+          mobileOpen={mobileOpen}
+          onToggleCollapsed={() => {
+            if (isMobile) {
+              setMobileOpen((prev) => !prev);
+              return;
+            }
+            setCollapsed((prev) => !prev);
+          }}
+          onMobileOpenChange={setMobileOpen}
         />
-        <Content style={{ margin: '96px 18px 18px', minHeight: 280 }}>
-          <div
-            style={{
-              borderRadius: 14,
-              padding: 18,
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.94), rgba(248,251,255,0.98))',
-              boxShadow: '0 12px 30px rgba(15, 23, 42, 0.07)',
-            }}
-          >
+
+        <Content className="admin-content">
+          <div className="admin-content-shell">
             <Outlet />
           </div>
         </Content>
-      </Layout>
+      </div>
 
       <SupportWidget audience="admin" />
-    </Layout>
+    </div>
   );
 };
 

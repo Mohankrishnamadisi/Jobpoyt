@@ -34,7 +34,12 @@ const loadRazorpay = (): Promise<void> => new Promise((resolve, reject) => {
 });
 
 export const razorpayCheckout = {
-  async start(plan: CheckoutPlan, onSuccess: (payment: unknown) => void, onFailure: (reason: string) => void): Promise<void> {
+  async start(
+    plan: CheckoutPlan,
+    onSuccess: (payment: unknown) => void,
+    onFailure: (reason: string) => void,
+    autoRenew = false
+  ): Promise<void> {
     const { data: order, error } = await supabase.functions.invoke<RazorpayOrder>('razorpay-checkout', {
       body: { action: 'create-order', planId: plan.id },
     });
@@ -51,7 +56,7 @@ export const razorpayCheckout = {
       handler: async (response: Record<string, string>) => {
         try {
           const { data: payment, error: verificationError } = await supabase.functions.invoke('razorpay-checkout', {
-            body: { action: 'verify-payment', planId: plan.id, ...response },
+            body: { action: 'verify-payment', planId: plan.id, autoRenew, ...response },
           });
           if (verificationError) throw verificationError;
           onSuccess(payment);

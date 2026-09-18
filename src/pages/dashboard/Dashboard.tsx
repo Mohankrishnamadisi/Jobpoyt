@@ -65,19 +65,22 @@ import {
   VideoCameraBack as VideocamIcon,
   Visibility as VisibilityIcon,
   Work as WorkIcon,
+  WorkspacePremium as WorkspacePremiumIcon,
 } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTheme } from '@mui/material/styles';
+import toast from 'react-hot-toast';
 
 import { Layout } from '@components/layout/Layout';
 import '../../styles/dashboardFixedNav.css';
 import SupportWidget from '@components/common/SupportWidget';
+import { SubscriptionSummaryCard } from '@components/common/SubscriptionSummaryCard';
 import { ROUTES } from '@constants/index';
 import { useSubscription } from '@hooks/index';
 import { useAuthStore } from '@store/index';
 import { authService } from '@services/supabase';
-import { applicationService, jobService, notificationService, savedService, userService, recruiterService } from '@services/api';
+import { applicationService, jobService, notificationService, savedService, userService, recruiterService, subscriptionService } from '@services/api';
 import { messagingService } from '@services/messaging';
 import Swal from '@utils/sweetAlert';
 import { formatDate } from '@utils/index';
@@ -134,7 +137,7 @@ const calculateProfileStrength = (profile: any, user: any): number => {
 
 export const Dashboard: React.FC = () => {
   const { user, logout } = useAuthStore();
-  const { subscription } = useSubscription(user?.id || null);
+  const { subscription, loading: subscriptionLoading, refetch: refetchSubscription } = useSubscription(user?.id || null);
   const theme = useTheme();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('lg'));
@@ -159,7 +162,7 @@ export const Dashboard: React.FC = () => {
   const [selectedRecruiterJobs, setSelectedRecruiterJobs] = useState<any[] | null>(null);
   const [recruiterModalOpen, setRecruiterModalOpen] = useState(false);
   const [recruiterDetailsLoading, setRecruiterDetailsLoading] = useState(false);
-  const [activeRecruiterFilter, setActiveRecruiterFilter] = useState<'all' | 'views' | 'resume'>('all');
+  const [activeRecruiterFilter, setActiveRecruiterFilter] = useState<'all' | 'views' | 'resume' | 'subscription'>('all');
   const [recommendedJobs, setRecommendedJobs] = useState<any[]>([]);
   const [recommendedLoading, setRecommendedLoading] = useState(false);
   const [savingJobId, setSavingJobId] = useState<string | null>(null);
@@ -841,7 +844,10 @@ export const Dashboard: React.FC = () => {
               <Grid container spacing={2}>
                 {stats.map((item) => (
                   <Grid item xs={12} sm={6} md={4} lg={2.4} key={item.label}>
-                    <Card sx={{ borderRadius: 2, border: '1px solid #E5EAF0', background: '#FFFFFF', boxShadow: '0 6px 20px rgba(15,23,42,0.04)', transition: 'all 0.18s ease', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 12px 26px rgba(15,23,42,0.08)' }, height: '100%' }}>
+                    <Card
+                      onClick={item.onClick}
+                      sx={{ borderRadius: 2, border: '1px solid #E5EAF0', background: '#FFFFFF', boxShadow: '0 6px 20px rgba(15,23,42,0.04)', transition: 'all 0.18s ease', cursor: item.onClick ? 'pointer' : 'default', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 12px 26px rgba(15,23,42,0.08)' }, height: '100%' }}
+                    >
                       <CardContent sx={{ p: 1.2 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                           <Typography sx={{ fontWeight: 700, color: '#334155', fontSize: 12 }}>{item.label}</Typography>
@@ -943,10 +949,18 @@ export const Dashboard: React.FC = () => {
                             icon: DownloadIcon,
                             accent: '#16A34A',
                           },
+                          {
+                            key: 'subscription' as const,
+                            label: 'My Subscription',
+                            value: isCandidatePremium(subscription?.plan) && isSubscriptionActive(subscription?.end_date) ? getPlanDisplayName(subscription?.plan) : 'Free',
+                            subtitle: 'Tap to view billing details',
+                            icon: WorkspacePremiumIcon,
+                            accent: '#B78317',
+                          },
                         ].map((item) => {
                           const isActive = activeRecruiterFilter === item.key;
                           return (
-                            <Grid item xs={12} sm={6} md={4} key={item.key}>
+                            <Grid item xs={12} sm={6} md={3} key={item.key}>
                               <ButtonBase
                                 onClick={() => setActiveRecruiterFilter(item.key)}
                                 aria-pressed={isActive}
@@ -1000,7 +1014,24 @@ export const Dashboard: React.FC = () => {
                       </Grid>
 
                       <Box>
-                        {visibleRecruiterInsights.length > 0 ? (
+                        {activeRecruiterFilter === 'subscription' ? (
+                          <SubscriptionSummaryCard
+                            subscription={subscription}
+                            loading={subscriptionLoading}
+                            onRenew={() => navigate(ROUTES.PRICING)}
+                            onToggleAutoRenew={async (autoRenew) => {
+                              if (!subscription?.id) return;
+                              try {
+                                await subscriptionService.setAutoRenew(subscription.id, autoRenew);
+                                toast.success(autoRenew ? 'Auto-renewal enabled' : 'Auto-renewal disabled');
+                                refetchSubscription();
+                              } catch (error) {
+                                console.error('Failed to update auto-renew:', error);
+                                toast.error('Could not update auto-renewal. Please try again.');
+                              }
+                            }}
+                          />
+                        ) : visibleRecruiterInsights.length > 0 ? (
                           <Grid container spacing={1.2}>
                             {visibleRecruiterInsights.map((item) => (
                               <Grid item xs={12} sm={6} lg={4} key={item.id}>

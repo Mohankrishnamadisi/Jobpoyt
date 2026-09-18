@@ -53,6 +53,7 @@ import {
   TeamOutlined,
   ToolOutlined,
   UnlockOutlined,
+  UploadOutlined,
   UserSwitchOutlined,
   CustomerServiceOutlined,
 } from '@ant-design/icons';
@@ -61,6 +62,7 @@ import * as XLSX from 'xlsx';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { adminService } from '../../services/admin';
 import { organizationSaasService } from '@services/organizationSaas';
+import { useAuthStore } from '@store/index';
 import { ROUTES } from '../../constants';
 
 const { Title, Text } = Typography;
@@ -233,6 +235,7 @@ const AdminControlCenter: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [dashboardStats, setDashboardStats] = useState<Record<string, number>>({});
 
   const [activeRole, setActiveRole] = useState<SuperAdminRole>('super_admin');
   const [globalSearch, setGlobalSearch] = useState('');
@@ -246,6 +249,8 @@ const AdminControlCenter: React.FC = () => {
   const [payments, setPayments] = useState<AnyRecord[]>([]);
   const [supportTickets, setSupportTickets] = useState<AnyRecord[]>([]);
   const [systemHealth, setSystemHealth] = useState<AnyRecord | null>(null);
+  const [dashboardChartData, setDashboardChartData] = useState<AnyRecord[]>([]);
+  const { user: authUser } = useAuthStore();
 
   const [localState, setLocalState] = useState<LocalState>(defaultLocalState());
   const [organizations, setOrganizations] = useState<AnyRecord[]>([]);
@@ -342,7 +347,7 @@ const AdminControlCenter: React.FC = () => {
       setLocalState(cached);
 
       const [
-        dashboardStats,
+        dashboardStatsData,
         usersData,
         recruitersData,
         candidatesData,
@@ -351,6 +356,7 @@ const AdminControlCenter: React.FC = () => {
         paymentsData,
         supportTicketsData,
         healthData,
+        chartData,
         superOrgs,
       ] = await Promise.all([
         adminService.getDashboardStats(),
@@ -362,10 +368,11 @@ const AdminControlCenter: React.FC = () => {
         adminService.getPayments(1000),
         adminService.getSupportTickets(800),
         adminService.getSystemHealth(),
+        adminService.getDashboardChartData(14),
         organizationSaasService.listSuperAdminOrganizations().catch(() => []),
       ]);
 
-      void dashboardStats;
+      setDashboardStats(dashboardStatsData || {});
       setUsers(usersData || []);
       setRecruiters(recruitersData || []);
       setCandidates(candidatesData || []);
@@ -374,6 +381,7 @@ const AdminControlCenter: React.FC = () => {
       setPayments(paymentsData || []);
       setSupportTickets(supportTicketsData || []);
       setSystemHealth(healthData || null);
+      setDashboardChartData(chartData || []);
 
       const orgRows: AnyRecord[] = (superOrgs || []).map((org: AnyRecord) => ({
         id: org.tenantId,
@@ -504,7 +512,7 @@ const AdminControlCenter: React.FC = () => {
   }, []);
 
   const dashboardKpi = useMemo(() => {
-    const openJobs = jobsWithOverrides.filter((job) => String(job.runtimeStatus).toLowerCase() === 'published').length;
+    const openJobs = dashboardStats.activeJobs ?? jobsWithOverrides.filter((job) => String(job.runtimeStatus).toLowerCase() === 'published').length;
     const pendingOrganizations = organizationsWithOverrides.filter((o) => String(o.status).toLowerCase() === 'pending').length;
     const activeOrganizations = organizationsWithOverrides.filter((o) => String(o.status).toLowerCase() === 'active').length;
     const suspendedOrganizations = organizationsWithOverrides.filter((o) => String(o.status).toLowerCase() === 'suspended').length;
@@ -542,8 +550,8 @@ const AdminControlCenter: React.FC = () => {
       activeOrganizations,
       pendingOrganizations,
       suspendedOrganizations,
-      totalRecruiters: recruitersWithOverrides.length,
-      totalCandidates: candidatesWithOverrides.length,
+      totalRecruiters: dashboardStats.totalRecruiters ?? recruitersWithOverrides.length,
+      totalCandidates: dashboardStats.totalCandidates ?? candidatesWithOverrides.length,
       totalJobs: jobsWithOverrides.length,
       openJobs,
       applicationsToday,
@@ -551,12 +559,12 @@ const AdminControlCenter: React.FC = () => {
       messagesToday,
       aiRequestsToday,
       revenueToday,
-      revenueMonth,
+      revenueMonth: dashboardStats.monthlyRevenue ?? revenueMonth,
       creditsPurchased,
       platformHealth,
       serverStatus: platformHealth > 85 ? 'Healthy' : 'Attention Needed',
     };
-  }, [applications, candidatesWithOverrides.length, jobsWithOverrides, localState.credits, organizationsWithOverrides, payments, recruitersWithOverrides.length, supportTickets.length, systemHealth, thisMonthKey, todayIso]);
+  }, [applications, candidatesWithOverrides.length, dashboardStats, jobsWithOverrides, localState.credits, organizationsWithOverrides, payments, recruitersWithOverrides.length, supportTickets.length, systemHealth, thisMonthKey, todayIso]);
 
   const revenueMetrics = useMemo(() => {
     const totalRevenue = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
@@ -663,6 +671,22 @@ const AdminControlCenter: React.FC = () => {
     if (ticketFilter === 'all') return supportTickets;
     return supportTickets.filter((ticket) => String(ticket.status || 'open').toLowerCase() === ticketFilter);
   }, [supportTickets, ticketFilter]);
+
+  const recentUsers = useMemo(() => (users || []).slice(0, 5).map((user) => ({
+    name: user.name || user.email || 'User',
+    type: user.role || 'member',
+    joined: user.created_at ? new Date(user.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Recent',
+    status: user.status || 'Active',
+  })), [users]);
+
+  const recentJobs = useMemo(() => (jobs || []).slice(0, 5).map((job) => ({
+    title: job.title || 'Untitled Role',
+    company: job.company_name || 'Company',
+    posted: job.created_at ? new Date(job.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Recent',
+    status: job.status || 'published',
+  })), [jobs]);
+
+  const adminDisplayName = authUser?.name || authUser?.email || 'Admin';
 
   const globalSearchResults = useMemo(() => {
     const q = globalSearch.trim().toLowerCase();
@@ -1263,6 +1287,7 @@ const AdminControlCenter: React.FC = () => {
       <Tabs
         type="card"
         activeKey={activeTabKey}
+        tabBarStyle={{ display: 'none' }}
         onChange={(key) => {
           const nextRoute = tabKeyToRoute[key] || ROUTES.ADMIN_DASHBOARD;
           if (location.pathname !== nextRoute) {
@@ -1272,34 +1297,317 @@ const AdminControlCenter: React.FC = () => {
         items={[
           {
             key: 'dashboard',
-            label: (
-              <Space>
-                <AppstoreOutlined />
-                Super Admin Dashboard
-              </Space>
-            ),
+            label: 'Dashboard',
             children: (
-              <Space direction="vertical" size={12} style={{ width: '100%' }}>
-                <Row gutter={[12, 12]}>
-                  <Col xs={12} md={6} lg={4}><Card><Statistic title="Total Organizations" value={dashboardKpi.totalOrganizations} /></Card></Col>
-                  <Col xs={12} md={6} lg={4}><Card><Statistic title="Active Organizations" value={dashboardKpi.activeOrganizations} /></Card></Col>
-                  <Col xs={12} md={6} lg={4}><Card><Statistic title="Pending Organizations" value={dashboardKpi.pendingOrganizations} /></Card></Col>
-                  <Col xs={12} md={6} lg={4}><Card><Statistic title="Suspended Organizations" value={dashboardKpi.suspendedOrganizations} /></Card></Col>
-                  <Col xs={12} md={6} lg={4}><Card><Statistic title="Total Recruiters" value={dashboardKpi.totalRecruiters} /></Card></Col>
-                  <Col xs={12} md={6} lg={4}><Card><Statistic title="Total Candidates" value={dashboardKpi.totalCandidates} /></Card></Col>
-                  <Col xs={12} md={6} lg={4}><Card><Statistic title="Total Jobs" value={dashboardKpi.totalJobs} /></Card></Col>
-                  <Col xs={12} md={6} lg={4}><Card><Statistic title="Open Jobs" value={dashboardKpi.openJobs} /></Card></Col>
-                  <Col xs={12} md={6} lg={4}><Card><Statistic title="Applications Today" value={dashboardKpi.applicationsToday} /></Card></Col>
-                  <Col xs={12} md={6} lg={4}><Card><Statistic title="Interviews Today" value={dashboardKpi.interviewsToday} /></Card></Col>
-                  <Col xs={12} md={6} lg={4}><Card><Statistic title="Messages Today" value={dashboardKpi.messagesToday} /></Card></Col>
-                  <Col xs={12} md={6} lg={4}><Card><Statistic title="AI Requests Today" value={dashboardKpi.aiRequestsToday} /></Card></Col>
-                  <Col xs={12} md={6} lg={4}><Card><Statistic title="Revenue Today" value={dashboardKpi.revenueToday} formatter={(v) => formatMoney(Number(v || 0))} /></Card></Col>
-                  <Col xs={12} md={6} lg={4}><Card><Statistic title="Revenue This Month" value={dashboardKpi.revenueMonth} formatter={(v) => formatMoney(Number(v || 0))} /></Card></Col>
-                  <Col xs={12} md={6} lg={4}><Card><Statistic title="Credits Purchased" value={dashboardKpi.creditsPurchased} /></Card></Col>
-                  <Col xs={12} md={6} lg={4}><Card><Statistic title="Platform Health" value={dashboardKpi.platformHealth} suffix="/100" /></Card></Col>
-                  <Col xs={12} md={6} lg={4}><Card><Statistic title="Server Status" value={dashboardKpi.serverStatus} /></Card></Col>
-                </Row>
-              </Space>
+              <div className="admin-dashboard">
+                <section className="admin-dashboard__hero">
+                  <div className="admin-dashboard__hero-copy">
+                    <span className="admin-dashboard__hero-badge">Super Admin Control Center</span>
+                    <h2>Welcome back, {adminDisplayName}!</h2>
+                    <p>Here&apos;s what&apos;s happening across JobPoyt today.</p>
+                    <p className="admin-dashboard__hero-sub">Monitor your marketplace, users, jobs, revenue and platform health from one place.</p>
+                  </div>
+                  <div className="admin-dashboard__hero-side">
+                    <div className="admin-dashboard__hero-side-label">
+                      <span>Platform Health</span>
+                      <span>{dashboardKpi.platformHealth}/100</span>
+                    </div>
+                    <div className="admin-dashboard__hero-side-value">
+                      <strong>{dashboardKpi.platformHealth}</strong>
+                      <span>Healthy</span>
+                    </div>
+                    <div className="admin-dashboard__hero-side-meta">
+                      <div>
+                        <strong>{users.length}</strong>
+                        <span>Users</span>
+                      </div>
+                      <div>
+                        <strong>{jobs.length}</strong>
+                        <span>Jobs</span>
+                      </div>
+                      <div>
+                        <strong>{formatMoney(dashboardKpi.revenueMonth || 0)}</strong>
+                        <span>Revenue</span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <div className="admin-kpi-grid">
+                  <div className="admin-kpi-card">
+                    <div className="admin-kpi-card__top">
+                      <span className="admin-kpi-card__icon"><UserSwitchOutlined /></span>
+                      <span className="admin-kpi-card__trend">↗ 12%</span>
+                    </div>
+                    <div className="admin-kpi-card__label">Total Users</div>
+                    <p className="admin-kpi-card__value">{(dashboardStats.totalUsers ?? users.length).toLocaleString()}</p>
+                    <div className="admin-kpi-card__meta">Live platform count</div>
+                  </div>
+                  <div className="admin-kpi-card">
+                    <div className="admin-kpi-card__top">
+                      <span className="admin-kpi-card__icon"><ToolOutlined /></span>
+                      <span className="admin-kpi-card__trend">↗ 8%</span>
+                    </div>
+                    <div className="admin-kpi-card__label">Active Jobs</div>
+                    <p className="admin-kpi-card__value">{dashboardKpi.openJobs.toLocaleString()}</p>
+                    <div className="admin-kpi-card__meta">{dashboardKpi.openJobs.toLocaleString()} live listings</div>
+                  </div>
+                  <div className="admin-kpi-card">
+                    <div className="admin-kpi-card__top">
+                      <span className="admin-kpi-card__icon"><BankOutlined /></span>
+                      <span className="admin-kpi-card__trend">↗ 5%</span>
+                    </div>
+                    <div className="admin-kpi-card__label">Organizations</div>
+                    <p className="admin-kpi-card__value">{dashboardKpi.totalOrganizations.toLocaleString()}</p>
+                    <div className="admin-kpi-card__meta">{dashboardKpi.activeOrganizations} active</div>
+                  </div>
+                  <div className="admin-kpi-card">
+                    <div className="admin-kpi-card__top">
+                      <span className="admin-kpi-card__icon"><AppstoreOutlined /></span>
+                      <span className="admin-kpi-card__trend">↗ 15%</span>
+                    </div>
+                    <div className="admin-kpi-card__label">Platform Activity</div>
+                    <p className="admin-kpi-card__value">{Math.max(dashboardKpi.aiRequestsToday, dashboardKpi.messagesToday).toLocaleString()}</p>
+                    <div className="admin-kpi-card__meta">Engaged today</div>
+                  </div>
+
+                  <div className="admin-kpi-card">
+                    <div className="admin-kpi-card__top">
+                      <span className="admin-kpi-card__icon"><TeamOutlined /></span>
+                      <span className="admin-kpi-card__trend">↗ 9%</span>
+                    </div>
+                    <div className="admin-kpi-card__label">Candidates</div>
+                    <p className="admin-kpi-card__value">{dashboardKpi.totalCandidates.toLocaleString()}</p>
+                    <div className="admin-kpi-card__meta">Active talent pool</div>
+                  </div>
+                  <div className="admin-kpi-card">
+                    <div className="admin-kpi-card__top">
+                      <span className="admin-kpi-card__icon"><TeamOutlined /></span>
+                      <span className="admin-kpi-card__trend">↗ 6%</span>
+                    </div>
+                    <div className="admin-kpi-card__label">Recruiters</div>
+                    <p className="admin-kpi-card__value">{dashboardKpi.totalRecruiters.toLocaleString()}</p>
+                    <div className="admin-kpi-card__meta">Hiring partners</div>
+                  </div>
+                  <div className="admin-kpi-card">
+                    <div className="admin-kpi-card__top">
+                      <span className="admin-kpi-card__icon"><FileSearchOutlined /></span>
+                      <span className="admin-kpi-card__trend">↗ 11%</span>
+                    </div>
+                    <div className="admin-kpi-card__label">Applications</div>
+                    <p className="admin-kpi-card__value">{(dashboardStats.totalApplications ?? applications.length).toLocaleString()}</p>
+                    <div className="admin-kpi-card__meta">Across active roles</div>
+                  </div>
+                  <div className="admin-kpi-card">
+                    <div className="admin-kpi-card__top">
+                      <span className="admin-kpi-card__icon"><DollarOutlined /></span>
+                      <span className="admin-kpi-card__trend">↗ 18%</span>
+                    </div>
+                    <div className="admin-kpi-card__label">Revenue</div>
+                    <p className="admin-kpi-card__value">{formatMoney(dashboardKpi.revenueMonth || 0)}</p>
+                    <div className="admin-kpi-card__meta">This month</div>
+                  </div>
+                </div>
+
+                <div className="admin-panel-grid">
+                  <div className="admin-panel">
+                    <div className="admin-panel__header">
+                      <div>
+                        <h3 className="admin-panel__title">User Growth</h3>
+                        <div className="admin-panel__subtitle">Registered users over time</div>
+                      </div>
+                      <select className="admin-select" defaultValue="7d">
+                        <option value="7d">Last 7 days</option>
+                        <option value="30d">Last 30 days</option>
+                      </select>
+                    </div>
+                    <div className="admin-analytics-plot">
+                      <svg viewBox="0 0 700 260" width="100%" height="100%" preserveAspectRatio="none" role="img" aria-label="User growth chart">
+                        {[0,1,2,3,4].map((row) => (
+                          <line key={row} x1="24" y1={20 + row * 48} x2="680" y2={20 + row * 48} stroke="#e2e8f0" strokeDasharray="4 8" />
+                        ))}
+                        <path d={dashboardChartData.length > 1 ? (() => {
+                          const max = Math.max(...dashboardChartData.map((item) => Number(item.registrations || 0)), 1);
+                          const points = dashboardChartData.map((item, index) => {
+                            const x = 30 + (index * (640 / Math.max(1, dashboardChartData.length - 1)));
+                            const y = 200 - (Number(item.registrations || 0) / max) * 150;
+                            return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+                          }).join(' ');
+                          return `${points} L 650 220 L 30 220 Z`;
+                        })() : 'M 30 220 L 650 220 L 650 220 L 30 220 Z'} fill="rgba(37,99,235,0.12)" />
+                        <path d={dashboardChartData.length > 1 ? (() => {
+                          const max = Math.max(...dashboardChartData.map((item) => Number(item.registrations || 0)), 1);
+                          return dashboardChartData.map((item, index) => {
+                            const x = 30 + (index * (640 / Math.max(1, dashboardChartData.length - 1)));
+                            const y = 200 - (Number(item.registrations || 0) / max) * 150;
+                            return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+                          }).join(' ');
+                        })() : 'M 30 220 L 650 220'} stroke="#2563eb" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                        {dashboardChartData.slice(0, 7).map((item, index) => {
+                          const max = Math.max(...dashboardChartData.map((row) => Number(row.registrations || 0)), 1);
+                          const x = 30 + (index * (640 / Math.max(1, Math.min(7, dashboardChartData.length) - 1)));
+                          const y = 200 - (Number(item.registrations || 0) / max) * 150;
+                          return <circle key={`${item.day}-${index}`} cx={x} cy={y} r="4" fill="#2563eb" />;
+                        })}
+                      </svg>
+                    </div>
+                  </div>
+
+                  <div className="admin-panel">
+                    <div className="admin-panel__header">
+                      <div>
+                        <h3 className="admin-panel__title">Job Statistics</h3>
+                        <div className="admin-panel__subtitle">Jobs posted and applications</div>
+                      </div>
+                    </div>
+                    <div className="admin-analytics-plot">
+                      <svg viewBox="0 0 420 260" width="100%" height="100%" preserveAspectRatio="none" role="img" aria-label="Job statistics chart">
+                        {[0,1,2,3,4].map((row) => (
+                          <line key={row} x1="26" y1={20 + row * 42} x2="390" y2={20 + row * 42} stroke="#e2e8f0" strokeDasharray="4 8" />
+                        ))}
+                        {[0,1,2,3,4,5].map((barIndex) => {
+                          const baseX = 50 + barIndex * 50;
+                          const heightA = 100 + (barIndex % 3) * 22;
+                          const heightB = 70 + (barIndex % 4) * 18;
+                          return (
+                            <g key={barIndex}>
+                              <rect x={baseX} y={200 - heightA} width="18" height={heightA} rx="7" fill="#2563eb" opacity="0.9" />
+                              <rect x={baseX + 22} y={200 - heightB} width="18" height={heightB} rx="7" fill="#7c3aed" opacity="0.9" />
+                            </g>
+                          );
+                        })}
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="admin-lower-grid">
+                  <div className="admin-table-panel">
+                    <div className="admin-table-panel__header">
+                      <div>
+                        <h3 className="admin-table-panel__title">Recent Users</h3>
+                        <div className="admin-table-panel__subtitle">{recentUsers.length} new entries</div>
+                      </div>
+                      <button type="button" className="admin-table-panel__action admin-table-panel__action--secondary" onClick={() => navigate(ROUTES.ADMIN_USERS)}>View All</button>
+                    </div>
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Type</th>
+                          <th>Joined</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {recentUsers.map((userItem) => (
+                          <tr key={`${userItem.name}-${userItem.joined}`}>
+                            <td>{userItem.name}</td>
+                            <td>{userItem.type}</td>
+                            <td>{userItem.joined}</td>
+                            <td><span className="admin-table__status admin-table__status--success">{userItem.status}</span></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="admin-table-panel">
+                    <div className="admin-table-panel__header">
+                      <div>
+                        <h3 className="admin-table-panel__title">Quick Actions</h3>
+                        <div className="admin-table-panel__subtitle">Fast access</div>
+                      </div>
+                    </div>
+                    <div className="admin-quick-actions">
+                      <button type="button" className="admin-quick-action" onClick={() => navigate(ROUTES.ADMIN_JOBS)}><ToolOutlined /> Post a New Job</button>
+                      <button type="button" className="admin-quick-action" onClick={() => navigate(ROUTES.ADMIN_BULK_IMPORT)}><UploadOutlined /> Bulk Job Deploy</button>
+                      <button type="button" className="admin-quick-action" onClick={() => navigate(ROUTES.ADMIN_USERS)}><BankOutlined /> Add Organization</button>
+                      <button type="button" className="admin-quick-action" onClick={() => navigate(ROUTES.ADMIN_RECRUITERS)}><TeamOutlined /> Manage Users</button>
+                      <button type="button" className="admin-quick-action" onClick={() => navigate(ROUTES.ADMIN_APPLICATIONS)}><FileSearchOutlined /> Review Applications</button>
+                      <button type="button" className="admin-quick-action" onClick={() => navigate(ROUTES.ADMIN_DASHBOARD)}><BellOutlined /> Send Announcement</button>
+                      <button type="button" className="admin-quick-action" onClick={() => navigate(ROUTES.ADMIN_BILLING_MANAGEMENT)}><DollarOutlined /> Open Billing</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="admin-lower-grid">
+                  <div className="admin-table-panel">
+                    <div className="admin-table-panel__header">
+                      <div>
+                        <h3 className="admin-table-panel__title">Recent Job Postings</h3>
+                        <div className="admin-table-panel__subtitle">Live job activity</div>
+                      </div>
+                      <button type="button" className="admin-table-panel__action admin-table-panel__action--secondary" onClick={() => navigate(ROUTES.ADMIN_JOBS)}>View All</button>
+                    </div>
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Job Title</th>
+                          <th>Company</th>
+                          <th>Posted</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {recentJobs.map((jobItem) => (
+                          <tr key={`${jobItem.title}-${jobItem.company}`}>
+                            <td>{jobItem.title}</td>
+                            <td>{jobItem.company}</td>
+                            <td>{jobItem.posted}</td>
+                            <td><span className="admin-table__status admin-table__status--success">{jobItem.status}</span></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="admin-activity">
+                    <div className="admin-activity__header">
+                      <div>
+                        <h3 className="admin-activity__title">Platform Activity</h3>
+                        <div className="admin-activity__subtitle">Latest signals</div>
+                      </div>
+                    </div>
+                    <ul className="admin-activity__list">
+                      {[
+                        { label: 'New user registered', detail: `${users.length} total users`, color: 'blue' },
+                        { label: 'New job posted', detail: `${jobs.filter((job) => String(job.status || '').toLowerCase() === 'published').length} active jobs`, color: 'purple' },
+                        { label: 'New application', detail: `${applications.length} submitted`, color: 'green' },
+                        { label: 'New company', detail: `${organizations.length || dashboardKpi.totalOrganizations} organizations`, color: 'gold' },
+                        { label: 'New payment', detail: `${payments.length} transactions`, color: 'cyan' },
+                      ].map((item) => (
+                        <li key={item.label} className="admin-activity__item">
+                          <span className="admin-activity__dot" style={{ background: item.color === 'purple' ? '#7c3aed' : item.color === 'green' ? '#16a34a' : item.color === 'gold' ? '#d6a73a' : item.color === 'cyan' ? '#0ea5e9' : '#2563eb' }} />
+                          <div>
+                            <strong>{item.label}</strong>
+                            <span>{item.detail}</span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="admin-metrics-row">
+                  <div className="admin-mini-card">
+                    <strong>Platform Health</strong>
+                    <span>{systemHealth ? 'Healthy' : 'Monitoring'}</span>
+                  </div>
+                  <div className="admin-mini-card">
+                    <strong>API</strong>
+                    <span>Healthy</span>
+                  </div>
+                  <div className="admin-mini-card">
+                    <strong>Database</strong>
+                    <span>Healthy</span>
+                  </div>
+                  <div className="admin-mini-card">
+                    <strong>Revenue Overview</strong>
+                    <span>{formatMoney(dashboardKpi.revenueToday || 0)}</span>
+                  </div>
+                </div>
+              </div>
             ),
           },
           {

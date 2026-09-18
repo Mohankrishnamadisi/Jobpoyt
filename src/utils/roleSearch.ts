@@ -13,36 +13,6 @@ type JobLike = {
 };
 
 const ROLE_FAMILIES: Record<string, { aliases: string[]; signals: string[]; negative?: string[] }> = {
-  frontend_ui: {
-    aliases: [
-      'frontend developer',
-      'frontend',
-      'ui developer',
-      'ui',
-      'user interface',
-      'react developer',
-      'react',
-      'reactjs',
-      'angular developer',
-      'angular',
-      'vue.js developer',
-      'vue',
-      'vuejs',
-      'javascript developer',
-      'javascript',
-      'typescript developer',
-      'typescript',
-      'html css developer',
-      'html',
-      'css',
-      'web developer',
-      'web',
-      'next.js developer',
-      'next js',
-      'next.js',
-    ],
-    signals: ['frontend', 'front end', 'ui', 'user interface', 'react', 'reactjs', 'angular', 'vue', 'vuejs', 'javascript', 'typescript', 'html', 'css', 'web', 'next js', 'next.js'],
-  },
   react: {
     aliases: ['react', 'reactjs', 'react js', 'react.js', 'react developer', 'react engineer'],
     signals: ['react', 'reactjs', 'react js', 'react.js', 'javascript', 'typescript', 'frontend', 'ui', 'html', 'css'],

@@ -72,16 +72,36 @@ export const useSubscription = (userId: string | null) => {
   // Only job seekers should have subscription records. Avoid fetching for other roles.
   const { user } = useAuthStore();
 
-  useEffect(() => {
+  const fetchSubscription = useCallback(async () => {
     if (!userId) {
       setSubscription(null);
       setLoading(false);
       return;
     }
+    setLoading(true);
+    try {
+      const data = await subscriptionService.getUserSubscription(userId);
+      setSubscription(data);
+    } catch (error) {
+      console.error('Failed to fetch subscription:', error);
+      setSubscription(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
 
+  useEffect(() => {
     let mounted = true;
 
-    const fetchSubscription = async () => {
+    const run = async () => {
+      if (!userId) {
+        if (mounted) {
+          setSubscription(null);
+          setLoading(false);
+        }
+        return;
+      }
+
       setLoading(true);
       try {
         const data = await subscriptionService.getUserSubscription(userId);
@@ -100,14 +120,14 @@ export const useSubscription = (userId: string | null) => {
       }
     };
 
-    fetchSubscription();
+    run();
 
     return () => {
       mounted = false;
     };
   }, [userId]);
 
-  return { subscription, loading };
+  return { subscription, loading, refetch: fetchSubscription };
 };
 
 export const useLocalStorage = (key: string, initialValue: unknown) => {

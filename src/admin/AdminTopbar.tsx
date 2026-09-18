@@ -1,17 +1,31 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Avatar, Badge, Button, Dropdown, Empty, Input, Layout, List, Modal, Popover, Space, Typography, message } from 'antd';
+import {
+  Avatar,
+  Badge,
+  Button,
+  Dropdown,
+  Empty,
+  Input,
+  Layout,
+  List,
+  Modal,
+  Popover,
+  Space,
+  Typography,
+  message,
+} from 'antd';
 import type { MenuProps } from 'antd';
 import {
   BellOutlined,
   HomeOutlined,
   LeftOutlined,
+  LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  SettingOutlined,
-  LogoutOutlined,
-  UserOutlined,
   SearchOutlined,
+  SettingOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import { adminService } from '../services/admin';
 import { authService } from '@services/supabase';
@@ -21,16 +35,14 @@ import { ROUTES } from '../constants';
 const { Header } = Layout;
 
 type AdminTopbarProps = {
-  drawerWidth?: number;
   collapsed?: boolean;
+  isMobile?: boolean;
+  mobileOpen?: boolean;
   onToggleCollapsed?: () => void;
+  onMobileOpenChange?: (open: boolean) => void;
 };
 
-const AdminTopbar: React.FC<AdminTopbarProps> = ({
-  drawerWidth = 268,
-  collapsed = false,
-  onToggleCollapsed,
-}) => {
+const AdminTopbar: React.FC<AdminTopbarProps> = ({ collapsed = false, isMobile = false, onToggleCollapsed, onMobileOpenChange }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
@@ -40,8 +52,8 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({
   const [notificationsOpen, setNotificationsOpen] = React.useState(false);
 
   const pageLabel = React.useMemo(() => {
-    const chunk = location.pathname.split('/').filter(Boolean).pop() || 'dashboard';
-    return chunk.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    const raw = location.pathname.split('/').filter(Boolean).pop() || 'dashboard';
+    return raw.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   }, [location.pathname]);
 
   const loadNotifications = React.useCallback(async () => {
@@ -148,9 +160,7 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({
       label: 'Admin Settings',
       onClick: () => navigate(ROUTES.ADMIN_SETTINGS),
     },
-    {
-      type: 'divider',
-    },
+    { type: 'divider' },
     {
       key: 'logout',
       icon: <LogoutOutlined />,
@@ -203,61 +213,56 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({
   );
 
   return (
-    <Header
-      style={{
-        position: 'fixed',
-        left: collapsed ? 80 : drawerWidth,
-        right: 0,
-        top: 0,
-        height: 74,
-        background: 'rgba(255,255,255,0.9)',
-        backdropFilter: 'blur(8px)',
-        borderBottom: '1px solid rgba(148, 163, 184, 0.2)',
-        boxShadow: '0 8px 24px rgba(15, 23, 42, 0.04)',
-        padding: '0 20px',
-        zIndex: 1000,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}
-    >
-      <Space size={10}>
-        <Button
-          type="text"
-          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-          onClick={onToggleCollapsed}
-        />
-        <Button icon={<LeftOutlined />} onClick={() => navigate(-1)} />
-        <div>
-          <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', lineHeight: 1.1 }}>
-            Super Admin / {pageLabel}
-          </Typography.Text>
-          <Typography.Title level={5} style={{ margin: 0, lineHeight: 1.25, color: '#0f172a' }}>
-            Platform Super Admin Portal
+    <Header className="admin-topbar" style={{ left: isMobile ? 0 : undefined }}>
+      <div className="admin-topbar__left">
+        <button type="button" className="admin-topbar__toggle" onClick={() => {
+          if (isMobile) {
+            onMobileOpenChange?.(true);
+          }
+          onToggleCollapsed?.();
+        }}>
+          {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+        </button>
+
+        <button type="button" className="admin-topbar__back" onClick={() => navigate(-1)} aria-label="Back">
+          <LeftOutlined />
+        </button>
+
+        <div className="admin-topbar__title-wrap">
+          <Typography.Text className="admin-topbar__crumb">Super Admin / {pageLabel}</Typography.Text>
+          <Typography.Title level={5} className="admin-topbar__title">
+            Platform Control Center
           </Typography.Title>
         </div>
-      </Space>
+      </div>
 
-      <Space size={10}>
-        <Input prefix={<SearchOutlined />} placeholder="Search admin tools" style={{ width: 240 }} />
-        <Button icon={<HomeOutlined />} onClick={() => navigate(ROUTES.HOME)} />
-        <Popover
-          trigger="click"
-          placement="bottomRight"
-          content={notificationContent}
-          onOpenChange={setNotificationsOpen}
-          open={notificationsOpen}
-        >
+      <div className="admin-topbar__right">
+        <Input className="admin-topbar__search" prefix={<SearchOutlined />} placeholder="Search users, jobs, companies..." />
+        <button type="button" className="admin-topbar__icon-button" onClick={() => navigate(ROUTES.HOME)} aria-label="Home">
+          <HomeOutlined />
+        </button>
+
+        <Popover trigger="click" placement="bottomRight" content={notificationContent} onOpenChange={setNotificationsOpen} open={notificationsOpen}>
           <Badge count={unreadCount} size="small" overflowCount={99}>
-            <Button icon={<BellOutlined />} />
+            <button type="button" className="admin-topbar__icon-button" aria-label="Notifications">
+              <BellOutlined />
+            </button>
           </Badge>
         </Popover>
+
         <Dropdown trigger={['click']} menu={{ items: profileMenuItems }} placement="bottomRight">
-          <Avatar style={{ backgroundColor: '#1d4ed8', cursor: 'pointer' }}>
-            {(user?.name || user?.email || 'A').charAt(0).toUpperCase()}
-          </Avatar>
+          <div className="admin-topbar__user">
+            <Avatar className="admin-topbar__avatar">{(user?.name || user?.email || 'A').charAt(0).toUpperCase()}</Avatar>
+            {!isMobile && (
+              <>
+                <div className="admin-topbar__user-copy">
+                  <span>{user?.name || 'Admin'}</span>
+                </div>
+              </>
+            )}
+          </div>
         </Dropdown>
-      </Space>
+      </div>
     </Header>
   );
 };

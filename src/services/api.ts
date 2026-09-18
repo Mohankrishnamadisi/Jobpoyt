@@ -3,7 +3,7 @@ import type { JobSeeker, Recruiter, Job } from '../types';
 import { getFreshnessDate, diversifyJobsByCompany } from '@utils/index';
 import { isCandidatePremium, isSubscriptionActive } from '@utils/candidateSubscriptionHelpers';
 import { ensureRecruiterWelcomeBenefit, restoreRecruiterWelcomeJobPost, reserveRecruiterWelcomeJobPost } from '@utils/recruiterWelcomeBenefits';
-import { buildKeywordSearchVariants, detectRoleFamily, matchesRoleSearchIntent, scoreRoleSearchMatch } from '@utils/roleSearch';
+import { buildKeywordSearchVariants, matchesRoleSearchIntent, scoreRoleSearchMatch } from '@utils/roleSearch';
 
 const normalizeJob = (job: Record<string, any>): Job => ({
   ...job,
@@ -65,19 +65,6 @@ const matchesExperienceYears = (jobExperience: unknown, years: number): boolean 
   }
 
   return false;
-};
-
-const normalizeCompanySearchTerm = (value: unknown): string => String(value ?? '')
-  .toLowerCase()
-  .replace(/[^a-z0-9]+/g, ' ')
-  .replace(/\s+/g, ' ')
-  .trim();
-
-const matchesCompanySearch = (companyName: unknown, keyword: string): boolean => {
-  const normalizedCompany = normalizeCompanySearchTerm(companyName);
-  const normalizedKeyword = normalizeCompanySearchTerm(keyword);
-  return Boolean(normalizedKeyword)
-    && (normalizedCompany === normalizedKeyword || normalizedCompany.startsWith(`${normalizedKeyword} `));
 };
 
 // User operations
@@ -334,9 +321,12 @@ export const jobService = {
     let query = supabase.from('jobs').select('*', { count: 'exact' }).eq('status', 'published');
 
     const keywordInput = filters?.keyword ? String(filters.keyword).trim() : '';
-    const keywordLower = keywordInput.toLowerCase();
-    const keywordVariants = keywordInput ? buildKeywordSearchVariants(keywordInput) : [];
-    const isFrontendUiSearch = Boolean(keywordInput) && detectRoleFamily(keywordInput) === 'frontend_ui';
+    const companyInput = filters?.company ? String(filters.company).trim() : '';
+    const keywordTerms = keywordInput.split(',').map((term) => term.trim()).filter(Boolean);
+    const keywordLowers = keywordTerms.map((term) => term.toLowerCase());
+    const keywordVariants = keywordTerms.flatMap((term) => buildKeywordSearchVariants(term));
+    const matchesAnyKeyword = (value: unknown) => keywordLowers.some((term) => String(value || '').toLowerCase().includes(term));
+    const matchesAnyRoleIntent = (job: Record<string, unknown>) => keywordTerms.some((term) => matchesRoleSearchIntent(job, term));
     const experienceInput = filters?.experience ? String(filters.experience).trim() : '';
     const numericExperienceYears = parseNumericExperienceYears(experienceInput);
 
@@ -348,19 +338,29 @@ export const jobService = {
         ? query.ilike('location', `%${locationTerms[0]}%`)
         : query.or(locationTerms.map((term) => `location.ilike.%${term.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`).join(','));
     }
-    if (keywordInput && !isFrontendUiSearch) {
-      const escapedKeyword = keywordInput.replace(/%/g, '\\%').replace(/_/g, '\\_');
-      const variantClauses = keywordVariants.length > 0
-        ? keywordVariants.map((term) => {
-            const escapedTerm = term.replace(/%/g, '\\%').replace(/_/g, '\\_');
-            return `title.ilike.%${escapedTerm}%,company_name.ilike.%${escapedTerm}%,description.ilike.%${escapedTerm}%,skills.cs.{${escapedTerm}}`;
-          })
-        : [`title.ilike.%${escapedKeyword}%,company_name.ilike.%${escapedKeyword}%,description.ilike.%${escapedKeyword}%,skills.cs.{${escapedKeyword}}`];
+    if (keywordTerms.length > 0) {
+      const keywordClauses = keywordTerms.flatMap((term) => {
+        const escapedTerm = term.replace(/%/g, '\\%').replace(/_/g, '\\_');
+        return [
+          `title.ilike.%${escapedTerm}%`,
+          `description.ilike.%${escapedTerm}%`,
+          `skills.cs.{${escapedTerm}}`,
+        ];
+      });
+      const variantClauses = keywordVariants.flatMap((term) => {
+        const escapedTerm = term.replace(/%/g, '\\%').replace(/_/g, '\\_');
+        return [
+          `title.ilike.%${escapedTerm}%`,
+          `description.ilike.%${escapedTerm}%`,
+          `skills.cs.{${escapedTerm}}`,
+        ];
+      });
 
-      query = query.or([
-        `title.ilike.%${escapedKeyword}%,company_name.ilike.%${escapedKeyword}%,description.ilike.%${escapedKeyword}%,skills.cs.{${escapedKeyword}}`,
-        ...variantClauses,
-      ].join(','));
+      query = query.or([...keywordClauses, ...variantClauses].join(','));
+    }
+    if (companyInput) {
+      const escapedCompany = companyInput.replace(/%/g, '\\%').replace(/_/g, '\\_');
+      query = query.ilike('company_name', `%${escapedCompany}%`);
     }
     if (Array.isArray(filters?.jobType) && filters.jobType.length > 0) {
       query = query.in('job_type', filters.jobType as string[]);
@@ -420,55 +420,28 @@ export const jobService = {
       let data: Record<string, any>[] = [];
       let count: number | null = null;
 
-      if (isFrontendUiSearch) {
-        const batchSize = 1000;
-        let offset = 0;
+      const pageStart = (page - 1) * limit;
+      const windowSize = Math.max(limit * 20, 500);
+      const response = await query
+        .order('created_at', { ascending: false })
+        .range(pageStart, pageStart + windowSize - 1);
 
-        while (true) {
-          const response = await query
-            .order('created_at', { ascending: false })
-            .range(offset, offset + batchSize - 1);
+      if (response.error) throw response.error;
 
-          if (response.error) throw response.error;
-
-          const batch = response.data || [];
-          data = data.concat(batch);
-          count = response.count;
-          offset += batch.length;
-
-          if (batch.length < batchSize || (count !== null && offset >= count)) {
-            break;
-          }
-        }
-      } else {
-        const pageStart = (page - 1) * limit;
-        const windowSize = Math.max(limit * 20, 500);
-        const response = await query
-          .order('created_at', { ascending: false })
-          .range(pageStart, pageStart + windowSize - 1);
-
-        if (response.error) throw response.error;
-
-        data = response.data || [];
-        count = response.count;
-      }
+      data = response.data || [];
+      count = response.count;
 
       const normalizedJobs = data.map(normalizeJob);
-      const companySearchMatches = keywordInput
-        ? normalizedJobs.filter((job) => matchesCompanySearch(job.company_name, keywordInput))
-        : [];
-      const searchableJobs = companySearchMatches.length > 0 ? companySearchMatches : normalizedJobs;
       const baseMatches = keywordInput
-        ? searchableJobs.filter((job) => {
+        ? normalizedJobs.filter((job) => {
             const skills = Array.isArray(job.skills) ? job.skills : [];
             const directMatch = (
-              String(job.title || '').toLowerCase().includes(keywordLower)
-              || String(job.company_name || '').toLowerCase().includes(keywordLower)
-              || String(job.description || '').toLowerCase().includes(keywordLower)
-              || skills.some((skill) => String(skill || '').toLowerCase().includes(keywordLower))
+              matchesAnyKeyword(job.title)
+              || matchesAnyKeyword(job.description)
+              || skills.some((skill) => matchesAnyKeyword(skill))
             );
 
-            return directMatch || matchesRoleSearchIntent(job as Record<string, unknown>, keywordInput);
+            return directMatch || matchesAnyRoleIntent(job as Record<string, unknown>);
           })
         : normalizedJobs;
 
@@ -478,9 +451,7 @@ export const jobService = {
 
       return {
         data: pageJobs,
-        total: companySearchMatches.length > 0 || isFrontendUiSearch
-          ? baseMatches.length
-          : count || baseMatches.length || 0,
+        total: count || baseMatches.length || 0,
       };
     }
 
@@ -496,24 +467,18 @@ export const jobService = {
       );
     }
 
-    const companySearchMatches = keywordInput
-      ? normalizedJobs.filter((job) => matchesCompanySearch(job.company_name, keywordInput))
-      : [];
-    const searchableJobs = companySearchMatches.length > 0 ? companySearchMatches : normalizedJobs;
+    const matchesKeyword = (value: unknown) => matchesAnyKeyword(value);
 
-    const matchesKeyword = (value: unknown) => String(value || '').toLowerCase().includes(keywordLower);
-
-    const filteredJobs = keywordInput ? searchableJobs.filter((job) => {
+    const filteredJobs = keywordInput ? normalizedJobs.filter((job) => {
       const skills = Array.isArray(job.skills) ? job.skills : [];
 
       const literalMatch = (
         matchesKeyword(job.title)
-        || matchesKeyword(job.company_name)
         || matchesKeyword(job.description)
         || skills.some((skill) => matchesKeyword(skill))
       );
 
-      return literalMatch || matchesRoleSearchIntent(job as Record<string, unknown>, keywordInput);
+      return literalMatch || matchesAnyRoleIntent(job as Record<string, unknown>);
     }) : normalizedJobs;
 
     const rankedJobs = keywordInput
@@ -863,6 +828,18 @@ export const jobService = {
   },
 };
 
+export const companyService = {
+  async getCompanyCount() {
+    const { data, count, error } = await supabase
+      .from('companies')
+      .select('id', { count: 'exact' })
+      .limit(1);
+
+    if (error) throw error;
+    return count ?? data?.length ?? 0;
+  },
+};
+
 // Job Application operations
 export const applicationService = {
   async applyForJob(
@@ -1136,7 +1113,29 @@ export const subscriptionService = {
       .eq('status', 'active')
       .maybeSingle();
     if (error) throw error;
-    return data ?? null;
+    if (!data) return null;
+
+    // Legacy subscription rows (created before the `amount` column was populated)
+    // don't carry the paid amount — fall back to the linked payment record (stored in paise).
+    if (data.amount === null || data.amount === undefined) {
+      try {
+        const { data: payment } = await supabase
+          .from('payments')
+          .select('amount')
+          .eq('subscription_id', data.id)
+          .eq('status', 'completed')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (payment?.amount) {
+          data.amount = Math.round(Number(payment.amount) / 100);
+        }
+      } catch (paymentLookupError) {
+        console.error('Failed to look up payment amount for subscription:', paymentLookupError);
+      }
+    }
+
+    return data;
   },
 
   async getActiveSubscriptionsForUserIds(userIds: string[]) {
@@ -1167,6 +1166,10 @@ export const subscriptionService = {
       .select();
     if (error) throw error;
     return data[0];
+  },
+
+  async setAutoRenew(subscriptionId: string, autoRenew: boolean) {
+    return subscriptionService.updateSubscription(subscriptionId, { auto_renew: autoRenew });
   },
 };
 

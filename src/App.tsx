@@ -43,6 +43,7 @@ import { BlockedCompaniesSettings } from '@pages/dashboard/settings/BlockedCompa
 import PremiumIntelligenceSettings from '@pages/dashboard/settings/PremiumIntelligenceSettings';
 import { useSubscription } from '@hooks/index';
 import { useNotificationAlerts } from '@hooks/useNotificationAlerts';
+import { useSubscriptionRenewalAlerts } from '@hooks/useSubscriptionRenewalAlerts';
 import RecommendedJobs from '@pages/dashboard/RecommendedJobs';
 import RemoteJobs from '@pages/dashboard/RemoteJobs';
 import MockInterviews from '@pages/dashboard/tools/MockInterviews';
@@ -340,7 +341,7 @@ const AnimatedRoutes: React.FC = () => {
           <Route path={ROUTES.ADMIN_SUBSCRIPTIONS} element={<AdminControlCenter />} />
           <Route path={ROUTES.ADMIN_PAYMENTS} element={<AdminControlCenter />} />
           <Route path={ROUTES.ADMIN_ANALYTICS} element={<AdminControlCenter />} />
-          <Route path={ROUTES.ADMIN_BULK_IMPORT} element={<AdminControlCenter />} />
+          <Route path={ROUTES.ADMIN_BULK_IMPORT} element={<BulkImport />} />
           <Route path={ROUTES.ADMIN_DATA_INTEGRITY} element={<AdminControlCenter />} />
           <Route path={ROUTES.ADMIN_SYSTEM_HEALTH} element={<AdminControlCenter />} />
           <Route path={ROUTES.ADMIN_SETTINGS} element={<AdminControlCenter />} />
@@ -372,6 +373,7 @@ const AppContent: React.FC = () => {
   const isMobileView = useMediaQuery('(max-width: 767.95px)');
 
   useNotificationAlerts(user?.id || null);
+  useSubscriptionRenewalAlerts(user?.id || null);
 
   useEffect(() => {
     let active = true;

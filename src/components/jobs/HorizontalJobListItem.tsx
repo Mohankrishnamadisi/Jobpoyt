@@ -112,6 +112,7 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
       transition={{ duration: 0.3 }}
     >
       <Box
+        className="find-jobs-card"
         onClick={handleApplyClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -125,12 +126,12 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
             ? (isHovered ? 'linear-gradient(180deg, #172033, #111827)' : 'linear-gradient(180deg, #111827, #0F172A)')
             : 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(241, 248, 255, 0.96))',
           border: '1px solid',
-          borderColor: isHovered ? 'rgba(59, 130, 246, 0.5)' : (isDarkMode ? '#334155' : '#e5e7eb'),
-          borderRadius: 2,
+          borderColor: isHovered ? '#bfdbfe' : (isDarkMode ? '#334155' : '#e2e8f0'),
+          borderRadius: 2.25,
           transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
           position: 'relative',
           cursor: 'pointer',
-          boxShadow: isHovered ? '0 12px 32px rgba(59, 130, 246, 0.13)' : 'none',
+          boxShadow: isHovered ? '0 12px 32px rgba(15, 23, 42, 0.1)' : '0 5px 20px rgba(15, 23, 42, 0.04)',
           transform: isHovered ? 'translateY(-3px)' : 'translateY(0)',
         }}
       >
