@@ -322,7 +322,7 @@ export const Home: React.FC = () => {
               }}
             >
               <Grid container spacing={{ xs: 1, md: 1.3 }} alignItems="stretch">
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={5}>
                   <TextField
                     fullWidth
                     placeholder="Search jobs by title, skills, or company"
@@ -338,7 +338,7 @@ export const Home: React.FC = () => {
                     }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        height: 52,
+                        height: 56,
                         fontSize: '0.82rem',
                         borderRadius: '14px',
                         background: isDarkMode ? 'rgba(30, 41, 59, 0.72)' : '#F8FBFF',
@@ -349,7 +349,7 @@ export const Home: React.FC = () => {
                     }}
                   />
                 </Grid>
-                <Grid item xs={12} md={3}>
+                <Grid item xs={12} md={2}>
                   <Autocomplete
                     freeSolo
                     options={INDIAN_CITIES}
@@ -439,10 +439,11 @@ export const Home: React.FC = () => {
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                     sx={{
-                      height: 52,
-                      py: 1,
-                      fontSize: '0.84rem',
+                      height: 48,
+                      py: 0.75,
+                      fontSize: '0.8rem',
                       fontWeight: 700,
+                      whiteSpace: 'nowrap',
                       borderRadius: '14px',
                       background: 'linear-gradient(90deg, #0284c7, #2563eb)',
                       boxShadow: '0 8px 18px rgba(37, 99, 235, 0.24)',
@@ -457,9 +458,9 @@ export const Home: React.FC = () => {
                 </Grid>
               </Grid>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 0.6, mt: 1.4, pt: 1.1, borderTop: '1px solid rgba(191, 219, 254, 0.55)' }}>
-                <Typography sx={{ color: '#315477', fontSize: '0.7rem', fontWeight: 800 }}>Popular Searches:</Typography>
+                <Typography sx={{ color: '#486581', fontSize: '0.68rem', fontWeight: 700 }}>Popular Searches:</Typography>
                 {['Frontend Developer', 'Python Developer', 'Data Analyst', 'DevOps Engineer', 'Product Manager'].map((keyword) => (
-                  <Chip key={keyword} label={keyword} onClick={() => handlePopularSearch(keyword)} size="small" sx={{ color: '#1D4ED8', bgcolor: '#F0F7FF', border: '1px solid #C7DDF5', fontWeight: 700, cursor: 'pointer', borderRadius: '9px', '&:hover': { bgcolor: '#DBEAFE', borderColor: '#60A5FA', transform: 'translateY(-1px)' } }} />
+                  <Chip key={keyword} label={keyword} onClick={() => handlePopularSearch(keyword)} size="small" sx={{ color: '#315477', bgcolor: '#F8FBFF', border: '1px solid #D7E7F5', fontWeight: 600, cursor: 'pointer', borderRadius: '9px', '&:hover': { bgcolor: '#EEF6FC', borderColor: '#A9C7E3', transform: 'translateY(-1px)' } }} />
                 ))}
               </Box>
             </Paper>

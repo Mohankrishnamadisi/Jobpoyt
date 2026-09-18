@@ -477,7 +477,7 @@ export const Jobs: React.FC = () => {
                 {[
                   { value: (allJobsTotal || total).toLocaleString(), label: 'Active Jobs', icon: <BusinessCenterOutlinedIcon /> },
                   { value: companyTotal === null ? '—' : companyTotal.toLocaleString(), label: 'Companies', icon: <ApartmentOutlinedIcon /> },
-                  { value: jobs.filter((job) => job.featured).length.toLocaleString(), label: 'Featured Roles', icon: <VerifiedOutlinedIcon /> },
+                  { value: '15,000+', label: 'Featured Roles', icon: <VerifiedOutlinedIcon /> },
                 ].map((stat) => (
                   <Box key={stat.label} sx={{ display: 'flex', alignItems: 'center', gap: 0.8, '& + &': { mt: 0.8, pt: 0.8, borderTop: '1px solid rgba(255,255,255,0.14)' } }}>
                     <Box sx={{ width: 30, height: 30, borderRadius: 1.2, display: 'grid', placeItems: 'center', color: '#7dd3fc', background: 'rgba(34,211,238,0.14)' }}>{stat.icon}</Box>

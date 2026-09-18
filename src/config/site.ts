@@ -3,8 +3,8 @@ export const siteConfig = {
   url: 'https://jobpoyt.com',
   logo: 'https://jobpoyt.com/Jobpoyt.png',
   social: {
-    instagramUrl: '',
-    facebookUrl: '',
+    instagramUrl: 'https://www.instagram.com/jobpoyt/',
+    facebookUrl: 'https://www.facebook.com/profile.php?id=61594381205043',
     linkedinUrl: '',
     twitterUrl: '',
     youtubeUrl: '',
