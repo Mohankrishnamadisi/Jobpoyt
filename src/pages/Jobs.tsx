@@ -413,7 +413,7 @@ export const Jobs: React.FC = () => {
           className="find-jobs-hero"
           sx={{
             mb: { xs: 2, md: 3 },
-            p: { xs: 1.8, sm: 2.4, md: 3 },
+            p: { xs: 1.5, sm: 2, md: 2.2 },
             minHeight: { xs: 0, sm: 0, md: 0 },
             borderRadius: { xs: 3, md: 4 },
             border: '1px solid rgba(125, 211, 252, 0.24)',
@@ -425,11 +425,11 @@ export const Jobs: React.FC = () => {
             overflow: 'hidden',
           }}
         >
-          <Grid container spacing={{ xs: 1.5, md: 1.8 }}>
+          <Grid container spacing={{ xs: 1.2, md: 1.4 }}>
             <Grid item xs={12} md={8}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 1 }}>
-                <AutoAwesomeIcon sx={{ fontSize: 18, color: '#7dd3fc' }} />
-                <Typography variant="overline" sx={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: 1.6, color: '#7dd3fc' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, mb: 0.5 }}>
+                <AutoAwesomeIcon sx={{ fontSize: 16, color: '#7dd3fc' }} />
+                <Typography variant="overline" sx={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: 1.4, color: '#7dd3fc' }}>
                   Career Discovery
                 </Typography>
               </Box>
@@ -438,21 +438,21 @@ export const Jobs: React.FC = () => {
                 sx={{
                   fontWeight: 800,
                   lineHeight: 1.08,
-                  fontSize: { xs: '1.8rem', sm: '2.25rem', md: '2.75rem' },
+                  fontSize: { xs: '1.6rem', sm: '2rem', md: '2.35rem' },
                   letterSpacing: '-0.035em',
                   maxWidth: 650,
-                  mb: 1,
+                  mb: 0.6,
                 }}
               >
-                <Box component="span" sx={{ display: 'block', color: '#fff', fontWeight: 400, fontSize: { xs: '2.45rem', sm: '2.8rem', md: '3.05rem' }, lineHeight: 1.15, letterSpacing: 0 }}>Find Your</Box>
-                <Box component="span" sx={{ color: '#00aef0', fontSize: { xs: '3.15rem', sm: '3.75rem', md: '4.15rem' } }}>Dream</Box>{' '}
-                <Box component="span" sx={{ color: '#f4c95d', fontSize: { xs: '3.15rem', sm: '3.75rem', md: '4.15rem' } }}>Job</Box>
+                <Box component="span" sx={{ display: 'block', color: '#fff', fontWeight: 400, fontSize: { xs: '2.1rem', sm: '2.4rem', md: '2.65rem' }, lineHeight: 1.1, letterSpacing: 0 }}>Find Your</Box>
+                <Box component="span" sx={{ color: '#00aef0', fontSize: { xs: '2.7rem', sm: '3.15rem', md: '3.45rem' } }}>Dream</Box>{' '}
+                <Box component="span" sx={{ color: '#f4c95d', fontSize: { xs: '2.7rem', sm: '3.15rem', md: '3.45rem' } }}>Job</Box>
               </Typography>
-              <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.82)', maxWidth: 'none', whiteSpace: { xs: 'normal', md: 'nowrap' }, fontSize: { xs: '0.95rem', md: '1.05rem' } }}>
+              <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.82)', maxWidth: 'none', whiteSpace: { xs: 'normal', md: 'nowrap' }, fontSize: { xs: '0.85rem', md: '0.92rem' } }}>
                 Explore {(allJobsTotal || total).toLocaleString()}+ opportunities from top companies and take the next step in your career.
               </Typography>
               {topLocations ? (
-                <Typography variant="body2" sx={{ color: '#bae6fd', mt: 1, maxWidth: 690, lineHeight: 1.6 }}>
+                <Typography variant="body2" sx={{ color: '#bae6fd', mt: 0.6, maxWidth: 690, lineHeight: 1.4, fontSize: '0.8rem' }}>
                   <Box component="span" sx={{ color: '#fff', fontWeight: 700 }}>Trending locations:</Box> {topLocations}
                 </Typography>
               ) : null}
@@ -462,9 +462,9 @@ export const Jobs: React.FC = () => {
               <Box
                 sx={{
                   ml: 'auto',
-                  maxWidth: 225,
-                  p: 1.5,
-                  borderRadius: 2.5,
+                  maxWidth: 180,
+                  p: 1.1,
+                  borderRadius: 2,
                   background: 'rgba(255,255,255,0.1)',
                   border: '1px solid rgba(255,255,255,0.2)',
                   backdropFilter: 'blur(14px)',
@@ -476,15 +476,15 @@ export const Jobs: React.FC = () => {
                   { value: companyTotal === null ? '—' : companyTotal.toLocaleString(), label: 'Companies', icon: <ApartmentOutlinedIcon /> },
                   { value: jobs.filter((job) => job.featured).length.toLocaleString(), label: 'Featured Roles', icon: <VerifiedOutlinedIcon /> },
                 ].map((stat) => (
-                  <Box key={stat.label} sx={{ display: 'flex', alignItems: 'center', gap: 1.1, '& + &': { mt: 1.3, pt: 1.3, borderTop: '1px solid rgba(255,255,255,0.14)' } }}>
-                    <Box sx={{ width: 34, height: 34, borderRadius: 1.4, display: 'grid', placeItems: 'center', color: '#7dd3fc', background: 'rgba(34,211,238,0.14)' }}>{stat.icon}</Box>
+                  <Box key={stat.label} sx={{ display: 'flex', alignItems: 'center', gap: 0.8, '& + &': { mt: 0.8, pt: 0.8, borderTop: '1px solid rgba(255,255,255,0.14)' } }}>
+                    <Box sx={{ width: 30, height: 30, borderRadius: 1.2, display: 'grid', placeItems: 'center', color: '#7dd3fc', background: 'rgba(34,211,238,0.14)' }}>{stat.icon}</Box>
                     <Box>
-                      <Typography sx={{ fontSize: '1.1rem', lineHeight: 1.1, fontWeight: 800 }}>{stat.value}</Typography>
-                      <Typography sx={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.7)' }}>{stat.label}</Typography>
+                      <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.1, fontWeight: 800 }}>{stat.value}</Typography>
+                      <Typography sx={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.7)' }}>{stat.label}</Typography>
                     </Box>
                   </Box>
                 ))}
-                <Typography sx={{ mt: 1.4, pt: 1.2, borderTop: '1px solid rgba(255,255,255,0.14)', color: 'rgba(255,255,255,0.75)', fontSize: '0.78rem', fontStyle: 'italic', lineHeight: 1.4 }}>
+                <Typography sx={{ mt: 0.9, pt: 0.8, borderTop: '1px solid rgba(255,255,255,0.14)', color: 'rgba(255,255,255,0.75)', fontSize: '0.68rem', fontStyle: 'italic', lineHeight: 1.3 }}>
                   Opportunities don&apos;t happen. You create them.
                 </Typography>
               </Box>
@@ -500,9 +500,9 @@ export const Jobs: React.FC = () => {
           <Box
             className="find-jobs-hero-summary"
             sx={{
-              mt: { xs: 1.5, md: 1.8 },
-              p: { xs: 1.2, md: 1.5 },
-              borderRadius: 2.25,
+              mt: { xs: 1.1, md: 1.3 },
+              p: { xs: 1, md: 1.1 },
+              borderRadius: 1.8,
               border: '1px solid rgba(255,255,255,0.22)',
               background: 'rgba(7, 26, 51, 0.48)',
               backdropFilter: 'blur(14px)',

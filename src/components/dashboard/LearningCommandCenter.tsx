@@ -322,7 +322,7 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
         position: 'relative',
         isolation: 'isolate',
         width: '100%',
-        minHeight: { xs: 0, sm: 500, lg: 520 },
+        minHeight: { xs: 0, sm: 410, lg: 430 },
         mb: 2.5,
         borderRadius: { xs: '20px', sm: '26px' },
         overflow: 'hidden',
@@ -355,7 +355,7 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
           zIndex: 1,
           width: { xs: '100%', lg: '64%' },
           minHeight: 'inherit',
-          p: { xs: 2, sm: 2.75, md: 3.25, lg: 3.5 },
+          p: { xs: 1.5, sm: 2, md: 2.4, lg: 2.6 },
           display: 'flex',
           flexDirection: 'column',
         }}
@@ -365,10 +365,10 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
             sx={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 1,
-              px: 1.5,
-              py: 0.75,
-              mb: 1.4,
+              gap: 0.7,
+              px: 1.1,
+              py: 0.5,
+              mb: 0.9,
               borderRadius: '999px',
               color: '#fff',
               bgcolor: 'rgba(7, 26, 51, 0.48)',
@@ -379,8 +379,8 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
           >
               <Box
                 sx={{
-                  width: 24,
-                  height: 24,
+                  width: 20,
+                  height: 20,
                   display: 'grid',
                   placeItems: 'center',
                   borderRadius: '50%',
@@ -389,11 +389,11 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                   boxShadow: '0 0 18px rgba(251, 191, 36, 0.25)',
                 }}
               >
-                <BookOpenText size={14} />
+                <BookOpenText size={12} />
               </Box>
               <Typography
                 sx={{
-                  fontSize: '0.72rem',
+                  fontSize: '0.62rem',
                   fontWeight: 800,
                   letterSpacing: 1.3,
                   textTransform: 'uppercase',
@@ -410,7 +410,7 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
               m: 0,
               maxWidth: 720,
               fontFamily: 'Sora, Manrope, sans-serif',
-              fontSize: { xs: '1.85rem', sm: '2.3rem', md: '2.65rem', lg: '2.8rem' },
+              fontSize: { xs: '1.6rem', sm: '1.95rem', md: '2.2rem', lg: '2.35rem' },
               fontWeight: 800,
               letterSpacing: 0,
               lineHeight: 1.06,
@@ -438,17 +438,17 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
 
           <Typography
             sx={{
-              mt: 1.1,
+              mt: 0.7,
               color: 'rgba(255, 255, 255, 0.94)',
-              fontSize: { xs: '0.9rem', sm: '0.96rem' },
-              lineHeight: 1.5,
+              fontSize: { xs: '0.8rem', sm: '0.86rem' },
+              lineHeight: 1.35,
               maxWidth: 630,
               textShadow: '0 2px 14px rgba(0, 0, 0, 0.3)',
             }}
           >
             Gain in-demand skills, learn from industry experts and get closer to your dream career.
           </Typography>
-          <Typography sx={{ mt: 0.45, color: '#BFDBFE', fontSize: '0.8rem', fontWeight: 600 }}>
+          <Typography sx={{ mt: 0.3, color: '#BFDBFE', fontSize: '0.7rem', fontWeight: 600 }}>
             Continue your learning journey, {firstName}.
           </Typography>
         </Box>
@@ -457,7 +457,7 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.18 }}
-          sx={{ mt: { xs: 1.8, md: 2 } }}
+          sx={{ mt: { xs: 1.1, md: 1.3 } }}
         >
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems="stretch">
               <Paper
@@ -465,10 +465,10 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  minHeight: { xs: 52, sm: 54 },
-                  p: 0.65,
-                  pl: 1.5,
-                  borderRadius: '16px',
+                  minHeight: { xs: 44, sm: 46 },
+                  p: 0.5,
+                  pl: 1.1,
+                  borderRadius: '12px',
                   border: '1px solid rgba(255, 255, 255, 0.3)',
                   bgcolor: 'rgba(255, 255, 255, 0.94)',
                   flex: 1,
@@ -480,7 +480,7 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                   },
                 }}
               >
-                <Search size={19} color="#475569" />
+                <Search size={16} color="#475569" />
                 <InputBase
                   fullWidth
                   placeholder="Search for courses, skills, or topics..."
@@ -493,7 +493,7 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                     }
                   }}
                   disabled={isLoading}
-                  sx={{ ml: 1.1, fontSize: { xs: '0.88rem', sm: '0.95rem' }, color: '#0F172A' }}
+                  sx={{ ml: 0.8, fontSize: { xs: '0.78rem', sm: '0.84rem' }, color: '#0F172A' }}
                 />
                 {searchQuery && (
                   <Tooltip title="Clear search">
@@ -509,9 +509,9 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                   endIcon={<ArrowRight size={16} />}
                   sx={{
                     display: { xs: 'none', sm: 'inline-flex' },
-                    minHeight: 42,
-                    px: 2.2,
-                    borderRadius: '12px',
+                    minHeight: 36,
+                    px: 1.7,
+                    borderRadius: '9px',
                     color: '#172033',
                     bgcolor: '#FBBF24',
                     fontWeight: 800,
@@ -532,8 +532,8 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                   sx={{
                     display: { xs: 'inline-flex', sm: 'none' },
                     flex: 1,
-                    minHeight: 52,
-                    borderRadius: '14px',
+                    minHeight: 44,
+                    borderRadius: '11px',
                     color: '#172033',
                     bgcolor: '#FBBF24',
                     fontWeight: 800,
@@ -548,9 +548,9 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                   onClick={handleOpenFilters}
                   sx={{
                     flex: { xs: 1, sm: '0 0 auto' },
-                    minHeight: { xs: 48, sm: 54 },
-                    px: 2,
-                    borderRadius: '14px',
+                    minHeight: { xs: 42, sm: 46 },
+                    px: 1.5,
+                    borderRadius: '11px',
                     fontWeight: 800,
                     borderColor: 'rgba(255, 255, 255, 0.35)',
                     color: '#fff',
@@ -570,7 +570,7 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
           </Stack>
 
             {activeFilterChips.length > 0 && (
-              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1.3 }}>
+              <Stack direction="row" spacing={0.7} useFlexGap flexWrap="wrap" sx={{ mt: 0.8 }}>
                 {activeFilterChips.map((chip) => (
                   <Chip
                     key={chip.key}
@@ -595,18 +595,18 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.24 }}
-          sx={{ mt: { xs: 1.5, md: 1.6 }, minWidth: 0 }}
+          sx={{ mt: { xs: 1, md: 1.1 }, minWidth: 0 }}
         >
           <Stack
             direction="row"
             alignItems="center"
             justifyContent="space-between"
             spacing={1}
-            sx={{ mb: 0.8 }}
+            sx={{ mb: 0.5 }}
           >
             <Stack direction="row" alignItems="center" spacing={1.1}>
-              <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#fff' }}>Popular:</Typography>
-              <Typography sx={{ display: { xs: 'none', sm: 'block' }, fontSize: '0.74rem', color: 'rgba(255,255,255,0.64)' }}>
+              <Typography sx={{ fontSize: '0.72rem', fontWeight: 800, color: '#fff' }}>Popular:</Typography>
+              <Typography sx={{ display: { xs: 'none', sm: 'block' }, fontSize: '0.65rem', color: 'rgba(255,255,255,0.64)' }}>
                 Personalized learning paths
               </Typography>
             </Stack>
@@ -646,10 +646,10 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
               ref={pathScrollRef}
               sx={{
                 display: 'flex',
-                gap: 1.2,
+                gap: 0.8,
                 overflowX: 'auto',
                 pt: 0.3,
-                pb: 0.6,
+                pb: 0.3,
                 px: 0.4,
                 mx: -0.4,
                 scrollSnapType: 'x mandatory',
@@ -674,9 +674,9 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                     sx={{
                       flex: '0 0 auto',
                       width: 'auto',
-                      maxWidth: 230,
-                      px: 1.3,
-                      py: 0.65,
+                      maxWidth: 200,
+                      px: 1,
+                      py: 0.45,
                       cursor: 'pointer',
                       borderRadius: '999px',
                       scrollSnapAlign: 'start',
@@ -696,11 +696,11 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                       },
                     }}
                   >
-                    <Stack direction="row" alignItems="center" spacing={1.1}>
+                    <Stack direction="row" alignItems="center" spacing={0.8}>
                       <Box
                         sx={{
-                          width: 27,
-                          height: 27,
+                          width: 23,
+                          height: 23,
                           flexShrink: 0,
                           borderRadius: 1.6,
                           display: 'grid',
@@ -709,20 +709,20 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                           color: selected ? '#fff' : '#FBBF24',
                         }}
                       >
-                        <Icon size={14} />
+                        <Icon size={12} />
                       </Box>
 
                       <Box sx={{ minWidth: 0, flex: 1 }}>
                         <Typography
                           noWrap
-                          sx={{ fontSize: '0.78rem', fontWeight: 800, lineHeight: 1.2, textTransform: 'capitalize' }}
+                          sx={{ fontSize: '0.68rem', fontWeight: 800, lineHeight: 1.2, textTransform: 'capitalize' }}
                         >
                           {title}
                         </Typography>
                         <Typography
                           noWrap
                           sx={{
-                            fontSize: '0.64rem',
+                            fontSize: '0.56rem',
                             fontWeight: 600,
                             color: 'rgba(255,255,255,0.65)',
                           }}
@@ -732,7 +732,7 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                       </Box>
 
                       <Box sx={{ display: 'flex', opacity: selected ? 1 : 0.4, flexShrink: 0 }}>
-                        <ArrowRight size={15} />
+                        <ArrowRight size={13} />
                       </Box>
                     </Stack>
                   </MotionPaper>
@@ -747,7 +747,7 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
           divider={<Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(255,255,255,0.18)' }} />}
           sx={{
             mt: 'auto',
-            pt: { xs: 0.8, sm: 1 },
+            pt: { xs: 0.5, sm: 0.7 },
             width: '100%',
             overflow: 'hidden',
           }}
@@ -761,8 +761,8 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
               sx={{
                 flex: 1,
                 minWidth: 0,
-                px: { xs: 0.7, sm: 1.5 },
-                py: 0.75,
+                px: { xs: 0.5, sm: 1 },
+                py: 0.5,
                 display: 'flex',
                 alignItems: 'center',
                 gap: { xs: 0.7, sm: 1 },
@@ -774,8 +774,8 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
             >
               <Box
                 sx={{
-                  width: { xs: 28, sm: 34 },
-                  height: { xs: 28, sm: 34 },
+                  width: { xs: 24, sm: 28 },
+                  height: { xs: 24, sm: 28 },
                   flexShrink: 0,
                   display: 'grid',
                   placeItems: 'center',
@@ -785,17 +785,17 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                   boxShadow: `0 0 18px ${glow}`,
                 }}
               >
-                <Icon size={16} />
+                <Icon size={14} />
               </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ color: '#fff', fontSize: { xs: '0.95rem', sm: '1.18rem' }, fontWeight: 800, lineHeight: 1 }}>
+                <Typography sx={{ color: '#fff', fontSize: { xs: '0.82rem', sm: '1rem' }, fontWeight: 800, lineHeight: 1 }}>
                   {value}
                 </Typography>
                 <Typography
                   sx={{
-                    mt: 0.35,
+                    mt: 0.2,
                     color: 'rgba(255,255,255,0.7)',
-                    fontSize: { xs: '0.57rem', sm: '0.68rem' },
+                    fontSize: { xs: '0.5rem', sm: '0.6rem' },
                     fontWeight: 600,
                     lineHeight: 1.2,
                   }}
