@@ -180,22 +180,6 @@ export const Jobs: React.FC = () => {
     return () => window.clearTimeout(debounceTimer);
   }, [filters.keyword]);
 
-  useEffect(() => {
-    const normalizedKeyword = debouncedKeyword.trim();
-
-    setSearchParams((prev) => {
-      const currentKeyword = prev.get('keyword') || '';
-      if (currentKeyword === normalizedKeyword) {
-        return prev;
-      }
-
-      const params = new URLSearchParams(prev);
-      params.delete('keyword');
-      if (normalizedKeyword) params.set('keyword', normalizedKeyword);
-      return params;
-    });
-  }, [debouncedKeyword, setSearchParams]);
-
   const syncKeywordToUrl = useCallback((nextKeyword: string) => {
     const normalizedKeyword = nextKeyword.trim();
 
@@ -334,6 +318,14 @@ export const Jobs: React.FC = () => {
 
   const openSuggestionPopup = () => {
     setSuggestionsOpen(true);
+  };
+
+  const applySuggestionSearch = () => {
+    if (keywordDraft.trim()) {
+      addKeywordTerms([keywordDraft]);
+    }
+
+    setSuggestionsOpen(false);
   };
 
   const clearFilters = () => {
@@ -739,11 +731,13 @@ export const Jobs: React.FC = () => {
                                 alignItems: 'center',
                                 flexWrap: 'wrap',
                                 gap: 0.75,
-                                px: 1.5,
+                                    pl: 1.5,
+                                    pr: 13,
                                 mb: 2,
                                 border: '1px solid #2563eb',
                                 borderRadius: 1.5,
                                 background: '#fff',
+                                    position: 'relative',
                               }}
                             >
                               <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} />
@@ -779,6 +773,30 @@ export const Jobs: React.FC = () => {
                                 placeholder={keywordValues.length > 0 ? 'Add another keyword' : 'Job title or skill'}
                                 style={{ border: 0, outline: 0, flex: 1, minWidth: 180, height: 36, font: 'inherit', color: '#1e293b', background: 'transparent' }}
                               />
+                              <Button
+                                variant="contained"
+                                size="small"
+                                onClick={applySuggestionSearch}
+                                sx={{
+                                  position: 'absolute',
+                                  right: 8,
+                                  top: '50%',
+                                  transform: 'translateY(-50%)',
+                                  minWidth: 82,
+                                  borderRadius: 1,
+                                  textTransform: 'none',
+                                  fontWeight: 700,
+                                  backgroundColor: '#3B82F6',
+                                  boxShadow: 'none',
+                                  '&:hover': {
+                                    backgroundColor: '#2563EB',
+                                    boxShadow: 'none',
+                                    transform: 'translateY(-50%)',
+                                  },
+                                }}
+                              >
+                                Search
+                              </Button>
                             </Box>
                             <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', pr: 0.5 }}>
                               <Box sx={{ columnCount: { xs: 1, sm: 2, md: 5 }, columnGap: { xs: 1, md: 0.9 } }}>
