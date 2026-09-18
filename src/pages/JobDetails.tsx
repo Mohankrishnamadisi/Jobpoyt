@@ -22,7 +22,7 @@ import {
   LinearProgress,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   LocationOn as LocationOnIcon,
   Work as WorkIcon,
@@ -61,8 +61,10 @@ export const JobDetails: React.FC = () => {
   const isDarkMode = theme.palette.mode === 'dark';
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuthStore();
   const { subscription } = useSubscription(user?.id || null);
+  const backTo = typeof location.state?.from === 'string' ? location.state.from : ROUTES.JOBS;
 
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
@@ -320,7 +322,7 @@ export const JobDetails: React.FC = () => {
     }
   };
 
-  const handleApplyClick = () => {
+  const handleApplyClick = async () => {
     if (!user) {
       Swal.fire({
         icon: 'info',
@@ -339,6 +341,14 @@ export const JobDetails: React.FC = () => {
 
     if (externalApplyUrl) {
       window.open(externalApplyUrl as string, '_blank', 'noopener,noreferrer');
+      if (!hasApplied) {
+        try {
+          await applicationService.markExternalApplication(job.id, user.id);
+          setHasApplied(true);
+        } catch (error) {
+          console.error('Failed to record external application:', error);
+        }
+      }
       return;
     }
 
@@ -478,7 +488,7 @@ export const JobDetails: React.FC = () => {
       }
       setHasApplied(true);
       setApplyDialogOpen(false);
-      navigate(ROUTES.JOBS);
+      navigate(backTo, { replace: true });
     } catch (error) {
       Swal.fire({
         icon: 'error',
@@ -493,7 +503,7 @@ export const JobDetails: React.FC = () => {
   };
 
   return (
-    <Layout>
+    <Layout backTo={backTo}>
       <SEO
         title={jobTitle && companyName ? `${jobTitle} at ${companyName} | JobPoyt` : 'Job Details | JobPoyt'}
         description={jobDescription ? jobDescription.slice(0, 160) : 'View job details and application information on JobPoyt.'}
@@ -772,22 +782,26 @@ export const JobDetails: React.FC = () => {
                   fullWidth
                   size="large"
                   onClick={handleApplyClick}
-                  disabled={!hasAccess || hasApplied}
+                  disabled={!hasAccess}
                   sx={{
                     mb: 1.3,
                     borderRadius: 2,
                     textTransform: 'none',
                     fontWeight: 800,
                     py: 1.2,
-                    background: 'linear-gradient(90deg, #0284c7, #2563eb)',
+                    background: hasApplied ? '#16a34a' : 'linear-gradient(90deg, #0284c7, #2563eb)',
                     boxShadow: 'none',
                     '&:hover': {
-                      background: 'linear-gradient(90deg, #0369a1, #1d4ed8)',
+                      background: hasApplied ? '#16a34a' : 'linear-gradient(90deg, #0369a1, #1d4ed8)',
                       boxShadow: 'none',
+                    },
+                    '&.Mui-disabled': {
+                      background: hasApplied ? '#16a34a' : undefined,
+                      color: '#ffffff',
                     },
                   }}
                 >
-                  {hasApplied ? 'Already Applied' : 'Apply Now'}
+                  {hasApplied ? 'Applied' : 'Apply Now'}
                 </Button>
 
                 {subscription && isCandidatePremium(subscription.plan) && isSubscriptionActive(subscription.end_date) && (

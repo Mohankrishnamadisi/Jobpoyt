@@ -16,7 +16,6 @@ import {
   WorkOutlineOutlined as WorkOutlineOutlinedIcon,
   TrendingUpOutlined as TrendingUpOutlinedIcon,
   BoltOutlined as BoltOutlinedIcon,
-  OpenInNew as OpenInNewIcon,
   LockOutlined as LockOutlinedIcon,
 } from '@mui/icons-material';
 import { getTimeAgo, formatJobSalary, truncateAtWord } from '@utils/index';
@@ -25,6 +24,7 @@ import type { Job } from '../../types';
 interface HorizontalJobListItemProps {
   job: Job;
   isPremiumUser?: boolean;
+  isApplied?: boolean;
 }
 
 const companyLogoAliases: Record<string, string> = {
@@ -52,11 +52,13 @@ const companyLogoAliases: Record<string, string> = {
 export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
   job,
   isPremiumUser = false,
+  isApplied = false,
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
   const [isHovered, setIsHovered] = React.useState(false);
+  const [applied, setApplied] = React.useState(isApplied);
   const workMode = job.workMode || job.work_mode;
   const normalizedWorkMode = String(workMode || '').trim().toLowerCase();
   const showRemotePremium = normalizedWorkMode === 'remote' && !isPremiumUser;
@@ -89,14 +91,19 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
     .toUpperCase()
     .slice(0, 2) || 'N/A';
 
+  React.useEffect(() => {
+    setApplied(isApplied);
+  }, [isApplied]);
+
   const handleApplyClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/jobs/${job.id}`);
+    if (applied) return;
+    navigate(`/jobs/${job.id}`, { state: { from: `${window.location.pathname}${window.location.search}` } });
   };
 
   const handleViewDetailsClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/jobs/${job.id}`);
+    navigate(`/jobs/${job.id}`, { state: { from: `${window.location.pathname}${window.location.search}` } });
   };
 
   const salary = job.salaryMin || job.salary_min || job.salaryMax || job.salary_max
@@ -431,7 +438,7 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
           <Button
             onClick={handleApplyClick}
             variant="contained"
-            endIcon={<OpenInNewIcon sx={{ fontSize: 16 }} />}
+            disabled={applied}
             sx={{
               textTransform: 'none',
               fontWeight: 700,
@@ -439,22 +446,26 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
               fontSize: '0.95rem',
               px: 2.5,
               py: 0.75,
-              bgcolor: '#3b82f6',
+              bgcolor: applied ? '#16a34a' : '#3b82f6',
               color: '#ffffff',
               cursor: 'pointer',
               boxShadow: 'none',
               transition: 'all 0.25s ease',
               '&:hover': {
-                bgcolor: '#2563eb',
+                bgcolor: applied ? '#16a34a' : '#2563eb',
                 transform: 'translateY(-2px)',
                 boxShadow: '0 8px 20px rgba(59, 130, 246, 0.4)',
               },
               '&:active': {
                 transform: 'translateY(0)',
               },
+              '&.Mui-disabled': {
+                bgcolor: applied ? '#16a34a' : undefined,
+                color: '#ffffff',
+              },
             }}
           >
-            Apply
+            {applied ? 'Applied' : 'Apply'}
           </Button>
 
           {/* Details Link */}

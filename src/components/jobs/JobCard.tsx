@@ -244,7 +244,10 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSave, isSaved = false, 
       <Box sx={{ display: 'flex', gap: 1, p: 1.5, borderTop: '1px solid', borderColor: 'divider', bgcolor: 'rgba(248, 250, 252, 0.9)', position: 'relative', zIndex: 1 }}>
         <Button
           component={RouterLink}
-          to={ROUTES.JOB_DETAILS.replace(':id', job.id)}
+          to={{
+            pathname: ROUTES.JOB_DETAILS.replace(':id', job.id),
+            state: { from: `${window.location.pathname}${window.location.search}` },
+          }}
           variant="contained"
           fullWidth
           size="small"

@@ -121,7 +121,7 @@ const WORK_PERMIT_OPTIONS = [
   'Need UK Visa', 'Need Australia PR', 'Need Canada PR', 'Have US Green Card',
 ];
 const INDIA_CITIES = [
-  'Bengaluru', 'Hyderabad', 'Chennai', 'Mumbai', 'Delhi / NCR', 'Pune',
+  'India','Bengaluru', 'Hyderabad', 'Chennai', 'Mumbai', 'Delhi / NCR', 'Pune',
   'Kolkata', 'Ahmedabad', 'Noida', 'Gurgaon', 'Jaipur', 'Chandigarh',
   'Coimbatore', 'Visakhapatnam', 'Kochi', 'Remote',
 ];

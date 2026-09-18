@@ -324,7 +324,7 @@ export const jobService = {
     const companyInput = filters?.company ? String(filters.company).trim() : '';
     const keywordTerms = keywordInput.split(',').map((term) => term.trim()).filter(Boolean);
     const keywordLowers = keywordTerms.map((term) => term.toLowerCase());
-    const keywordVariants = keywordTerms.flatMap((term) => buildKeywordSearchVariants(term));
+    const keywordVariants = [...new Set(keywordTerms.flatMap((term) => buildKeywordSearchVariants(term)))].slice(0, 24);
     const matchesAnyKeyword = (value: unknown) => keywordLowers.some((term) => String(value || '').toLowerCase().includes(term));
     const matchesAnyRoleIntent = (job: Record<string, unknown>) => keywordTerms.some((term) => matchesRoleSearchIntent(job, term));
     const experienceInput = filters?.experience ? String(filters.experience).trim() : '';
@@ -339,24 +339,15 @@ export const jobService = {
         : query.or(locationTerms.map((term) => `location.ilike.%${term.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`).join(','));
     }
     if (keywordTerms.length > 0) {
-      const keywordClauses = keywordTerms.flatMap((term) => {
+      const searchTerms = [...new Set([...keywordTerms, ...keywordVariants])].slice(0, 24);
+      const keywordClauses = searchTerms.flatMap((term) => {
         const escapedTerm = term.replace(/%/g, '\\%').replace(/_/g, '\\_');
         return [
           `title.ilike.%${escapedTerm}%`,
-          `description.ilike.%${escapedTerm}%`,
           `skills.cs.{${escapedTerm}}`,
         ];
       });
-      const variantClauses = keywordVariants.flatMap((term) => {
-        const escapedTerm = term.replace(/%/g, '\\%').replace(/_/g, '\\_');
-        return [
-          `title.ilike.%${escapedTerm}%`,
-          `description.ilike.%${escapedTerm}%`,
-          `skills.cs.{${escapedTerm}}`,
-        ];
-      });
-
-      query = query.or([...keywordClauses, ...variantClauses].join(','));
+      query = query.or(keywordClauses.join(','));
     }
     if (companyInput) {
       const escapedCompany = companyInput.replace(/%/g, '\\%').replace(/_/g, '\\_');
@@ -841,6 +832,28 @@ export const companyService = {
 
 // Job Application operations
 export const applicationService = {
+  async markExternalApplication(jobId: string, userId: string) {
+    if (!jobId || !userId) throw new Error('Missing job or user information');
+
+    const alreadyApplied = await this.hasUserApplied(jobId, userId);
+    if (alreadyApplied) return alreadyApplied;
+
+    const { data, error } = await supabase
+      .from('job_applications')
+      .insert([{
+        job_id: jobId,
+        user_id: userId,
+        resume_url: '',
+        status: 'applied',
+        cover_letter: 'Applied through the employer application link.',
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
   async applyForJob(
     jobId: string,
     userId: string,

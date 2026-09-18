@@ -43,7 +43,7 @@ import { Layout } from '@components/layout/Layout';
 import { HorizontalJobListItem } from '@components/jobs/HorizontalJobListItem';
 import { JobListSkeleton } from '@components/common/LoadingSkeleton';
 import { Error } from '@components/common/Error';
-import { companyService, jobService } from '@services/api';
+import { applicationService, companyService, jobService } from '@services/api';
 import { EMPLOYMENT_TYPES, WORK_MODES, EDUCATION_OPTIONS, FRESHNESS_OPTIONS, INDIAN_CITIES } from '@constants/index';
 import { JOB_SEARCH_SUGGESTION_GROUPS } from '@constants/jobSearchSuggestions';
 import type { Job } from '../types';
@@ -60,27 +60,13 @@ const getMultiValues = (params: URLSearchParams, key: string, fallback: string[]
   return rawValue.split(',').map((value) => value.trim()).filter(Boolean);
 };
 
-const DEFAULT_LOCATIONS = [
-  'India',
-  'Hyderabad',
-  'Bengaluru',
-  'Chennai',
-  'Mumbai',
-  'Delhi',
-  'Pune',
-  'Kolkata',
-  'Coimbatore',
-  'Visakhapatnam',
-  'Noida',
-  'Gurgaon',
-];
-
 export const Jobs: React.FC = () => {
   const theme = useTheme();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuthStore();
   const { subscription } = useSubscription(user?.id || null);
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const latestRequestRef = useRef(0);
@@ -102,7 +88,7 @@ export const Jobs: React.FC = () => {
   const [filters, setFilters] = useState({
     keyword: searchParams.get('keyword') || '',
     company: searchParams.get('company') || '',
-    location: getMultiValues(searchParams, 'location', DEFAULT_LOCATIONS),
+    location: getMultiValues(searchParams, 'location'),
     experience: searchParams.get('experience') || '',
     education: searchParams.get('education') || '',
     freshness: searchParams.get('freshness') || '',
@@ -158,6 +144,35 @@ export const Jobs: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    let isActive = true;
+
+    const fetchAppliedJobs = async () => {
+      if (!user?.id) {
+        setAppliedJobIds(new Set());
+        return;
+      }
+
+      try {
+        const applications = await applicationService.getUserApplications(user.id);
+        if (isActive) {
+          setAppliedJobIds(new Set(
+            (applications || [])
+              .map((application: { job_id?: string; jobs?: { id?: string } }) => String(application.job_id || application.jobs?.id || ''))
+              .filter(Boolean)
+          ));
+        }
+      } catch (err) {
+        console.error('Failed to fetch applied jobs:', err);
+      }
+    };
+
+    fetchAppliedJobs();
+    return () => {
+      isActive = false;
+    };
+  }, [user?.id]);
+
+  useEffect(() => {
     const debounceTimer = window.setTimeout(() => {
       setDebouncedKeyword(filters.keyword);
     }, 300);
@@ -198,13 +213,10 @@ export const Jobs: React.FC = () => {
   }, [setSearchParams]);
 
   useEffect(() => {
-    setFilters((previousFilters) => ({
+    setFilters(() => ({
       keyword: searchParams.get('keyword') || '',
       company: searchParams.get('company') || '',
-      // Keep the default or an explicitly cleared value when the URL has no location.
-      location: searchParams.has('location')
-        ? getMultiValues(searchParams, 'location')
-        : previousFilters.location,
+      location: getMultiValues(searchParams, 'location'),
       experience: searchParams.get('experience') || '',
       education: searchParams.get('education') || '',
       freshness: searchParams.get('freshness') || '',
@@ -1145,6 +1157,7 @@ export const Jobs: React.FC = () => {
                       key={job.id}
                       job={job}
                       isPremiumUser={!!subscription}
+                      isApplied={appliedJobIds.has(String(job.id))}
                     />
                   ))}
                 </Box>

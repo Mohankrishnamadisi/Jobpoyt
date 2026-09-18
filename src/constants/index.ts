@@ -272,7 +272,7 @@ export const COUNTRIES = [
 
 export const COUNTRY_CITIES: Record<string, string[]> = {
   India: [
-    'Hyderabad', 'Bengaluru', 'Chennai', 'Mumbai', 'Delhi', 'Pune', 'Kolkata', 'Ahmedabad',
+    'India','Hyderabad', 'Bengaluru', 'Chennai', 'Mumbai', 'Delhi', 'Pune', 'Kolkata', 'Ahmedabad',
     'Jaipur', 'Lucknow', 'Kanpur', 'Nagpur', 'Surat', 'Vadodara', 'Bhopal', 'Coimbatore',
     'Visakhapatnam', 'Ludhiana', 'Agra', 'Madurai', 'Thiruvananthapuram', 'Noida', 'Gurgaon',
     'Faridabad', 'Amritsar', 'Nashik', 'Meerut', 'Rajkot', 'Vijayawada',
