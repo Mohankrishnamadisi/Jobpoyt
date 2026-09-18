@@ -318,7 +318,7 @@ export const recruiterService = {
 // Job operations
 export const jobService = {
   async getJobs(filters?: Record<string, unknown>, page = 1, limit = 20) {
-    let query = supabase.from('jobs').select('*', { count: 'exact' }).eq('status', 'published');
+    let query = supabase.from('jobs').select('*', { count: 'planned' }).eq('status', 'published');
 
     const keywordInput = filters?.keyword ? String(filters.keyword).trim() : '';
     const companyInput = filters?.company ? String(filters.company).trim() : '';
@@ -421,7 +421,7 @@ export const jobService = {
       let count: number | null = null;
 
       const pageStart = (page - 1) * limit;
-      const windowSize = Math.max(limit * 20, 500);
+      const windowSize = Math.max(limit * 8, 120);
       const response = await query
         .order('created_at', { ascending: false })
         .range(pageStart, pageStart + windowSize - 1);
@@ -446,8 +446,7 @@ export const jobService = {
         : normalizedJobs;
 
       const diversified = diversifyJobsByCompany(baseMatches);
-      const startIndex = (page - 1) * limit;
-      const pageJobs = diversified.slice(startIndex, startIndex + limit);
+      const pageJobs = diversified.slice(0, limit);
 
       return {
         data: pageJobs,

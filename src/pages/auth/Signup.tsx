@@ -33,6 +33,8 @@ import {
   Person as PersonIcon,
   School as SchoolIcon,
   Work as WorkIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
 } from '@mui/icons-material';
 import { Layout } from '@components/layout/Layout';
 import { useAuthStore } from '@store/index';
@@ -69,6 +71,8 @@ export const Signup: React.FC = () => {
   const { setUser, setLoading } = useAuthStore();
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoadingState] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
   const [existingDialogOpen, setExistingDialogOpen] = useState(false);
@@ -426,11 +430,24 @@ export const Signup: React.FC = () => {
                         fullWidth
                         label="Password *"
                         name="password"
-                        type="password"
+                        type={showPassword ? 'text' : 'password'}
                         value={formData.password}
                         onChange={handleChange}
                         error={!!errors.password}
                         helperText={errors.password}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                onClick={() => setShowPassword((visible) => !visible)}
+                                edge="end"
+                              >
+                                {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        }}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
@@ -438,11 +455,24 @@ export const Signup: React.FC = () => {
                         fullWidth
                         label="Confirm Password *"
                         name="confirmPassword"
-                        type="password"
+                        type={showConfirmPassword ? 'text' : 'password'}
                         value={formData.confirmPassword}
                         onChange={handleChange}
                         error={!!errors.confirmPassword}
                         helperText={errors.confirmPassword}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                                onClick={() => setShowConfirmPassword((visible) => !visible)}
+                                edge="end"
+                              >
+                                {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        }}
                       />
                     </Grid>
                     <Grid item xs={12} sm={6}>
