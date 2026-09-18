@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Container,
   Typography,
   Button,
   Grid,
+  Stack,
+  Divider,
   TextField,
   InputAdornment,
   FormControl,
@@ -16,7 +18,6 @@ import {
   CardContent,
   Chip,
   Autocomplete,
-  IconButton,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -33,9 +34,14 @@ import {
   Settings as SettingsIcon,
   DataObject as DataIcon,
   ArrowForward as ArrowForwardIcon,
+  VerifiedUser as VerifiedUserIcon,
+  School as SchoolIcon,
+  Explore as ExploreIcon,
+  EmojiEvents as EmojiEventsIcon,
 } from '@mui/icons-material';
 import { Layout } from '@components/layout/Layout';
 import { ROUTES, JOB_CATEGORIES, INDIAN_CITIES, INTERVIEW_ROLES, INTERVIEW_ROLE_CATEGORIES } from '@constants/index';
+import { companyService, jobService } from '@services/api';
 
 const MotionBox = motion(Box);
 const MotionTypography = motion(Typography);
@@ -91,8 +97,6 @@ const featuredCompanies = [
   { name: 'Swiggy', description: 'Growth and product hiring', keyword: 'Swiggy' },
 ];
 
-const interviewRoleCategories = INTERVIEW_ROLE_CATEGORIES;
-
 const categoryIconColors = [
   '#2563EB',
   '#0F766E',
@@ -111,12 +115,34 @@ export const Home: React.FC = () => {
   const [experience, setExperience] = useState('');
   const [roleSearch, setRoleSearch] = useState('');
   const [selectedRoleCategory, setSelectedRoleCategory] = useState('All');
+  const [heroStats, setHeroStats] = useState({ activeJobs: null as number | null, companies: null as number | null });
+
+  useEffect(() => {
+    let active = true;
+
+    Promise.all([jobService.getJobs({}, 1, 1), companyService.getCompanyCount()])
+      .then(([jobs, companies]) => {
+        if (active) setHeroStats({ activeJobs: jobs.total, companies });
+      })
+      .catch((error) => console.error('Failed to load home hero stats:', error));
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleSearch = () => {
     const filters = new URLSearchParams();
     if (searchKeyword) filters.append('keyword', searchKeyword);
     if (searchLocation) filters.append('location', searchLocation);
     if (experience) filters.append('experience', experience);
+    navigate(`${ROUTES.JOBS}?${filters.toString()}`);
+  };
+
+  const handlePopularSearch = (keyword: string) => {
+    setSearchKeyword(keyword);
+    const filters = new URLSearchParams();
+    filters.append('keyword', keyword);
     navigate(`${ROUTES.JOBS}?${filters.toString()}`);
   };
 
@@ -165,143 +191,113 @@ export const Home: React.FC = () => {
     <Layout>
       <MotionBox
         sx={{
-          background: isDarkMode ? `
-            radial-gradient(circle at 14% 18%, rgba(14, 165, 233, 0.16), transparent 34%),
-            radial-gradient(circle at 87% 12%, rgba(16, 185, 129, 0.14), transparent 32%),
-            linear-gradient(112deg, #000000 0%, #050608 48%, #0B1220 100%),
-            repeating-linear-gradient(135deg, rgba(96, 165, 250, 0.04) 0 1px, transparent 1px 34px)
-          ` : `
-            radial-gradient(circle at 14% 18%, rgba(14, 165, 233, 0.2), transparent 34%),
-            radial-gradient(circle at 87% 12%, rgba(16, 185, 129, 0.2), transparent 32%),
-            linear-gradient(112deg, rgba(255, 255, 255, 0.97) 0%, rgba(240, 253, 250, 0.92) 44%, rgba(239, 246, 255, 0.97) 100%),
-            repeating-linear-gradient(135deg, rgba(37, 99, 235, 0.06) 0 1px, transparent 1px 34px)
-          `,
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          py: { xs: 7.5, md: 11.5 },
-          mb: 6,
           position: 'relative',
           overflow: 'hidden',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: -100,
-            right: -100,
-            width: 260,
-            height: 260,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(59, 130, 246, 0.14), transparent 70%)',
-          },
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            bottom: -120,
-            left: -120,
-            width: 280,
-            height: 280,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(16, 185, 129, 0.14), transparent 72%)',
-          },
+          mb: { xs: 3, md: 4 },
+          borderBottom: '1px solid',
+          borderColor: 'rgba(148, 197, 255, 0.32)',
+          backgroundColor: isDarkMode ? '#0B1930' : '#EAF6FF',
+          backgroundImage: "url('/images/home.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center center',
+          backgroundRepeat: 'no-repeat',
+          py: { xs: 2.5, sm: 3.5, md: 4.5 },
         }}
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-          <MotionBox sx={{ textAlign: 'center', mb: 5 }} variants={itemVariants}>
-            <Chip
-              label="India's Career Gateway"
-              color="secondary"
-              variant="outlined"
-              sx={{
-                mb: 2,
-                px: 1,
-                  background: isDarkMode ? 'rgba(17, 24, 39, 0.88)' : 'rgba(255, 255, 255, 0.72)',
-                borderColor: 'rgba(14, 116, 144, 0.24)',
-                color: 'secondary.dark',
-              }}
-            />
+          <MotionBox sx={{ maxWidth: { xs: '100%', md: 860 }, textAlign: 'center', mx: 'auto', transform: { md: 'translateX(-4%)' } }} variants={itemVariants}>
+            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.7, mb: 1.5 }}>
+              <Chip
+                icon={<ExploreIcon sx={{ fontSize: '0.85rem !important' }} />}
+                label="India's Career Gateway"
+                sx={{
+                  px: 0.6,
+                  height: 29,
+                  fontSize: '0.74rem',
+                  fontWeight: 800,
+                  color: '#075985',
+                  background: 'rgba(224, 242, 254, 0.88)',
+                  border: '1px solid rgba(14, 165, 233, 0.25)',
+                }}
+              />
+            </Box>
             <MotionTypography
               variant="h1"
               sx={{
-                fontSize: { xs: '2.25rem', md: '4.4rem' },
+                maxWidth: { xs: '100%', md: 820 },
+                mx: 'auto',
+                fontSize: { xs: '1.6rem', sm: '2.1rem', md: '2.55rem' },
                 fontWeight: 800,
-                mb: 2,
-                background: isDarkMode
-                  ? 'linear-gradient(90deg, #FFFFFF 0%, #60A5FA 45%, #5EEAD4 100%)'
-                  : 'linear-gradient(90deg, #172033 0%, #2563EB 45%, #0F766E 100%)',
-                backgroundSize: '220% 100%',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                mb: 1.5,
+                color: '#102A43',
                 letterSpacing: 0,
-                lineHeight: 1.1,
+                lineHeight: 1.08,
                 cursor: 'default',
               }}
-              animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
-              whileHover={{ scale: 1.01 }}
-              transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
             >
-              Find Your Dream Job
+              <Box component="span" sx={{ display: 'block', whiteSpace: { md: 'nowrap' } }}>
+                Your Skills. Real Opportunities.
+              </Box>
+              <Box component="span" sx={{ display: 'block', whiteSpace: { md: 'nowrap' }, background: 'linear-gradient(90deg, #159BEF 0%, #2563EB 52%, #8B5CF6 100%)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                A Better Tomorrow.
+              </Box>
             </MotionTypography>
             <MotionTypography
               variant="h5"
               sx={{
-                color: 'text.secondary',
-                mb: 1,
-                fontSize: { xs: '1rem', md: '1.35rem' },
+                color: '#334E68',
+                mb: 2,
+                fontSize: { xs: '0.76rem', md: '0.88rem' },
                 fontWeight: 400,
-                maxWidth: 600,
+                maxWidth: 700,
                 mx: 'auto',
+                lineHeight: 1.45,
               }}
               variants={itemVariants}
             >
-              Search and apply for top jobs across India's leading companies.
+              Explore verified jobs from trusted companies, match your skills, and take the next
+              <br />
+              step in your career journey. All in one place.
             </MotionTypography>
 
-            <Box sx={{ mt: 2.2, display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 1 }}>
-              {topCompanies.slice(0, 4).map((company) => (
-                <Chip
-                  key={company.name}
-                  label={`${company.name} - ${company.hiring}`}
-                  onClick={() => {
-                    const filters = new URLSearchParams();
-                    filters.append('keyword', company.name);
-                    navigate(`${ROUTES.JOBS}?${filters.toString()}`);
-                  }}
-                  sx={{
-                    bgcolor: isDarkMode ? 'rgba(17, 24, 39, 0.9)' : 'rgba(255, 255, 255, 0.8)',
-                    border: '1px solid rgba(148, 163, 184, 0.35)',
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    '&:hover': { bgcolor: isDarkMode ? '#1E293B' : '#ffffff' },
-                  }}
-                />
+            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="center" divider={<Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' }, borderColor: 'rgba(71, 85, 105, 0.24)' }} />} sx={{ mb: 3.8 }}>
+              {[
+                { value: heroStats.activeJobs === null ? '—' : heroStats.activeJobs.toLocaleString(), label: 'Active Jobs', Icon: WorkIcon },
+                { value: heroStats.companies === null ? '—' : heroStats.companies.toLocaleString(), label: 'Hiring Companies', Icon: EmojiEventsIcon },
+                { value: '500K+', label: 'Job Seekers', Icon: SchoolIcon },
+                { value: '100%', label: 'Verified Listings', Icon: VerifiedUserIcon },
+              ].map(({ value, label, Icon }) => (
+                <Box key={label} sx={{ minWidth: { xs: 135, sm: 130 }, px: { xs: 1.2, sm: 1.6 }, py: 0.45, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.7 }}>
+                  <Box sx={{ width: 29, height: 29, borderRadius: 1.3, display: 'grid', placeItems: 'center', color: '#0369A1', bgcolor: 'rgba(186, 230, 253, 0.7)' }}><Icon sx={{ fontSize: 16 }} /></Box>
+                  <Box sx={{ textAlign: 'left' }}>
+                    <Typography sx={{ color: '#102A43', fontWeight: 800, fontSize: '0.92rem', lineHeight: 1.1 }}>{value}</Typography>
+                    <Typography sx={{ color: '#486581', fontSize: '0.62rem', mt: 0.2 }}>{label}</Typography>
+                  </Box>
+                </Box>
               ))}
-            </Box>
+            </Stack>
           </MotionBox>
 
-          <MotionBox variants={itemVariants} whileHover={{ y: -4 }}>
+          <MotionBox variants={itemVariants} sx={{ maxWidth: 940, mx: 'auto', mt: { xs: 1.5, md: 2 } }}>
             <Paper
               elevation={0}
               sx={{
-                p: { xs: 2.5, md: 4 },
-                background: isDarkMode ? 'rgba(17, 24, 39, 0.94)' : 'rgba(255, 255, 255, 0.92)',
-                backdropFilter: 'blur(18px)',
-                border: '1px solid',
-                borderColor: 'rgba(148, 163, 184, 0.28)',
-                borderRadius: 3,
-                boxShadow: '0 28px 64px rgba(15, 23, 42, 0.14)',
-                transition: 'box-shadow 0.25s ease, transform 0.25s ease',
-                '&:hover': {
-                  boxShadow: '0 34px 74px rgba(15, 23, 42, 0.17)',
-                },
+                p: { xs: 1.2, sm: 1.6, md: 1.8 },
+                background: isDarkMode ? 'rgba(17, 24, 39, 0.96)' : 'rgba(255, 255, 255, 0.98)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(191, 219, 254, 0.7)',
+                borderRadius: '24px',
+                boxShadow: '0 20px 45px rgba(30, 64, 175, 0.14), 0 4px 12px rgba(15, 23, 42, 0.06)',
               }}
             >
-              <Grid container spacing={2} alignItems="stretch">
+              <Grid container spacing={{ xs: 1, md: 1.3 }} alignItems="stretch">
                 <Grid item xs={12} md={4}>
                   <TextField
                     fullWidth
-                    placeholder="Search by job title, skill, or company"
+                    placeholder="Search jobs by title, skills, or company"
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -312,7 +308,17 @@ export const Home: React.FC = () => {
                         </InputAdornment>
                       ),
                     }}
-                    sx={{ '& .MuiOutlinedInput-root': { height: 64, fontSize: '1rem' } }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        height: 52,
+                        fontSize: '0.82rem',
+                        borderRadius: '14px',
+                        background: isDarkMode ? 'rgba(30, 41, 59, 0.72)' : '#F8FBFF',
+                        '& fieldset': { borderColor: isDarkMode ? 'rgba(147, 197, 253, 0.25)' : '#D7E7F5' },
+                        '&:hover fieldset': { borderColor: '#7DD3FC' },
+                        '&.Mui-focused fieldset': { borderColor: '#2563EB', borderWidth: 1.5 },
+                      },
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} md={3}>
@@ -340,7 +346,17 @@ export const Home: React.FC = () => {
                             </InputAdornment>
                           ),
                         }}
-                        sx={{ '& .MuiOutlinedInput-root': { height: 64, fontSize: '1rem' } }}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            height: 52,
+                            fontSize: '0.82rem',
+                            borderRadius: '14px',
+                            background: isDarkMode ? 'rgba(30, 41, 59, 0.72)' : '#F8FBFF',
+                            '& fieldset': { borderColor: isDarkMode ? 'rgba(147, 197, 253, 0.25)' : '#D7E7F5' },
+                            '&:hover fieldset': { borderColor: '#7DD3FC' },
+                            '&.Mui-focused fieldset': { borderColor: '#2563EB', borderWidth: 1.5 },
+                          },
+                        }}
                       />
                     )}
                   />
@@ -373,7 +389,17 @@ export const Home: React.FC = () => {
                         </InputAdornment>
                       ),
                     }}
-                    sx={{ '& .MuiOutlinedInput-root': { height: 64, fontSize: '0.95rem' } }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        height: 52,
+                        fontSize: '0.82rem',
+                        borderRadius: '14px',
+                        background: isDarkMode ? 'rgba(30, 41, 59, 0.72)' : '#F8FBFF',
+                        '& fieldset': { borderColor: isDarkMode ? 'rgba(147, 197, 253, 0.25)' : '#D7E7F5' },
+                        '&:hover fieldset': { borderColor: '#7DD3FC' },
+                        '&.Mui-focused fieldset': { borderColor: '#2563EB', borderWidth: 1.5 },
+                      },
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} md={3}>
@@ -385,16 +411,16 @@ export const Home: React.FC = () => {
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
                     sx={{
-                      height: 56,
-                      py: 1.75,
-                      fontSize: '1rem',
+                      height: 52,
+                      py: 1,
+                      fontSize: '0.84rem',
                       fontWeight: 700,
-                      borderRadius: 2.2,
+                      borderRadius: '14px',
                       background: 'linear-gradient(90deg, #0284c7, #2563eb)',
-                      boxShadow: 'none',
+                      boxShadow: '0 8px 18px rgba(37, 99, 235, 0.24)',
                       '&:hover': {
                         background: 'linear-gradient(90deg, #0369a1, #1d4ed8)',
-                        boxShadow: 'none',
+                        boxShadow: '0 10px 22px rgba(37, 99, 235, 0.32)',
                       },
                     }}
                   >
@@ -402,8 +428,33 @@ export const Home: React.FC = () => {
                   </MotionButton>
                 </Grid>
               </Grid>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap', gap: 0.6, mt: 1.4, pt: 1.1, borderTop: '1px solid rgba(191, 219, 254, 0.55)' }}>
+                <Typography sx={{ color: '#315477', fontSize: '0.7rem', fontWeight: 800 }}>Popular Searches:</Typography>
+                {['Frontend Developer', 'Python Developer', 'Data Analyst', 'DevOps Engineer', 'Product Manager'].map((keyword) => (
+                  <Chip key={keyword} label={keyword} onClick={() => handlePopularSearch(keyword)} size="small" sx={{ color: '#1D4ED8', bgcolor: '#F0F7FF', border: '1px solid #C7DDF5', fontWeight: 700, cursor: 'pointer', borderRadius: '9px', '&:hover': { bgcolor: '#DBEAFE', borderColor: '#60A5FA', transform: 'translateY(-1px)' } }} />
+                ))}
+              </Box>
             </Paper>
           </MotionBox>
+
+          <Grid container spacing={1.1} sx={{ maxWidth: 940, mx: 'auto', mt: { xs: 2.2, md: 2.8 } }}>
+            {[
+              { title: 'Discover Opportunities', detail: 'Find the right roles for your skills', Icon: ExploreIcon },
+              { title: 'Apply with Confidence', detail: 'Verified jobs from trusted employers', Icon: VerifiedUserIcon },
+              { title: 'Grow Continuously', detail: 'Access learning & career resources', Icon: SchoolIcon },
+              { title: 'Achieve Your Goals', detail: 'Take your career to the next level', Icon: EmojiEventsIcon },
+            ].map(({ title, detail, Icon }) => (
+              <Grid item xs={12} sm={6} md={3} key={title}>
+                <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', gap: 0.7, p: 0.9, borderRadius: 1.7, background: 'rgba(255,255,255,0.58)', border: '1px solid rgba(148, 197, 255, 0.24)' }}>
+                  <Box sx={{ width: 27, height: 27, flexShrink: 0, borderRadius: '50%', display: 'grid', placeItems: 'center', color: '#1D4ED8', bgcolor: '#DBEAFE' }}><Icon sx={{ fontSize: 14 }} /></Box>
+                  <Box>
+                    <Typography sx={{ color: '#102A43', fontSize: '0.68rem', fontWeight: 800, lineHeight: 1.2 }}>{title}</Typography>
+                    <Typography sx={{ color: '#627D98', fontSize: '0.58rem', mt: 0.25, lineHeight: 1.25 }}>{detail}</Typography>
+                  </Box>
+                </Box>
+              </Grid>
+            ))}
+          </Grid>
         </Container>
       </MotionBox>
 
@@ -549,7 +600,15 @@ export const Home: React.FC = () => {
                       filters.append('keyword', job.keyword);
                       navigate(`${ROUTES.JOBS}?${filters.toString()}`);
                     }}
-                    sx={{ mt: 2, textTransform: 'none' }}
+                    sx={{
+                      mt: 2,
+                      textTransform: 'none',
+                      color: '#fff',
+                      background: 'linear-gradient(90deg, rgb(2, 132, 199), rgb(37, 99, 235))',
+                      '&:hover': {
+                        background: 'linear-gradient(90deg, rgb(3, 105, 161), rgb(29, 78, 216))',
+                      },
+                    }}
                   >
                     View Jobs
                   </Button>
@@ -631,7 +690,14 @@ export const Home: React.FC = () => {
                             filters.append('keyword', company.keyword);
                             navigate(`${ROUTES.JOBS}?${filters.toString()}`);
                           }}
-                          sx={{ textTransform: 'none' }}
+                          sx={{
+                            textTransform: 'none',
+                            color: '#fff',
+                            background: 'linear-gradient(90deg, rgb(2, 132, 199), rgb(37, 99, 235))',
+                            '&:hover': {
+                              background: 'linear-gradient(90deg, rgb(3, 105, 161), rgb(29, 78, 216))',
+                            },
+                          }}
                         >
                           See jobs
                         </Button>
