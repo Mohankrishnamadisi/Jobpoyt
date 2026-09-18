@@ -5,11 +5,11 @@ import {
   Facebook as FacebookIcon,
   Twitter as TwitterIcon,
   LinkedIn as LinkedInIcon,
-  GitHub as GitHubIcon,
 } from '@mui/icons-material';
 import { ROUTES } from '@constants/index';
 import { useAuthStore } from '@store/index';
 import { useTheme } from '@mui/material/styles';
+import { siteConfig } from '@config/site';
 
 export const MobileFooter: React.FC = () => {
   const { user } = useAuthStore();
@@ -38,14 +38,16 @@ export const MobileFooter: React.FC = () => {
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             {[
-              { Icon: FacebookIcon, href: '#' },
-              { Icon: TwitterIcon, href: '#' },
-              { Icon: LinkedInIcon, href: '#' },
-              { Icon: GitHubIcon, href: '#' },
-            ].map(({ Icon, href }, index) => (
+              { Icon: FacebookIcon, href: siteConfig.social.facebookUrl, label: 'Facebook' },
+              { Icon: TwitterIcon, href: siteConfig.social.twitterUrl, label: 'Twitter' },
+              { Icon: LinkedInIcon, href: siteConfig.social.linkedinUrl, label: 'LinkedIn' },
+            ].filter(({ href }) => Boolean(href)).map(({ Icon, href, label }) => (
               <Link
-                key={index}
+                key={label}
                 href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
                 sx={{
                   color: 'text.secondary',
                   display: 'inline-flex',

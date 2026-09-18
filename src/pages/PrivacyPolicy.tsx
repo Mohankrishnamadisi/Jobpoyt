@@ -1,10 +1,13 @@
 import React from 'react';
 import { Box, Container, Typography } from '@mui/material';
 import { Layout } from '@components/layout/Layout';
+import { SEO } from '@components/seo/SEO';
+import { siteConfig } from '@config/site';
 
 export const PrivacyPolicy: React.FC = () => {
   return (
     <Layout>
+      <SEO title="Privacy Policy | JobPoyt" description="Read the JobPoyt Privacy Policy to understand how information is collected, used and protected on the platform." canonical={`${siteConfig.url}/privacy-policy`} />
       <Container maxWidth="md" sx={{ py: 6 }}>
         <Typography variant="h2" sx={{ fontWeight: 700, mb: 4 }}>
           Privacy Policy

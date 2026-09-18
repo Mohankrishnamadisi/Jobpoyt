@@ -22,6 +22,8 @@ import {
 } from '@services/employerBranding';
 import { jobService } from '@services/api';
 import type { Job } from '@types';
+import { SEO } from '@components/seo/SEO';
+import { siteConfig } from '@config/site';
 
 const getVisitorId = (): string => {
   const key = 'actro_career_visitor_id';
@@ -125,8 +127,24 @@ export const CompanyCareerPage: React.FC = () => {
   const visibleSections = profile.sectionOrder.filter((section) => profile.sectionEnabled[section]);
   const sectionVisible = (key: CareerSectionKey): boolean => visibleSections.includes(key);
   const pageTitle = profile.seo.pageTitle || `${profile.companyName} Careers`;
+  const careerCanonical = profile.seo.canonicalUrl || `${siteConfig.url}/company/${encodeURIComponent(profile.seo.slug || slug)}`;
 
   return (
+    <>
+      <SEO
+        title={pageTitle}
+        description={profile.seo.metaDescription || `${profile.companyName} careers and current job opportunities on JobPoyt.`}
+        canonical={careerCanonical}
+        image={profile.seo.ogImage || siteConfig.logo}
+        structuredData={{
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteConfig.url}/` },
+            { '@type': 'ListItem', position: 2, name: `${profile.companyName} Careers`, item: careerCanonical },
+          ],
+        }}
+      />
     <Box
       sx={{
         background: `linear-gradient(165deg, ${profile.theme.primaryColor}10 0%, #FFFFFF 34%, ${profile.theme.secondaryColor}10 100%)`,
@@ -417,5 +435,6 @@ export const CompanyCareerPage: React.FC = () => {
         </Grid>
       </Container>
     </Box>
+    </>
   );
 };

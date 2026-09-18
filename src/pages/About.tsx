@@ -1,10 +1,13 @@
 import React from 'react';
 import { Box, Container, Typography } from '@mui/material';
 import { Layout } from '@components/layout/Layout';
+import { SEO } from '@components/seo/SEO';
+import { siteConfig } from '@config/site';
 
 export const About: React.FC = () => {
   return (
     <Layout>
+      <SEO title="About JobPoyt | Job Search and Hiring Platform" description="Learn how JobPoyt connects professionals, recruiters and companies through job search, hiring and career growth tools." canonical={`${siteConfig.url}/about`} />
       <Container maxWidth="md" sx={{ py: 6 }}>
         <Typography variant="h2" sx={{ fontWeight: 700, mb: 4 }}>
           About Jobpoyt

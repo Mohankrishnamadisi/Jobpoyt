@@ -47,6 +47,8 @@ import { ROUTES } from '@constants/index';
 import Swal from '@utils/sweetAlert';
 import toast from 'react-hot-toast';
 import type { Job } from '../types';
+import { SEO } from '@components/seo/SEO';
+import { siteConfig } from '@config/site';
 
 const RecommendedCandidates = React.lazy(() =>
   import('@components/recruiter/RecommendedCandidates').then((module) => ({
@@ -183,6 +185,63 @@ export const JobDetails: React.FC = () => {
   const showRemotePremium = workModeLabel === 'Remote' && !subscription;
   const isRecruiterOwner = Boolean(user?.id && job.posted_by === user.id);
   const postedOn = formatDate(job.createdAt || job.created_at || new Date().toISOString());
+  const companyName = String(job.company_name || '').trim();
+  const jobTitle = String(job.title || '').trim();
+  const jobDescription = String(job.description || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  const jobCanonical = `${siteConfig.url}/jobs/${encodeURIComponent(String(job.id))}`;
+  const employmentTypeMap: Record<string, string> = {
+    'Full-Time': 'FULL_TIME',
+    'Part-Time': 'PART_TIME',
+    Contract: 'CONTRACTOR',
+    Internship: 'INTERN',
+    Freelance: 'OTHER',
+  };
+  const salaryUnit = typeof job.salary_period === 'string' ? job.salary_period.trim() : '';
+  const hasSalary = Boolean(
+    job.currency &&
+      salaryUnit &&
+      [job.salaryMin || job.salary_min, job.salaryMax || job.salary_max].some((value) => Number.isFinite(Number(value)))
+  );
+  const jobPostingSchema: Record<string, unknown> | null = jobTitle && jobDescription && companyName && (job.createdAt || job.created_at)
+    ? {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    ...(jobTitle ? { title: jobTitle } : {}),
+    ...(jobDescription ? { description: jobDescription } : {}),
+    ...(job.createdAt || job.created_at ? { datePosted: job.createdAt || job.created_at } : {}),
+    ...(job.application_deadline ? { validThrough: job.application_deadline } : {}),
+    ...(employmentTypeMap[String(jobTypeLabel)] ? { employmentType: employmentTypeMap[String(jobTypeLabel)] } : {}),
+    ...(companyName ? { hiringOrganization: { '@type': 'Organization', name: companyName } } : {}),
+    ...(workModeLabel.toLowerCase() === 'remote'
+      ? { jobLocationType: 'TELECOMMUTE', ...(job.location ? { applicantLocationRequirements: { '@type': 'Country', name: String(job.location) } } : {}) }
+      : job.location
+        ? { jobLocation: { '@type': 'Place', address: { '@type': 'PostalAddress', addressLocality: String(job.location) } } }
+        : {}),
+    ...(hasSalary
+      ? {
+          baseSalary: {
+            '@type': 'MonetaryAmount',
+            currency: String(job.currency),
+            value: {
+              '@type': 'QuantitativeValue',
+              ...(job.salaryMin || job.salary_min ? { minValue: Number(job.salaryMin || job.salary_min) } : {}),
+              ...(job.salaryMax || job.salary_max ? { maxValue: Number(job.salaryMax || job.salary_max) } : {}),
+              unitText: salaryUnit,
+            },
+          },
+        }
+      : {}),
+  }
+    : null;
+  const jobBreadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteConfig.url}/` },
+      { '@type': 'ListItem', position: 2, name: 'Jobs', item: `${siteConfig.url}/jobs` },
+      { '@type': 'ListItem', position: 3, name: jobTitle || 'Job Details', item: jobCanonical },
+    ],
+  };
   const screeningQuestions = job.screeningQuestions || [];
   const applicationsCount = job.applicationsCount || 0;
   const canUseNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
@@ -435,6 +494,13 @@ export const JobDetails: React.FC = () => {
 
   return (
     <Layout>
+      <SEO
+        title={jobTitle && companyName ? `${jobTitle} at ${companyName} | JobPoyt` : 'Job Details | JobPoyt'}
+        description={jobDescription ? jobDescription.slice(0, 160) : 'View job details and application information on JobPoyt.'}
+        canonical={jobCanonical}
+        type="article"
+        structuredData={jobPostingSchema ? [jobPostingSchema, jobBreadcrumbSchema] : jobBreadcrumbSchema}
+      />
       <Container maxWidth="xl" sx={{ py: { xs: 2.5, md: 4 } }}>
         <Card
           sx={{

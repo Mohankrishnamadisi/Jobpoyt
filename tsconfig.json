@@ -36,6 +36,7 @@
       "@constants/*": ["src/constants/*"],
       "@store/*": ["src/store/*"],
       "@styles/*": ["src/styles/*"]
+      ,"@config/*": ["src/config/*"]
     }
   },
   "include": ["src"],

@@ -42,6 +42,8 @@ import {
 import { Layout } from '@components/layout/Layout';
 import { ROUTES, JOB_CATEGORIES, INDIAN_CITIES, INTERVIEW_ROLES, INTERVIEW_ROLE_CATEGORIES } from '@constants/index';
 import { companyService, jobService } from '@services/api';
+import { SEO } from '@components/seo/SEO';
+import { knownSocialUrls, siteConfig } from '@config/site';
 
 const MotionBox = motion(Box);
 const MotionTypography = motion(Typography);
@@ -189,6 +191,32 @@ export const Home: React.FC = () => {
 
   return (
     <Layout>
+      <SEO
+        title="JobPoyt – Find Jobs in India, Abroad & Remote Jobs"
+        description="JobPoyt helps you find jobs in India, abroad jobs, remote jobs and MNC jobs, while connecting recruiters with talent and supporting learning and upskilling."
+        canonical={siteConfig.url}
+        structuredData={[
+          {
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: siteConfig.name,
+            url: `${siteConfig.url}/`,
+            logo: siteConfig.logo,
+            sameAs: knownSocialUrls,
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: siteConfig.name,
+            url: `${siteConfig.url}/`,
+            potentialAction: {
+              '@type': 'SearchAction',
+              target: `${siteConfig.url}/jobs?keyword={search_term_string}`,
+              'query-input': 'required name=search_term_string',
+            },
+          },
+        ]}
+      />
       <MotionBox
         sx={{
           position: 'relative',

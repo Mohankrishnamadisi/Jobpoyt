@@ -1,5 +1,5 @@
 ﻿import React, { useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import { Box, CircularProgress, CssBaseline, useMediaQuery } from '@mui/material';
 import { Toaster, toast } from 'react-hot-toast';
@@ -56,6 +56,8 @@ import CommunityNetworkingHub from '@pages/dashboard/CommunityNetworkingHub';
 import LearningPage from '@pages/dashboard/Learning';
 import MessagingPage from '@pages/Messaging';
 import { CompanyCareerPage } from '@pages/CompanyCareerPage';
+import { About } from '@pages/About';
+import { Contact } from '@pages/Contact';
 import AdminLayout from './admin/AdminLayout';
 import DashboardOverview from './admin/pages/DashboardOverview';
 import UsersPage from './admin/pages/UsersPage';
@@ -74,6 +76,7 @@ import PlatformCommunities from './admin/pages/PlatformCommunities';
 import GlobalEnterprisePlatform from './admin/pages/GlobalEnterprisePlatform';
 import { RecruiterSubscriptionPage } from '@pages/recruiter/RecruiterSubscriptionPage';
 import AdminBillingManagement from './admin/pages/AdminBillingManagement';
+import { SEO } from '@components/seo/SEO';
 
 const BUILD_VERSION_STORAGE_KEY = 'actro_build_id';
 
@@ -133,17 +136,19 @@ const AnimatedRoutes: React.FC = () => {
         <Route path={ROUTES.HOME} element={<Home />} />
         <Route path={ROUTES.JOBS} element={<Jobs />} />
         <Route path={ROUTES.JOB_DETAILS} element={<JobDetails />} />
-          <Route path={ROUTES.COMPANY_CAREER_PAGE} element={<CompanyCareerPage />} />
+        <Route path={ROUTES.COMPANY_CAREER_PAGE} element={<CompanyCareerPage />} />
         <Route path={ROUTES.PRICING} element={<Pricing />} />
+        <Route path={ROUTES.ABOUT} element={<About />} />
+        <Route path={ROUTES.CONTACT} element={<Contact />} />
         <Route path={ROUTES.PRIVACY_POLICY} element={<PrivacyPolicy />} />
         <Route path={ROUTES.TERMS_CONDITIONS} element={<TermsConditions />} />
 
-        <Route path={ROUTES.LOGIN} element={<Login />} />
-        <Route path={ROUTES.SIGNUP} element={<Signup />} />
-        <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
-        <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
-        <Route path={ROUTES.AUTH_CALLBACK} element={<AuthCallback />} />
-        <Route path={ROUTES.RECRUITER_REGISTER} element={<RecruiterRegister />} />
+        <Route path={ROUTES.LOGIN} element={<><SEO title="Login | JobPoyt" description="Sign in to your JobPoyt account." robots="noindex,nofollow" /><Login /></>} />
+        <Route path={ROUTES.SIGNUP} element={<><SEO title="Create an Account | JobPoyt" description="Create a JobPoyt account." robots="noindex,nofollow" /><Signup /></>} />
+        <Route path={ROUTES.FORGOT_PASSWORD} element={<><SEO title="Forgot Password | JobPoyt" description="Reset your JobPoyt account password." robots="noindex,nofollow" /><ForgotPassword /></>} />
+        <Route path={ROUTES.RESET_PASSWORD} element={<><SEO title="Reset Password | JobPoyt" description="Set a new password for your JobPoyt account." robots="noindex,nofollow" /><ResetPassword /></>} />
+        <Route path={ROUTES.AUTH_CALLBACK} element={<><SEO title="Authentication | JobPoyt" description="Completing JobPoyt authentication." robots="noindex,nofollow" /><AuthCallback /></>} />
+        <Route path={ROUTES.RECRUITER_REGISTER} element={<><SEO title="Recruiter Registration | JobPoyt" description="Register as a recruiter on JobPoyt." robots="noindex,nofollow" /><RecruiterRegister /></>} />
 
         <Route
           path={ROUTES.DASHBOARD}
@@ -297,7 +302,7 @@ const AnimatedRoutes: React.FC = () => {
         />
         <Route
           path={ROUTES.DASHBOARD_LEARNING}
-          element={<LearningPage />}
+          element={<><SEO title="Learning | JobPoyt" description="Private JobPoyt learning area." robots="noindex,nofollow" /><LearningPage /></>}
         />
         <Route
           path={ROUTES.DASHBOARD_FREE_NOTES}
@@ -472,7 +477,7 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     const hash = window.location.hash || '';
     if (hash.startsWith('#access_token=') || hash.startsWith('#error=')) {
-      window.location.replace(`${window.location.origin}/#/auth/callback${hash}`);
+      window.location.replace(`${window.location.origin}${ROUTES.AUTH_CALLBACK}${hash}`);
     }
   }, []);
 

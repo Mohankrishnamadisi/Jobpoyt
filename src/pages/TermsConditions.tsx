@@ -1,10 +1,13 @@
 import React from 'react';
 import { Box, Container, Typography } from '@mui/material';
 import { Layout } from '@components/layout/Layout';
+import { SEO } from '@components/seo/SEO';
+import { siteConfig } from '@config/site';
 
 export const TermsConditions: React.FC = () => {
   return (
     <Layout>
+      <SEO title="Terms and Conditions | JobPoyt" description="Read the JobPoyt Terms and Conditions governing use of the job search, recruiting and career platform." canonical={`${siteConfig.url}/terms-conditions`} />
       <Container maxWidth="md" sx={{ py: 6 }}>
         <Typography variant="h2" sx={{ fontWeight: 700, mb: 4 }}>
           Terms and Conditions

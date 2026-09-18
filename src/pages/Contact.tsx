@@ -2,6 +2,8 @@ import React from 'react';
 import { Box, Container, Typography, TextField, Button, Card, CardContent } from '@mui/material';
 import { Layout } from '@components/layout/Layout';
 import toast from 'react-hot-toast';
+import { SEO } from '@components/seo/SEO';
+import { siteConfig } from '@config/site';
 
 export const Contact: React.FC = () => {
   const [formData, setFormData] = React.useState({
@@ -24,6 +26,7 @@ export const Contact: React.FC = () => {
 
   return (
     <Layout>
+      <SEO title="Contact JobPoyt" description="Contact JobPoyt for help with job search, recruiting, accounts and platform questions." canonical={`${siteConfig.url}/contact`} />
       <Container maxWidth="md" sx={{ py: 6 }}>
         <Box sx={{ textAlign: 'center', mb: 6 }}>
           <Typography variant="h2" sx={{ fontWeight: 700, mb: 2 }}>

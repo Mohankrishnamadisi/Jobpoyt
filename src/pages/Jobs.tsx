@@ -47,6 +47,8 @@ import { companyService, jobService } from '@services/api';
 import { EMPLOYMENT_TYPES, WORK_MODES, EDUCATION_OPTIONS, FRESHNESS_OPTIONS, INDIAN_CITIES } from '@constants/index';
 import { JOB_SEARCH_SUGGESTION_GROUPS } from '@constants/jobSearchSuggestions';
 import type { Job } from '../types';
+import { SEO } from '@components/seo/SEO';
+import { siteConfig } from '@config/site';
 
 const MotionPaper = motion(Paper);
 
@@ -406,6 +408,7 @@ export const Jobs: React.FC = () => {
 
   return (
     <Layout>
+      <SEO title="Jobs in India, Abroad & Remote | JobPoyt" description="Search current jobs in India, abroad and remote roles on JobPoyt. Filter opportunities by role, location, experience, job type and work mode." canonical={`${siteConfig.url}/jobs`} />
       <Container maxWidth="xl" className="find-jobs-page" sx={{ py: { xs: 1.5, md: 3 }, backgroundColor: 'transparent' }}>
         <MotionPaper
           initial={{ opacity: 0, y: 16 }}

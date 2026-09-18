@@ -10,6 +10,7 @@ import { useAuthStore } from '@store/index';
 import usePWAInstall from '@hooks/usePWAInstall';
 import PWAInstallBanner from '@components/InstallApp/PWAInstallBanner';
 import '../../styles/footerSocialIcons.css';
+import { knownSocialUrls } from '@config/site';
 
 const PWAInstallModal = React.lazy(() => import('@components/InstallApp/PWAInstallModal'));
 
@@ -183,7 +184,7 @@ export const Footer: React.FC = () => {
             <Typography variant="body2" sx={{ color: 'rgba(226, 232, 240, 0.88)', mb: 2.2, maxWidth: 380, lineHeight: 1.75 }}>
               Discover premium hiring and job search experiences with modern analytics, growth tools, and design-forward workflows.
             </Typography>
-            <div className="footer-social-parent">
+            <div className="footer-social-parent" style={{ display: knownSocialUrls.length > 0 ? undefined : 'none' }}>
               <div className="footer-social-child footer-social-child-1">
                 <button className="footer-social-button footer-social-btn-1" aria-label="Twitter">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="#1e90ff">
