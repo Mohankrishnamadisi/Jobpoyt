@@ -19,6 +19,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     return <Navigate to={ROUTES.LOGIN} replace />;
   }
 
+  if (user.emailVerified === false) {
+    return <Navigate to={ROUTES.VERIFY_EMAIL} replace />;
+  }
+
   if (requiredRole && user.role !== requiredRole) {
     return <Navigate to={ROUTES.HOME} replace />;
   }

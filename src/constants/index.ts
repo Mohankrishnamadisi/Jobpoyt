@@ -808,7 +808,7 @@ export const ROUTES = {
   FORGOT_PASSWORD: '/forgot-password',
   RESET_PASSWORD: '/reset-password',
   AUTH_CALLBACK: '/auth/callback',
-  VERIFY_EMAIL: '/verify-email/:token',
+  VERIFY_EMAIL: '/verify-email',
   DASHBOARD: '/dashboard',
   DASHBOARD_PROFILE: '/dashboard/profile',
   DASHBOARD_RESUME: '/dashboard/resume',

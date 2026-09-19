@@ -7,6 +7,7 @@ export interface User {
   phone?: string;
   subscriptionPlan?: string;
   role: 'job_seeker' | 'recruiter' | 'admin';
+  emailVerified?: boolean;
   createdAt: string;
   updatedAt: string;
 }

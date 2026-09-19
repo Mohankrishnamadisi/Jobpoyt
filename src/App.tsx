@@ -27,6 +27,7 @@ import { Signup } from '@pages/auth/Signup';
 import { ForgotPassword } from '@pages/auth/ForgotPassword';
 import { ResetPassword } from '@pages/auth/ResetPassword';
 import { AuthCallback } from '@pages/auth/AuthCallback';
+import { VerifyEmail } from '@pages/auth/VerifyEmail';
 import { Dashboard } from '@pages/dashboard/Dashboard';
 import { ProfilePage } from '@pages/dashboard/Profile';
 import { ApplicationsPage } from '@pages/dashboard/Applications';
@@ -148,6 +149,7 @@ const AnimatedRoutes: React.FC = () => {
         <Route path={ROUTES.FORGOT_PASSWORD} element={<><SEO title="Forgot Password | JobPoyt" description="Reset your JobPoyt account password." robots="noindex,nofollow" /><ForgotPassword /></>} />
         <Route path={ROUTES.RESET_PASSWORD} element={<><SEO title="Reset Password | JobPoyt" description="Set a new password for your JobPoyt account." robots="noindex,nofollow" /><ResetPassword /></>} />
         <Route path={ROUTES.AUTH_CALLBACK} element={<><SEO title="Authentication | JobPoyt" description="Completing JobPoyt authentication." robots="noindex,nofollow" /><AuthCallback /></>} />
+        <Route path={ROUTES.VERIFY_EMAIL} element={<><SEO title="Verify Your Email | JobPoyt" description="Verify your JobPoyt email address." robots="noindex,nofollow" /><VerifyEmail /></>} />
         <Route path={ROUTES.RECRUITER_REGISTER} element={<><SEO title="Recruiter Registration | JobPoyt" description="Register as a recruiter on JobPoyt." robots="noindex,nofollow" /><RecruiterRegister /></>} />
 
         <Route
@@ -476,7 +478,13 @@ const AppContent: React.FC = () => {
 
   useEffect(() => {
     const hash = window.location.hash || '';
-    if (hash.startsWith('#access_token=') || hash.startsWith('#error=')) {
+    const nestedHashIndex = hash.indexOf('#', 1);
+    if (nestedHashIndex > 0) {
+      const tokenHash = hash.slice(nestedHashIndex);
+      if (tokenHash.startsWith('#access_token=') || tokenHash.startsWith('#error=')) {
+        window.location.replace(`${window.location.origin}${ROUTES.AUTH_CALLBACK}${tokenHash}`);
+      }
+    } else if (hash.startsWith('#access_token=') || hash.startsWith('#error=')) {
       window.location.replace(`${window.location.origin}${ROUTES.AUTH_CALLBACK}${hash}`);
     }
   }, []);
@@ -518,6 +526,7 @@ const AppContent: React.FC = () => {
               avatar: profile?.avatar_url || profile?.profile_image_url || session.user.user_metadata?.avatar_url,
               createdAt: profile?.created_at || session.user.created_at || new Date().toISOString(),
               updatedAt: profile?.updated_at || session.user.updated_at || new Date().toISOString(),
+              emailVerified: Boolean(session.user.email_confirmed_at),
             });
           }
         } catch (error) {
@@ -558,6 +567,7 @@ const AppContent: React.FC = () => {
             avatar: profile?.avatar_url || profile?.profile_image_url || s.user.user_metadata?.avatar_url,
             createdAt: profile?.created_at || s.user.created_at || new Date().toISOString(),
             updatedAt: profile?.updated_at || s.user.updated_at || new Date().toISOString(),
+            emailVerified: Boolean((s.user as any).email_confirmed_at),
           });
         } else {
           setUser(null);

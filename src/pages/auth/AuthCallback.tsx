@@ -51,7 +51,12 @@ export const AuthCallback: React.FC = () => {
         const userId = user.id;
         const role = user.user_metadata?.role || USER_ROLES.JOB_SEEKER;
 
-        // Ensure profile exists
+        if (!user.email_confirmed_at) {
+          navigate(`${ROUTES.VERIFY_EMAIL}?email=${encodeURIComponent(user.email || '')}`);
+          return;
+        }
+
+        // The database trigger creates the base profile. Complete candidate fields only after verification.
         if (role === USER_ROLES.RECRUITER) {
           const recruiter = await recruiterService.getRecruiterProfile(userId);
           if (!recruiter) {
@@ -76,15 +81,13 @@ export const AuthCallback: React.FC = () => {
 
         // Job seeker
         const profile = await userService.getProfile(userId);
-        if (!profile) {
-          await userService.createProfile(userId, {
-            name: user.user_metadata?.name || 'User',
-            email: user.email,
-            role: USER_ROLES.JOB_SEEKER,
-          } as Record<string, unknown>);
+        const candidateProfile = user.user_metadata?.candidateProfile;
+        if (candidateProfile && typeof candidateProfile === 'object') {
+          await userService.updateProfile(userId, candidateProfile as Record<string, unknown>);
         }
-        setUser({ id: userId, email: user.email || '', name: user.user_metadata?.name || 'User', role: USER_ROLES.JOB_SEEKER, createdAt: user.created_at || new Date().toISOString(), updatedAt: user.updated_at || new Date().toISOString(), });
-        navigate(ROUTES.DASHBOARD);
+        const finalProfile = candidateProfile && typeof candidateProfile === 'object' ? { ...profile, ...candidateProfile } : profile;
+        setUser({ id: userId, email: user.email || '', name: finalProfile?.name || user.user_metadata?.name || 'User', role: USER_ROLES.JOB_SEEKER, createdAt: finalProfile?.created_at || user.created_at || new Date().toISOString(), updatedAt: finalProfile?.updated_at || user.updated_at || new Date().toISOString(), emailVerified: true });
+        navigate(`${ROUTES.VERIFY_EMAIL}?verified=1`);
       } catch (err) {
         console.error('OAuth callback handling failed:', err);
         navigate(ROUTES.LOGIN);

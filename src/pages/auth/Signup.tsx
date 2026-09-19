@@ -40,7 +40,6 @@ import {
 import { Layout } from '@components/layout/Layout';
 import { useAuthStore } from '@store/index';
 import { authService } from '@services/supabase';
-import { userService } from '@services/api';
 import {
   ROUTES,
   USER_ROLES,
@@ -69,16 +68,16 @@ const EXPERIENCE_MONTHS_OPTIONS = Array.from({ length: 12 }, (_, i) => i);
 
 export const Signup: React.FC = () => {
   const navigate = useNavigate();
-  const { setUser, setLoading } = useAuthStore();
+  const { setLoading } = useAuthStore();
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoadingState] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
   const [existingDialogOpen, setExistingDialogOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('error');
   const [skillInput, setSkillInput] = useState('');
   const [resume, setResume] = useState<File | null>(null);
   const [profileImage, setProfileImage] = useState<File | null>(null);
@@ -193,24 +192,10 @@ export const Signup: React.FC = () => {
       const response = await authService.signUp(formData.email, formData.password, {
         name: formData.fullName,
         role: USER_ROLES.JOB_SEEKER,
-      });
-
-      if (response.user) {
-        let resumeUrl = '';
-        let profileImageUrl = '';
-
-        if (resume) {
-          resumeUrl = await userService.uploadResume(response.user.id, resume);
-        }
-        if (profileImage) {
-          profileImageUrl = await userService.uploadProfileImage(response.user.id, profileImage);
-        }
-
-        await userService.createProfile(response.user.id, {
+        candidateProfile: {
           name: formData.fullName,
           email: formData.email,
           phone: formData.phone,
-          role: USER_ROLES.JOB_SEEKER,
           gender: formData.gender,
           date_of_birth: formData.dateOfBirth,
           address: formData.address,
@@ -227,25 +212,14 @@ export const Signup: React.FC = () => {
           current_ctc: formData.currentCtc,
           expected_ctc: formData.expectedCtc,
           notice_period: formData.noticePeriod,
-          resume_url: resumeUrl,
-          profile_image_url: profileImageUrl,
           linkedin_url: formData.linkedinUrl,
           portfolio_url: formData.portfolioUrl,
-        } as Record<string, unknown>);
+        },
+      });
 
-        setUser({
-          id: response.user.id,
-          email: formData.email,
-          name: formData.fullName,
-          role: USER_ROLES.JOB_SEEKER,
-          avatar: profileImageUrl || undefined,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        });
-
-        setSnackbarMessage('Registration successful.');
-        setSnackbarOpen(true);
-        setVerifyDialogOpen(true);
+      if (response.user) {
+        localStorage.setItem('jobpoyt_pending_verification_email', formData.email);
+        navigate(`${ROUTES.VERIFY_EMAIL}?email=${encodeURIComponent(formData.email)}`);
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
@@ -253,7 +227,8 @@ export const Signup: React.FC = () => {
       if (typeof msg === 'string' && /already/i.test(msg)) {
         setExistingDialogOpen(true);
       } else {
-        setSnackbarMessage(msg || 'Registration failed');
+        setSnackbarSeverity('error');
+        setSnackbarMessage('We could not complete registration. Please review your details and try again.');
         setSnackbarOpen(true);
       }
     } finally {
@@ -828,18 +803,6 @@ export const Signup: React.FC = () => {
           </Card>
         </Container>
       </Box>
-      {/* Verify Email Dialog */}
-      <Dialog open={verifyDialogOpen} onClose={() => setVerifyDialogOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Verify Your Email</DialogTitle>
-        <DialogContent>
-          A confirmation email has been sent to your registered email address. Please verify your email before logging in.
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => window.open('https://mail.google.com', '_blank')}>Open Gmail</Button>
-          <Button onClick={() => setVerifyDialogOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
-
       {/* Existing account dialog */}
       <Dialog open={existingDialogOpen} onClose={() => setExistingDialogOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Account Already Exists</DialogTitle>
@@ -853,7 +816,7 @@ export const Signup: React.FC = () => {
       </Dialog>
 
       <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={() => setSnackbarOpen(false)}>
-        <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%' }}>
+        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
           {snackbarMessage}
         </Alert>
       </Snackbar>

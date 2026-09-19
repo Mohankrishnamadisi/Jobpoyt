@@ -73,6 +73,10 @@ export const Login: React.FC = () => {
       const response = await authService.signIn(formData.email, formData.password);
 
       if (response.user) {
+        if (!response.user.email_confirmed_at) {
+          navigate(`${ROUTES.VERIFY_EMAIL}?email=${encodeURIComponent(response.user.email || formData.email)}`);
+          return;
+        }
         // Log auth user
         // eslint-disable-next-line no-console
         console.log('Auth user (login):', response.user);
@@ -111,6 +115,7 @@ export const Login: React.FC = () => {
           role: finalRole,
           createdAt: profile?.created_at || new Date().toISOString(),
           updatedAt: profile?.updated_at || new Date().toISOString(),
+          emailVerified: true,
         });
 
         toast.success('Login successful!');
@@ -125,7 +130,9 @@ export const Login: React.FC = () => {
         }
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Login failed';
+      const errorMessage = error instanceof Error && /confirm|verified/i.test(error.message)
+        ? 'Please verify your email before logging in.'
+        : 'Login failed. Please check your email and password and try again.';
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {

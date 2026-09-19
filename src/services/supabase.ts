@@ -19,15 +19,28 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
+const getVerificationRedirectUrl = () => `${window.location.origin}/#/auth/callback`;
+
 // Auth functions
 export const authService = {
-  async signUp(email: string, password: string, userData: Record<string, unknown>) {
+  async signUp(email: string, password: string, userData: Record<string, unknown>, emailRedirectTo = getVerificationRedirectUrl()) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: userData,
+        emailRedirectTo,
       },
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  async resendVerificationEmail(email: string, emailRedirectTo = getVerificationRedirectUrl()) {
+    const { data, error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo },
     });
     if (error) throw error;
     return data;
