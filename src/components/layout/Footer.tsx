@@ -1,11 +1,11 @@
 import React, { Suspense } from 'react';
-import { Box, Container, Grid, Typography, Link, Divider, Button, Paper } from '@mui/material';
+import { Box, Container, Grid, Typography, Link, Divider, Button, Paper, Stack } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import {
   ArrowForward as ArrowForwardIcon,
   TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
-import { ROUTES, USER_ROLES } from '@constants/index';
+import { ROUTES } from '@constants/index';
 import { useAuthStore } from '@store/index';
 import usePWAInstall from '@hooks/usePWAInstall';
 import PWAInstallBanner from '@components/InstallApp/PWAInstallBanner';
@@ -36,46 +36,6 @@ export const Footer: React.FC = () => {
     await promptInstall();
   };
 
-  const recruiterLinks = [
-    { label: 'Post a Job', to: ROUTES.RECRUITER_REGISTER },
-    { label: 'Recruiter Dashboard', to: ROUTES.RECRUITER_DASHBOARD },
-    { label: 'Pricing', to: ROUTES.PRICING },
-    { label: 'Register', to: ROUTES.SIGNUP },
-  ];
-
-  const footerSections = [
-    {
-      title: 'Quick Links',
-      items: [
-        { label: 'Jobs', to: ROUTES.JOBS },
-        { label: 'Pricing', to: ROUTES.PRICING },
-        { label: 'Privacy Policy', to: ROUTES.PRIVACY_POLICY },
-        { label: 'Terms & Conditions', to: ROUTES.TERMS_CONDITIONS },
-      ],
-    },
-    ...(user?.role !== USER_ROLES.JOB_SEEKER
-      ? [
-          {
-            title: 'For Recruiters',
-            items: [
-              { label: 'Post a Job', to: ROUTES.RECRUITER_REGISTER },
-              { label: 'Recruiter Dashboard', to: ROUTES.RECRUITER_DASHBOARD },
-              { label: 'Pricing', to: ROUTES.PRICING },
-              { label: 'Register', to: ROUTES.SIGNUP },
-            ],
-          },
-        ]
-      : []),
-    {
-      title: 'Legal',
-      items: [
-        { label: 'Privacy Policy', to: ROUTES.PRIVACY_POLICY },
-        { label: 'Terms & Conditions', to: ROUTES.TERMS_CONDITIONS },
-        { label: 'Cookie Policy', to: '#' },
-      ],
-    },
-  ];
-
   return (
     <Box
       component="footer"
@@ -86,8 +46,8 @@ export const Footer: React.FC = () => {
           'radial-gradient(circle at 14% 20%, rgba(56, 189, 248, 0.20), transparent 36%), radial-gradient(circle at 86% 12%, rgba(20, 184, 166, 0.20), transparent 40%), linear-gradient(180deg, #0B1220 0%, #111827 100%)',
         color: '#E2E8F0',
         borderTop: '1px solid rgba(148, 163, 184, 0.22)',
-        py: { xs: 6, md: 8 },
-        mt: 10,
+        py: { xs: 3, md: 4 },
+        mt: 0,
       }}
     >
       <Box
@@ -103,8 +63,8 @@ export const Footer: React.FC = () => {
       <Container maxWidth="lg">
         <Paper
           sx={{
-            mb: 3.5,
-            p: { xs: 2, md: 2.6 },
+            mb: 2.5,
+            p: { xs: 2, md: 2.4 },
             borderRadius: 3,
             border: '1px solid rgba(148, 163, 184, 0.26)',
             background: 'rgba(15, 23, 42, 0.42)',
@@ -120,17 +80,18 @@ export const Footer: React.FC = () => {
                 sx={{
                   fontWeight: 800,
                   color: '#F8FAFC',
-                  mb: 0.8,
+                  mb: 0.6,
                   display: 'flex',
                   alignItems: 'center',
                   gap: 1,
-                  fontSize: { xs: '1.25rem', md: '1.45rem' },
+                  fontSize: { xs: '1.15rem', md: '1.4rem' },
+                  lineHeight: 1.2,
                 }}
               >
-                <TrendingUpIcon sx={{ color: '#34D399' }} />
+                <TrendingUpIcon sx={{ color: '#34D399', fontSize: { xs: 20, md: 24 } }} />
                 Built For Faster Hiring And Better Careers
               </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(226, 232, 240, 0.9)' }}>
+              <Typography variant="body2" sx={{ color: 'rgba(226, 232, 240, 0.9)', lineHeight: 1.6 }}>
                 Jobpoyt helps candidates and recruiters discover the right opportunities with modern tools, better matching, and seamless workflows.
               </Typography>
             </Grid>
@@ -145,8 +106,10 @@ export const Footer: React.FC = () => {
                     textTransform: 'none',
                     fontWeight: 700,
                     borderRadius: 2.2,
-                    px: 2,
+                    px: 2.2,
                     py: 1,
+                    minWidth: { xs: 150, md: 170 },
+                    fontSize: { xs: '0.95rem', md: '1rem' },
                     background: 'linear-gradient(90deg, #0ea5e9, #2563eb)',
                     boxShadow: 'none',
                     '&:hover': {
@@ -177,12 +140,22 @@ export const Footer: React.FC = () => {
           </Box>
         ) : null}
 
-        <Grid container spacing={4} sx={{ mb: 2, position: 'relative', zIndex: 1 }}>
-          <Grid item xs={12} sm={6} md={4}>
-            <Typography variant="h6" sx={{ fontWeight: 750, mb: 1.5, color: '#FFFFFF' }}>
+        <Grid container spacing={3} sx={{ mb: 1.5, position: 'relative', zIndex: 1 }}>
+          <Grid item xs={12} md={7}>
+            <Typography variant="h6" sx={{ fontWeight: 750, mb: 1.2, color: '#FFFFFF', fontSize: { xs: '1.6rem', md: '1.7rem' } }}>
               Jobpoyt
             </Typography>
-            <Typography variant="body2" sx={{ color: 'rgba(226, 232, 240, 0.88)', mb: 2.2, maxWidth: 380, lineHeight: 1.75 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'rgba(226, 232, 240, 0.88)',
+                mb: 1.6,
+                maxWidth: '100%',
+                lineHeight: 1.5,
+                fontSize: '0.96rem',
+                whiteSpace: { md: 'nowrap' },
+              }}
+            >
               Discover premium hiring and job search experiences with modern analytics, growth tools, and design-forward workflows.
             </Typography>
             <div className="footer-social-parent" style={{ display: knownSocialUrls.length > 0 ? undefined : 'none' }}>
@@ -217,90 +190,38 @@ export const Footer: React.FC = () => {
             </div>
           </Grid>
 
-          {footerSections.map((section) => (
-            <Grid item xs={12} sm={6} md={2.6} key={section.title}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.8, color: '#F8FAFC' }}>
-                {section.title}
-              </Typography>
-              <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0 }}>
-                {section.items.map((item) => (
-                  <Typography key={item.label} component="li" variant="body2" sx={{ mb: 1.1 }}>
-                    <Link
-                      component={RouterLink}
-                      to={item.to}
-                      sx={{
-                        color: 'rgba(203, 213, 225, 0.92)',
-                        textDecoration: 'none',
-                        transition: 'all 0.2s',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        '&:hover': {
-                          color: '#7dd3fc',
-                          transform: 'translateX(3px)',
-                        },
-                      }}
-                    >
-                      {item.label}
-                    </Link>
-                  </Typography>
-                ))}
-              </Box>
-            </Grid>
-          ))}
-
-          {user?.role === 'recruiter' && (
-            <Grid item xs={12} sm={6} md={2.8}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.8, color: '#F8FAFC' }}>
-                Recruiter Links
-              </Typography>
-              <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0 }}>
-                {recruiterLinks.map((item) => (
-                  <Typography key={item.label} component="li" variant="body2" sx={{ mb: 1.1 }}>
-                    <Link
-                      component={RouterLink}
-                      to={item.to}
-                      sx={{
-                        color: 'rgba(203, 213, 225, 0.92)',
-                        textDecoration: 'none',
-                        transition: 'all 0.2s',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        '&:hover': {
-                          color: '#7dd3fc',
-                          transform: 'translateX(3px)',
-                        },
-                      }}
-                    >
-                      {item.label}
-                    </Link>
-                  </Typography>
-                ))}
-              </Box>
-            </Grid>
-          )}
         </Grid>
 
-        <Divider sx={{ borderColor: 'rgba(148, 163, 184, 0.28)', my: 3, position: 'relative', zIndex: 1 }} />
+        <Divider sx={{ borderColor: 'rgba(148, 163, 184, 0.28)', my: 2.2, position: 'relative', zIndex: 1 }} />
 
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 2,
-            pt: 1,
-            position: 'relative',
-            zIndex: 1,
-          }}
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          justifyContent="space-between"
+          alignItems={{ xs: 'flex-start', md: 'center' }}
+          spacing={1.5}
+          sx={{ position: 'relative', zIndex: 1 }}
         >
-          <Typography variant="body2" sx={{ color: 'rgba(226, 232, 240, 0.84)' }}>
+          <Typography variant="body2" sx={{ color: 'rgba(226, 232, 240, 0.84)', fontSize: '0.95rem' }}>
             © {currentYear} Jobpoyt. Designed for premium hiring experiences.
           </Typography>
-          <Typography variant="body2" sx={{ color: 'rgba(226, 232, 240, 0.72)' }}>
-            Modern talent marketplace for candidates and recruiters.
-          </Typography>
-        </Box>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: 'flex-start', md: 'flex-end' }, textAlign: { xs: 'left', md: 'right' } }}>
+            <Typography variant="body2" sx={{ color: '#F8FAFC', fontWeight: 700, mb: 0.3, fontSize: '0.9rem' }}>
+              Contact
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'rgba(226, 232, 240, 0.8)', fontSize: '0.92rem', lineHeight: 1.6 }}>
+              Raise a ticket{' '}
+              <Link component={RouterLink} to={ROUTES.CONTACT} sx={{ color: '#7dd3fc', textDecoration: 'none', fontWeight: 600 }}>
+                here
+              </Link>
+              {' '}or email{' '}
+              <Link href="mailto:info@jobpoyt.com" sx={{ color: '#7dd3fc', textDecoration: 'none', fontWeight: 600 }}>
+                info@jobpoyt.com
+              </Link>
+              .
+            </Typography>
+          </Box>
+        </Stack>
       </Container>
 
       <Suspense fallback={null}>

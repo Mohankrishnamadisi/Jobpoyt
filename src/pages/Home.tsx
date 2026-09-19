@@ -487,7 +487,7 @@ export const Home: React.FC = () => {
         </Container>
       </MotionBox>
 
-      <Container maxWidth="lg" sx={{ pb: 8 }}>
+      <Container maxWidth="lg" sx={{ pb: 2 }}>
         <MotionBox
           variants={sectionRevealVariants}
           initial="hidden"
@@ -742,7 +742,7 @@ export const Home: React.FC = () => {
         </MotionBox>
 
         <MotionBox
-          sx={{ mb: 8 }}
+          sx={{ mb: 3 }}
           variants={sectionRevealVariants}
           initial="hidden"
           whileInView="visible"
@@ -925,60 +925,6 @@ export const Home: React.FC = () => {
           </MotionBox>
         </MotionBox>
 
-        <MotionBox
-          sx={{
-            textAlign: { xs: 'center', md: 'left' },
-            mt: 8,
-            p: { xs: 4, md: 6 },
-            background: isDarkMode
-              ? 'radial-gradient(circle at 20% 25%, rgba(56, 189, 248, 0.14), transparent 35%), radial-gradient(circle at 84% 18%, rgba(16, 185, 129, 0.14), transparent 35%), linear-gradient(135deg, #050608 0%, #0B1220 48%, #111827 100%)'
-              : 'radial-gradient(circle at 20% 25%, rgba(56, 189, 248, 0.2), transparent 35%), radial-gradient(circle at 84% 18%, rgba(16, 185, 129, 0.2), transparent 35%), linear-gradient(135deg, #ffffff 0%, #f0fdff 48%, #eff6ff 100%)',
-            borderRadius: 3,
-            border: '1px solid',
-            borderColor: isDarkMode ? '#334155' : 'rgba(203, 213, 225, 0.8)',
-            boxShadow: isDarkMode ? '0 24px 50px rgba(0, 0, 0, 0.42)' : '0 24px 50px rgba(15, 23, 42, 0.10)',
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 3,
-          }}
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          whileHover={{ y: -4 }}
-          viewport={{ once: true }}
-        >
-          <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 1.5 }}>
-              Ready to start your job search?
-            </Typography>
-            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              Join thousands of job seekers who have found their dream jobs on Jobpoyt.
-            </Typography>
-          </Box>
-          <MotionButton
-            variant="contained"
-            size="large"
-            onClick={() => navigate(ROUTES.JOBS)}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            sx={{
-              px: 4.5,
-              py: 1.4,
-              borderRadius: 2.2,
-              textTransform: 'none',
-              fontWeight: 700,
-              background: 'linear-gradient(90deg, #0284c7, #2563eb)',
-              boxShadow: 'none',
-              '&:hover': {
-                background: 'linear-gradient(90deg, #0369a1, #1d4ed8)',
-                boxShadow: 'none',
-              },
-            }}
-          >
-            Explore Jobs Now
-          </MotionButton>
-        </MotionBox>
       </Container>
     </Layout>
   );

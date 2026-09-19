@@ -28,7 +28,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, footer = true, backTo 
     >
       <Navbar backTo={backTo} />
       <Toolbar sx={{ minHeight: { xs: 64, sm: 68 } }} />
-      <Box component="main" sx={{ flex: 1, pt: 0, pb: { xs: 2, md: 4 }, position: 'relative', zIndex: 1 }}>
+      <Box component="main" sx={{ flex: 1, pt: 0, pb: { xs: 0.5, md: 1.5 }, position: 'relative', zIndex: 1 }}>
         {children}
       </Box>
       {footer && <Footer />}
