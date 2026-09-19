@@ -3,7 +3,7 @@ export const JOB_SEARCH_SUGGESTION_GROUPS = [
     label: 'Frontend / UI',
     options: [
       'Frontend Developer', 'UI Developer', 'React Developer', 'Angular Developer', 'Vue.js Developer',
-      'JavaScript Developer', 'TypeScript Developer', 'HTML/CSS Developer', 'Web Developer', 'Next.js Developer',
+      'JavaScript Developer', 'TypeScript Developer', 'HTML/CSS Developer', 'Web Developer', 'Next.js Developer', 'React',
       'Angular', 'Vue', 'React.js Developer', 'UI/UX Developer', 'Frontend Engineer', 'React.js Engineer',
       'Angular Engineer', 'Vue.js Engineer', 'JavaScript Engineer', 'TypeScript Engineer', 'Web UI Developer',
       'Frontend Web Developer', 'Frontend Software Engineer', 'Web Application Developer', 'UI Engineer',
@@ -22,7 +22,7 @@ export const JOB_SEARCH_SUGGESTION_GROUPS = [
   {
     label: 'Full Stack',
     options: [
-      'Full Stack Developer', 'MERN Stack Developer', 'MEAN Stack Developer', 'Java Full Stack Developer',
+      'Full Stack Developer', 'Custom Software Engineer', 'MERN Stack Developer', 'MEAN Stack Developer', 'Java Full Stack Developer',
       '.NET Full Stack Developer', 'Python Full Stack Developer', 'React Full Stack Developer',
       'Node.js Full Stack Developer', 'Full Stack Engineer', 'MERN Developer', 'MEAN Developer',
       'MERN Stack Engineer', 'MEAN Stack Engineer', 'Java Full Stack Engineer', 'Python Full Stack Engineer',

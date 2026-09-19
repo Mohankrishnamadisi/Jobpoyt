@@ -770,7 +770,7 @@ export const Jobs: React.FC = () => {
                                     addKeywordTerms([keywordDraft]);
                                   }
                                 }}
-                                placeholder={keywordValues.length > 0 ? 'Add another keyword' : 'Job title or skill'}
+                                placeholder={keywordValues.length > 0 ? 'Add another keyword' : 'Job title or skill - Press ENTER'}
                                 style={{ border: 0, outline: 0, flex: 1, minWidth: 180, height: 36, font: 'inherit', color: '#1e293b', background: 'transparent' }}
                               />
                               <Button
