@@ -60,8 +60,10 @@ export const AuthCallback: React.FC = () => {
         if (role === USER_ROLES.RECRUITER) {
           const recruiter = await recruiterService.getRecruiterProfile(userId);
           if (!recruiter) {
+            const recruiterProfile = user.user_metadata?.recruiterProfile;
             await recruiterService.createRecruiterProfile(userId, {
-              company_email: user.email,
+              ...(recruiterProfile && typeof recruiterProfile === 'object' ? recruiterProfile : {}),
+              company_email: recruiterProfile?.company_email || user.email,
             } as Record<string, unknown>);
           } else {
             try {

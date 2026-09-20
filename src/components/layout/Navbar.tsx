@@ -26,7 +26,6 @@ import {
   KeyboardArrowDown as KeyboardArrowDownIcon,
   Apartment as ApartmentIcon,
   TravelExplore as TravelExploreIcon,
-  AutoAwesome as AutoAwesomeIcon,
   Notifications as NotificationsIcon,
 } from '@mui/icons-material';
 import { Badge } from '@mui/material';
@@ -66,6 +65,7 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [mobileAnchor, setMobileAnchor] = useState<null | HTMLElement>(null);
   const [exploreAnchor, setExploreAnchor] = useState<null | HTMLElement>(null);
+  const [recruiterAnchor, setRecruiterAnchor] = useState<null | HTMLElement>(null);
   const [supportOpen, setSupportOpen] = useState(false);
   const [ticketNotifCount, setTicketNotifCount] = useState(0);
   const [notificationCount, setNotificationCount] = useState(0);
@@ -163,6 +163,14 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
 
   const handleExploreMenuClose = () => {
     setExploreAnchor(null);
+  };
+
+  const handleRecruiterMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setRecruiterAnchor(event.currentTarget);
+  };
+
+  const handleRecruiterMenuClose = () => {
+    setRecruiterAnchor(null);
   };
 
   const mobileNavItems = [
@@ -591,11 +599,13 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
             {!user && (
               <MotionBox whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
                 <Button
-                  component={RouterLink}
-                  to={ROUTES.RECRUITER_REGISTER}
+                  onClick={handleRecruiterMenuOpen}
                   variant="outlined"
                   size="small"
                   startIcon={<WorkIcon sx={{ fontSize: 18 }} />}
+                  endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 18 }} />}
+                  aria-haspopup="menu"
+                  aria-expanded={Boolean(recruiterAnchor) ? 'true' : undefined}
                   sx={{
                     display: { xs: 'none', md: 'flex' },
                     borderColor: 'rgba(37, 99, 235, 0.32)',
@@ -616,6 +626,29 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                 >
                   Hire Talent
                 </Button>
+                <Menu
+                  anchorEl={recruiterAnchor}
+                  open={Boolean(recruiterAnchor)}
+                  onClose={handleRecruiterMenuClose}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                  slotProps={{ paper: { sx: { mt: 1, minWidth: 220, borderRadius: 2 } } }}
+                >
+                  <MenuItem
+                    component={RouterLink}
+                    to={ROUTES.LOGIN}
+                    onClick={handleRecruiterMenuClose}
+                  >
+                    🔐 Recruiter Sign In
+                  </MenuItem>
+                  <MenuItem
+                    component={RouterLink}
+                    to={ROUTES.RECRUITER_REGISTER}
+                    onClick={handleRecruiterMenuClose}
+                  >
+                    ✨ Create Recruiter Account
+                  </MenuItem>
+                </Menu>
               </MotionBox>
             )}
 

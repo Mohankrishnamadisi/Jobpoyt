@@ -18,6 +18,8 @@ import {
 } from '@utils/index';
 import toast from 'react-hot-toast';
 
+const RECRUITER_REGISTER_VIDEO_URL = 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/login1.mp4?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9sb2dpbjEubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4OTg4NTI4NywiZXhwIjoyNDIwNjA1Mjg3fQ.Ez1vwU3QZa0AOW2vrHZM8UAeUFgiGHzlK_weBv6Hv3k';
+
 // ── Country codes ──────────────────────────────────────────────────────────────
 const CountryCodes = [
   { code: '+91', name: 'India' },
@@ -565,7 +567,7 @@ const LogoUpload: React.FC<LogoUploadProps> = ({ logo, preview, onChange }) => {
 // ── Main Component ─────────────────────────────────────────────────────────────
 export const RecruiterRegister: React.FC = () => {
   const navigate = useNavigate();
-  const { setUser, setLoading } = useAuthStore();
+  const { setLoading } = useAuthStore();
   const [loading, setLoadingState] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [companyLogo, setCompanyLogo] = useState<File | null>(null);
@@ -645,18 +647,9 @@ export const RecruiterRegister: React.FC = () => {
       const response = await authService.signUp(formData.hrEmail, formData.password, {
         name: formData.hrContactPerson,
         role: USER_ROLES.RECRUITER,
-      });
-
-      if (response.user) {
-        let logoUrl = '';
-        if (companyLogo) {
-          logoUrl = await userService.uploadCompanyLogo(response.user.id, companyLogo);
-        }
-
-        await recruiterService.createRecruiterProfile(response.user.id, {
+        recruiterProfile: {
           company_name: formData.companyName,
           company_website: formData.companyWebsite,
-          company_logo_url: logoUrl,
           industry: formData.industryType.join(', '),
           description: formData.companyDescription,
           location: formData.companyAddress,
@@ -667,19 +660,23 @@ export const RecruiterRegister: React.FC = () => {
           hr_name: formData.hrContactPerson,
           hr_email: formData.hrEmail,
           hr_phone: formData.hrPhone,
-        } as Record<string, unknown>);
+        },
+      });
 
-        setUser({
-          id: response.user.id,
-          email: formData.hrEmail,
-          name: formData.hrContactPerson,
-          role: USER_ROLES.RECRUITER,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        });
+      if (response.user) {
+        if (response.session) {
+          let logoUrl = '';
+          if (companyLogo) {
+            logoUrl = await userService.uploadCompanyLogo(response.user.id, companyLogo);
+          }
+
+          await recruiterService.createRecruiterProfile(response.user.id, {
+            ...response.user.user_metadata?.recruiterProfile,
+            company_logo_url: logoUrl,
+          } as Record<string, unknown>);
+        }
 
         setVerifyDialogOpen(true);
-        navigate(ROUTES.RECRUITER_DASHBOARD);
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
@@ -697,30 +694,18 @@ export const RecruiterRegister: React.FC = () => {
 
   return (
     <Layout footer={false}>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-indigo-50/50 py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
-        {/* Decorative blobs */}
-        <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8 }}
-            className="absolute -top-40 -left-40 w-96 h-96 bg-blue-200/30 rounded-full blur-3xl"
-          />
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
-            className="absolute top-1/3 -right-32 w-80 h-80 bg-indigo-200/30 rounded-full blur-3xl"
-          />
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="absolute -bottom-32 left-1/4 w-72 h-72 bg-purple-200/20 rounded-full blur-3xl"
-          />
-        </div>
+      <div className="relative min-h-screen overflow-hidden py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
+        <video
+          className="fixed inset-0 h-full w-full object-cover pointer-events-none -z-20"
+          src={RECRUITER_REGISTER_VIDEO_URL}
+          autoPlay
+          muted
+          loop
+          playsInline
+          aria-hidden="true"
+        />
 
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-xl mx-auto">
           {/* Hero Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -742,7 +727,7 @@ export const RecruiterRegister: React.FC = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 mb-3 leading-tight tracking-tight whitespace-nowrap"
+              className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 mb-2 leading-tight tracking-tight whitespace-nowrap"
             >
               Register Your{' '}
               <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
@@ -754,7 +739,7 @@ export const RecruiterRegister: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="text-gray-600 text-base sm:text-lg whitespace-nowrap"
+              className="text-gray-600 text-sm sm:text-base whitespace-nowrap"
             >
               Join thousands of recruiters hiring top talent. Get started in minutes.
             </motion.p>
@@ -776,19 +761,19 @@ export const RecruiterRegister: React.FC = () => {
                 initial={currentStep !== 1 ? { opacity: 0, x: 100 } : {}}
                 animate={currentStep === 1 ? { opacity: 1, x: 0 } : currentStep > 1 ? { opacity: 0, x: -100 } : {}}
                 transition={{ duration: 0.4 }}
-                className={currentStep === 1 ? 'p-8 sm:p-10 space-y-6' : 'hidden'}
+                className={currentStep === 1 ? 'p-6 sm:p-8 space-y-4' : 'hidden'}
               >
                 <div className="flex items-start gap-4">
                   <div className="p-3 bg-blue-100 rounded-2xl text-blue-600 mt-1 flex-shrink-0">
                     <Building2 size={28} />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Company Information</h2>
+                    <h2 className="text-xl font-bold text-gray-900">Company Information</h2>
                     <p className="text-gray-500 text-sm mt-1">Tell us about your organization</p>
                   </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <FloatingInput
                     label="Company Name"
                     name="companyName"
@@ -808,7 +793,7 @@ export const RecruiterRegister: React.FC = () => {
                     required
                   />
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FloatingInput
                       label="GST Number"
                       name="gstNumber"
@@ -825,7 +810,7 @@ export const RecruiterRegister: React.FC = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FloatingInput
                       label="Company Email"
                       name="companyEmail"
@@ -917,7 +902,7 @@ export const RecruiterRegister: React.FC = () => {
                   onClick={() => setCurrentStep(2)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full mt-8 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-2xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-blue-200"
+                  className="w-full mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-2xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-blue-200"
                 >
                   Continue to HR Contact
                   <ChevronDown size={20} className="rotate-270" />
@@ -929,7 +914,7 @@ export const RecruiterRegister: React.FC = () => {
                 initial={currentStep !== 2 ? { opacity: 0, x: 100 } : {}}
                 animate={currentStep === 2 ? { opacity: 1, x: 0 } : currentStep > 2 ? { opacity: 0, x: -100 } : {}}
                 transition={{ duration: 0.4 }}
-                className={currentStep === 2 ? 'p-8 sm:p-10 space-y-6' : 'hidden'}
+                className={currentStep === 2 ? 'p-6 sm:p-8 space-y-4' : 'hidden'}
               >
                 <div className="flex items-start gap-4">
                   <div className="p-3 bg-purple-100 rounded-2xl text-purple-600 mt-1 flex-shrink-0">
@@ -1019,7 +1004,7 @@ export const RecruiterRegister: React.FC = () => {
                 initial={currentStep !== 3 ? { opacity: 0, x: 100 } : {}}
                 animate={currentStep === 3 ? { opacity: 1, x: 0 } : {}}
                 transition={{ duration: 0.4 }}
-                className={currentStep === 3 ? 'p-8 sm:p-10 space-y-6' : 'hidden'}
+                className={currentStep === 3 ? 'p-6 sm:p-8 space-y-4' : 'hidden'}
               >
                 <div className="flex items-start gap-4">
                   <div className="p-3 bg-emerald-100 rounded-2xl text-emerald-600 mt-1 flex-shrink-0">
