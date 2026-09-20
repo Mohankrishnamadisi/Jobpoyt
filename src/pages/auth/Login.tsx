@@ -158,23 +158,53 @@ export const Login: React.FC = () => {
     <Layout footer={false}>
       <Box
         sx={{
-          minHeight: '100vh',
-          py: 10,
-          background: 'radial-gradient(circle at top left, rgba(59,130,246,0.18), transparent 28%), radial-gradient(circle at bottom right, rgba(245,158,11,0.14), transparent 30%), linear-gradient(180deg, #F8FAFC 0%, #EFF6FF 100%)',
+          height: '100%',
+          minHeight: { xs: 'calc(100dvh - 80px)', sm: 'calc(100dvh - 80px)' },
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
+          py: { xs: 1.5, sm: 2 },
         }}
       >
-        <Container maxWidth="sm">
+        <Box
+          component="video"
+          autoPlay
+          loop
+          muted
+          playsInline
+          aria-hidden="true"
+          src="https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/login.mp4?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9sb2dpbi5tcDQiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg5ODgyODEwLCJleHAiOjIxMDUyNDI4MTB9.M_q3TjQ7kNDQY6j95WQBGyH6DZCDaBp01w2ZAgX8Lvo"
+          sx={{
+            position: 'fixed',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 0,
+          }}
+        />
+        <Box
+          sx={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 0,
+            background: 'linear-gradient(90deg, rgba(2, 6, 23, 0.06), rgba(2, 6, 23, 0.02)), linear-gradient(180deg, rgba(2, 6, 23, 0.02), rgba(2, 6, 23, 0.06))',
+          }}
+        />
+        <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 1, px: { xs: 2, sm: 0 }, maxWidth: { sm: 500 } }}>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <Card
               sx={{
-                p: 4,
-                borderRadius: 5,
-                border: '1px solid rgba(37, 99, 235, 0.12)',
-                boxShadow: '0 28px 80px rgba(15, 23, 42, 0.08)',
-                backdropFilter: 'blur(8px)',
+                p: { xs: 2.5, sm: 3.25 },
+                borderRadius: 4,
+                border: '1px solid rgba(255, 255, 255, 0.7)',
+                boxShadow: '0 28px 80px rgba(15, 23, 42, 0.2)',
+                backdropFilter: 'blur(14px)',
                 position: 'relative',
                 overflow: 'hidden',
-                backgroundColor: 'rgba(255,255,255,0.95)',
+                backgroundColor: 'rgba(255,255,255,0.93)',
               }}
             >
               <Box
@@ -185,14 +215,33 @@ export const Login: React.FC = () => {
                   pointerEvents: 'none',
                 }}
               />
-              <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center', mb: 4 }}>
-                <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
+              <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center', mb: 2.5 }}>
+                <Typography
+                  variant="h4"
+                  sx={{
+                    fontWeight: 850,
+                    fontSize: { xs: '1.75rem', sm: '1.95rem' },
+                    letterSpacing: '-0.02em',
+                    mb: 0.75,
+                    background: 'linear-gradient(135deg, #0F172A 0%, #2563EB 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                >
                   Welcome Back
                 </Typography>
-                <Typography variant="body1" sx={{ color: 'text.secondary', mb: 1 }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
                   Securely access your dashboard and discover premium opportunities.
                 </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'text.secondary',
+                    whiteSpace: 'nowrap',
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  }}
+                >
                   Premium jobs, smart matching, and lightning-fast applications.
                 </Typography>
               </Box>
@@ -207,7 +256,14 @@ export const Login: React.FC = () => {
                   onChange={handleChange}
                   error={!!errors.email}
                   helperText={errors.email}
-                  sx={{ mb: 2 }}
+                  size="small"
+                  sx={{
+                    mb: 1.75,
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      backgroundColor: 'rgba(255,255,255,0.72)',
+                    },
+                  }}
                 />
 
                 <TextField
@@ -219,7 +275,14 @@ export const Login: React.FC = () => {
                   onChange={handleChange}
                   error={!!errors.password}
                   helperText={errors.password}
-                  sx={{ mb: 1 }}
+                  size="small"
+                  sx={{
+                    mb: 1,
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      backgroundColor: 'rgba(255,255,255,0.72)',
+                    },
+                  }}
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
@@ -238,7 +301,7 @@ export const Login: React.FC = () => {
                 <Link
                   component={RouterLink}
                   to={ROUTES.FORGOT_PASSWORD}
-                  sx={{ fontSize: '0.875rem', display: 'block', mb: 3 }}
+                  sx={{ fontSize: '0.8rem', display: 'block', mb: 2 }}
                 >
                   Forgot Password?
                 </Link>
@@ -250,8 +313,12 @@ export const Login: React.FC = () => {
                   size="large"
                   disabled={loading}
                   sx={{
-                    py: 1.5,
-                    mb: 2,
+                    py: 1.25,
+                    mb: 1.5,
+                    borderRadius: 2,
+                    fontWeight: 800,
+                    textTransform: 'none',
+                    fontSize: '0.98rem',
                     background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
                     boxShadow: '0 14px 30px rgba(37, 99, 235, 0.18)',
                   }}
@@ -260,7 +327,7 @@ export const Login: React.FC = () => {
                 </Button>
               </form>
 
-              <Divider sx={{ my: 3 }}>OR</Divider>
+              <Divider sx={{ my: 2 }}>OR</Divider>
 
               <button
                 type="button"
