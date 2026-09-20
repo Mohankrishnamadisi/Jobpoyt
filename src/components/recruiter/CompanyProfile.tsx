@@ -200,7 +200,6 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
       ['companyEmail', 'Company email is required'],
       ['hrContactPerson', 'HR contact person is required'],
       ['hrPhone', 'HR phone is required'],
-      ['gstNumber', 'GST number is required'],
     ];
     const nextFieldErrors: Record<string, string> = {};
     requiredFields.forEach(([field, message]) => {
@@ -209,7 +208,7 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
     });
     if (Object.keys(nextFieldErrors).length > 0) {
       setFieldErrors(nextFieldErrors);
-      setError('Please complete all required fields before saving. CIN Number is optional.');
+      setError('Please complete all required fields before saving ');
       toast.error('Please complete all required fields');
       return;
     }
@@ -516,7 +515,6 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
                     name="gstNumber"
                     value={formData.gstNumber}
                     onChange={handleChange}
-                    required
                     error={Boolean(fieldErrors.gstNumber)}
                     helperText={fieldErrors.gstNumber}
                   />
