@@ -104,6 +104,7 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState<CompanyData>({
     companyName: '',
@@ -162,6 +163,12 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>) => {
     const { name, value } = e.target as { name: string; value: unknown };
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setFieldErrors((previous) => ({ ...previous, [name]: '' }));
+    setError('');
+  };
+
+  const clearFieldError = (name: string) => {
+    setFieldErrors((previous) => ({ ...previous, [name]: '' }));
     setError('');
   };
 
@@ -173,6 +180,7 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
         return;
       }
       setLogoFile(file);
+      clearFieldError('companyLogoUrl');
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewUrl(reader.result as string);
@@ -182,6 +190,30 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
   };
 
   const handleSave = async () => {
+    const requiredFields: Array<[keyof CompanyData | 'companyLogoUrl', string]> = [
+      ['companyLogoUrl', 'Company logo is required'],
+      ['companyName', 'Company name is required'],
+      ['industryType', 'Industry type is required'],
+      ['location', 'Location is required'],
+      ['companyAddress', 'Company address is required'],
+      ['companyDescription', 'Company description is required'],
+      ['companyEmail', 'Company email is required'],
+      ['hrContactPerson', 'HR contact person is required'],
+      ['hrPhone', 'HR phone is required'],
+      ['gstNumber', 'GST number is required'],
+    ];
+    const nextFieldErrors: Record<string, string> = {};
+    requiredFields.forEach(([field, message]) => {
+      const value = field === 'companyLogoUrl' ? (logoFile || formData.companyLogoUrl) : formData[field];
+      if (!String(value || '').trim()) nextFieldErrors[field] = message;
+    });
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      setError('Please complete all required fields before saving. CIN Number is optional.');
+      toast.error('Please complete all required fields');
+      return;
+    }
+
     setSaving(true);
     try {
       let logoUrl = formData.companyLogoUrl;
@@ -297,6 +329,9 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
                     name="companyName"
                     value={formData.companyName}
                     onChange={handleChange}
+                    required
+                    error={Boolean(fieldErrors.companyName)}
+                    helperText={fieldErrors.companyName}
                   />
                 </Grid>
 
@@ -305,14 +340,23 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
                     freeSolo
                     options={INDUSTRY_TYPES}
                     value={formData.industryType}
-                    onChange={(_, value) => setFormData((previous) => ({ ...previous, industryType: value || '' }))}
-                    onInputChange={(_, value) => setFormData((previous) => ({ ...previous, industryType: value }))}
+                    onChange={(_, value) => {
+                      setFormData((previous) => ({ ...previous, industryType: value || '' }));
+                      clearFieldError('industryType');
+                    }}
+                    onInputChange={(_, value) => {
+                      setFormData((previous) => ({ ...previous, industryType: value }));
+                      clearFieldError('industryType');
+                    }}
                     renderInput={(params) => (
                       <TextField
                         {...params}
                         fullWidth
                         label="Industry Type"
                         placeholder="Select or type an industry"
+                        required
+                        error={Boolean(fieldErrors.industryType)}
+                        helperText={fieldErrors.industryType}
                       />
                     )}
                   />
@@ -334,14 +378,23 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
                     freeSolo
                     options={LOCATION_SUGGESTIONS}
                     value={formData.location}
-                    onChange={(_, value) => setFormData((previous) => ({ ...previous, location: value || '' }))}
-                    onInputChange={(_, value) => setFormData((previous) => ({ ...previous, location: value }))}
+                    onChange={(_, value) => {
+                      setFormData((previous) => ({ ...previous, location: value || '' }));
+                      clearFieldError('location');
+                    }}
+                    onInputChange={(_, value) => {
+                      setFormData((previous) => ({ ...previous, location: value }));
+                      clearFieldError('location');
+                    }}
                     renderInput={(params) => (
                       <TextField
                         {...params}
                         fullWidth
                         label="Location"
                         placeholder="Select or type a city"
+                        required
+                        error={Boolean(fieldErrors.location)}
+                        helperText={fieldErrors.location}
                       />
                     )}
                   />
@@ -354,6 +407,9 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
                     name="companyAddress"
                     value={formData.companyAddress}
                     onChange={handleChange}
+                    required
+                    error={Boolean(fieldErrors.companyAddress)}
+                    helperText={fieldErrors.companyAddress}
                   />
                 </Grid>
 
@@ -376,6 +432,9 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
                     onChange={handleChange}
                     multiline
                     rows={4}
+                    required
+                    error={Boolean(fieldErrors.companyDescription)}
+                    helperText={fieldErrors.companyDescription}
                   />
                 </Grid>
 
@@ -394,6 +453,9 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
                     value={formData.companyEmail}
                     onChange={handleChange}
                     type="email"
+                    required
+                    error={Boolean(fieldErrors.companyEmail)}
+                    helperText={fieldErrors.companyEmail}
                   />
                 </Grid>
 
@@ -421,6 +483,9 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
                     name="hrContactPerson"
                     value={formData.hrContactPerson}
                     onChange={handleChange}
+                    required
+                    error={Boolean(fieldErrors.hrContactPerson)}
+                    helperText={fieldErrors.hrContactPerson}
                   />
                 </Grid>
 
@@ -431,6 +496,9 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
                     name="hrPhone"
                     value={formData.hrPhone}
                     onChange={handleChange}
+                    required
+                    error={Boolean(fieldErrors.hrPhone)}
+                    helperText={fieldErrors.hrPhone}
                   />
                 </Grid>
 
@@ -448,6 +516,9 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
                     name="gstNumber"
                     value={formData.gstNumber}
                     onChange={handleChange}
+                    required
+                    error={Boolean(fieldErrors.gstNumber)}
+                    helperText={fieldErrors.gstNumber}
                   />
                 </Grid>
 
