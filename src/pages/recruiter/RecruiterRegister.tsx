@@ -11,6 +11,8 @@ import { recruiterService, userService } from '@services/api';
 import { ROUTES, USER_ROLES, INDUSTRY_TYPES } from '@constants/index';
 import {
   validateEmail,
+  validateRecruiterEmail,
+  RECRUITER_EMAIL_ERROR,
   validatePassword,
   validateFileSize,
 } from '@utils/index';
@@ -58,13 +60,20 @@ interface FloatingInputProps {
   showToggle?: boolean;
   onToggle?: () => void;
   showPassword?: boolean;
+  helperText?: string;
+  valid?: boolean;
+  showPlaceholder?: boolean;
+  showErrorMessage?: boolean;
 }
 
 const FloatingInput: React.FC<FloatingInputProps> = ({
   label, name, value, onChange, error, type = 'text', placeholder, prefix, required,
-  showToggle, onToggle, showPassword,
+  showToggle, onToggle, showPassword, helperText,
+  valid, showPlaceholder = false, showErrorMessage = true,
 }) => {
   const inputType = showToggle ? (showPassword ? 'text' : 'password') : type;
+  const [isFocused, setIsFocused] = useState(false);
+  const isFloating = isFocused || Boolean(value) || (showPlaceholder && !value);
   return (
     <div className="relative">
       <input
@@ -75,12 +84,17 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
         placeholder={placeholder || ' '}
         required={required}
         aria-required={required}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         className={`
           w-full min-h-[52px] px-3 py-2.5 pt-5 rounded-lg border-2 transition-all duration-200
-          bg-white text-gray-900 placeholder-transparent text-sm font-medium
+          bg-white text-gray-900 text-sm font-medium
+          ${showPlaceholder ? 'placeholder-gray-400' : 'placeholder-transparent'}
           peer focus:outline-none focus:ring-0
           ${error
           ? 'border-red-300 focus:border-red-500'
+          : valid
+            ? 'border-emerald-400 focus:border-emerald-500'
           : 'border-slate-300 hover:border-slate-400 focus:border-blue-500'
         }
         `}
@@ -88,10 +102,9 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
       />
       <label
         className={`
-          absolute left-3 top-1 text-xs font-semibold transition-all duration-200 pointer-events-none
-          peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-base peer-placeholder-shown:font-medium peer-placeholder-shown:text-gray-400
-          peer-focus:top-1 peer-focus:translate-y-0 peer-focus:text-xs peer-focus:font-semibold
-        ${error ? 'text-red-600' : 'peer-focus:text-blue-600'}
+          absolute left-3 transition-all duration-200 pointer-events-none
+          ${isFloating ? 'top-1 translate-y-0 text-xs font-semibold' : 'top-1/2 -translate-y-1/2 text-base font-medium'}
+        ${error ? 'text-red-600' : valid ? 'text-emerald-600' : isFocused ? 'text-blue-600' : 'text-gray-400'}
         `}
       >
         {label}
@@ -119,12 +132,18 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
         </div>
       )}
 
-      {error && (
+      {error && showErrorMessage && (
         <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}
-          className="absolute -bottom-5 left-3 text-xs text-red-500 font-medium flex items-center gap-1">
+          className={`${helperText ? 'mt-1 px-1' : 'absolute -bottom-5 left-3'} text-xs text-red-500 font-medium flex items-center gap-1`}>
           <AlertCircle size={12} />
           {error}
         </motion.div>
+      )}
+
+      {helperText && (
+        <p className="mt-1 px-1 text-xs text-gray-500">
+          {helperText}
+        </p>
       )}
     </div>
   );
@@ -569,7 +588,15 @@ export const RecruiterRegister: React.FC = () => {
     }
     
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+    if (name === 'hrEmail' && validateEmail(value) && !validateRecruiterEmail(value)) {
+      setErrors(prev => ({ ...prev, hrEmail: RECRUITER_EMAIL_ERROR }));
+      if (errors.hrEmail !== RECRUITER_EMAIL_ERROR) {
+        toast.error(RECRUITER_EMAIL_ERROR, {
+          id: 'recruiter-email-domain-error',
+          position: 'top-right',
+        });
+      }
+    } else if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const handleIndustryChange = (values: string[]) => {
@@ -580,13 +607,15 @@ export const RecruiterRegister: React.FC = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.hrContactPerson.trim()) newErrors.hrContactPerson = 'HR contact person is required';
-    if (!validateEmail(formData.hrEmail)) newErrors.hrEmail = 'Valid HR email required';
+    if (!validateRecruiterEmail(formData.hrEmail)) newErrors.hrEmail = RECRUITER_EMAIL_ERROR;
     if (formData.hrPhone.length !== 10) newErrors.hrPhone = 'Phone must be exactly 10 digits';
     if (!validatePassword(formData.password)) newErrors.password = 'Min 8 chars with uppercase, lowercase & number';
     if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+  const isRecruiterEmailValid = validateRecruiterEmail(formData.hrEmail);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -599,18 +628,19 @@ export const RecruiterRegister: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await authService.signUp(formData.hrEmail, formData.password, {
+      const normalizedHrEmail = formData.hrEmail.trim().toLowerCase();
+      const response = await authService.signUp(normalizedHrEmail, formData.password, {
         name: formData.hrContactPerson,
         role: USER_ROLES.RECRUITER,
         recruiterProfile: {
           hr_name: formData.hrContactPerson,
-          hr_email: formData.hrEmail,
+          hr_email: normalizedHrEmail,
           hr_phone: formData.hrPhone,
         },
       }, RECRUITER_EMAIL_REDIRECT_URL);
 
       if (response.user) {
-        if (response.session) {
+        if (response.session && response.user.email_confirmed_at) {
           let logoUrl = '';
           if (companyLogo) {
             logoUrl = await userService.uploadCompanyLogo(response.user.id, companyLogo);
@@ -692,7 +722,7 @@ export const RecruiterRegister: React.FC = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="text-xl sm:text-2xl lg:text-3xl font-black bg-gradient-to-r from-cyan-500 via-blue-600 to-violet-600 bg-clip-text text-transparent mb-1 leading-tight tracking-tight whitespace-nowrap"
+                  className="relative -top-1 text-xl sm:text-2xl lg:text-3xl font-black bg-gradient-to-r from-cyan-500 via-blue-600 to-violet-600 bg-clip-text text-transparent mb-1 leading-tight tracking-tight whitespace-nowrap"
                 >
                   Recruiter Registration
                 </motion.h1>
@@ -875,7 +905,7 @@ export const RecruiterRegister: React.FC = () => {
                 transition={{ duration: 0.4 }}
                 className={currentStep === 1 ? 'p-4 sm:p-5 space-y-2' : 'hidden'}
               >
-                <div className="space-y-4">
+                <div className="space-y-2">
                   <FloatingInput
                     label="HR / Recruiter Name"
                     name="hrContactPerson"
@@ -892,13 +922,15 @@ export const RecruiterRegister: React.FC = () => {
                     value={formData.hrEmail}
                     onChange={handleChange}
                     error={errors.hrEmail}
+                    placeholder="Enter your official company email"
+                    helperText="Use your official company email address. Personal email addresses are not accepted."
+                    valid={Boolean(formData.hrEmail) && validateRecruiterEmail(formData.hrEmail) && !errors.hrEmail}
+                    showPlaceholder
+                    showErrorMessage={false}
                     required
                   />
 
                   <div className="space-y-2">
-                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                      Mobile Number <span className="text-red-500">*</span>
-                    </label>
                     <div className="flex gap-3">
                       <select
                         name="hrPhoneCountry"
@@ -957,7 +989,7 @@ export const RecruiterRegister: React.FC = () => {
                 <div className="flex justify-end mt-4">
                   <motion.button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || !isRecruiterEmailValid}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className="w-auto min-w-32 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-bold py-2 px-5 rounded-lg transition-all duration-200 shadow-lg shadow-blue-200 disabled:cursor-not-allowed"
@@ -1011,7 +1043,7 @@ export const RecruiterRegister: React.FC = () => {
                   </motion.button>
                   <motion.button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || !isRecruiterEmailValid}
                     whileHover={!loading ? { scale: 1.02 } : {}}
                     whileTap={!loading ? { scale: 0.98 } : {}}
                     className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg shadow-blue-200 flex items-center justify-center gap-2 disabled:cursor-not-allowed"

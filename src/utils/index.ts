@@ -39,6 +39,46 @@ export const validateEmail = (email: string) => {
   return regex.test(email);
 };
 
+export const BLOCKED_RECRUITER_EMAIL_DOMAINS = new Set([
+  'gmail.com',
+  'googlemail.com',
+  'outlook.com',
+  'hotmail.com',
+  'live.com',
+  'yahoo.com',
+  'ymail.com',
+  'icloud.com',
+  'me.com',
+  'aol.com',
+  'proton.me',
+  'protonmail.com',
+  'zoho.com',
+  'mail.com',
+  'gmx.com',
+  'rediffmail.com',
+]);
+
+export const BLOCKED_PERSONAL_EMAIL_DOMAINS = Array.from(BLOCKED_RECRUITER_EMAIL_DOMAINS);
+
+export const getEmailDomain = (email: string) => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const atIndex = normalizedEmail.lastIndexOf('@');
+  return atIndex > 0 ? normalizedEmail.slice(atIndex + 1) : '';
+};
+
+export const extractEmailDomain = getEmailDomain;
+
+export const validateRecruiterEmail = (email: string) => {
+  if (!validateEmail(email)) return false;
+  const domain = getEmailDomain(email);
+  return Boolean(domain) && !BLOCKED_RECRUITER_EMAIL_DOMAINS.has(domain);
+};
+
+export const RECRUITER_EMAIL_ERROR = 'Please use your official company email address. Personal email addresses such as Gmail, Outlook, Yahoo, etc. are not allowed.';
+export const PERSONAL_EMAIL_ERROR = RECRUITER_EMAIL_ERROR;
+export const isBlockedPersonalEmailDomain = (domain: string) => BLOCKED_RECRUITER_EMAIL_DOMAINS.has(domain.trim().toLowerCase());
+export const validateWorkEmail = validateRecruiterEmail;
+
 export const validatePassword = (password: string) => {
   const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{8,}$/;
   return regex.test(password);

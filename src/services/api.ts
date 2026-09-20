@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 import type { JobSeeker, Recruiter, Job } from '../types';
-import { getFreshnessDate, diversifyJobsByCompany } from '@utils/index';
+import { getFreshnessDate, diversifyJobsByCompany, PERSONAL_EMAIL_ERROR, validateWorkEmail } from '@utils/index';
 import { isCandidatePremium, isSubscriptionActive } from '@utils/candidateSubscriptionHelpers';
 import { ensureRecruiterWelcomeBenefit, restoreRecruiterWelcomeJobPost, reserveRecruiterWelcomeJobPost } from '@utils/recruiterWelcomeBenefits';
 import { buildKeywordSearchVariants, matchesRoleSearchIntent, scoreRoleSearchMatch } from '@utils/roleSearch';
@@ -198,6 +198,14 @@ export const userService = {
 // Recruiter operations
 export const recruiterService = {
   async createRecruiterProfile(userId: string, profileData: Partial<Recruiter> & Record<string, any>) {
+    const workEmails = [
+      profileData.hr_email || profileData.hrEmail,
+      profileData.company_email || profileData.companyEmail,
+    ].filter(Boolean);
+    if (workEmails.some(email => !validateWorkEmail(String(email)))) {
+      throw new Error(PERSONAL_EMAIL_ERROR);
+    }
+
     // Map incoming keys to recruiters table schema
     const payload: Record<string, unknown> = {
       id: userId,
