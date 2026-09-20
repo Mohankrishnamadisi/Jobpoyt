@@ -63,6 +63,7 @@ interface RecruiterSidebarProps {
   companyLogo?: string;
   credits?: number;
   planName?: string;
+  readOnly?: boolean;
 }
 
 const MotionBox = motion(Box);
@@ -74,6 +75,7 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
   companyLogo,
   credits = 0,
   planName = 'Free',
+  readOnly = false,
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -126,6 +128,9 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
   ];
 
   const handleMenuClick = (itemId: string) => {
+    if (readOnly && itemId !== 'overview' && itemId !== 'my-details') {
+      return;
+    }
     if (itemId === 'home') {
       navigate('/');
       return;
@@ -209,11 +214,13 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
             {section.items.map((item, itemIndex) => {
               const Icon = item.icon;
               const isActive = currentTab === item.id && !item.external;
+              const isReadOnlyItem = readOnly && item.id !== 'overview' && item.id !== 'my-details';
               return (
                 <motion.div key={item.id} initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.22, delay: Math.min(0.3, sectionIndex * 0.04 + itemIndex * 0.018) }}>
                   <ListItem disablePadding sx={{ mb: 0.1 }}>
                     <ListItemButton
                       onClick={() => handleMenuClick(item.id)}
+                      disabled={isReadOnlyItem}
                       sx={{
                         mx: 1.1,
                         minHeight: 46,
@@ -224,6 +231,9 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
                         borderLeft: isActive ? '3px solid #7DD3FC' : '3px solid transparent',
                         boxShadow: isActive ? '0 12px 28px rgba(91,140,255,0.2)' : 'none',
                         transition: 'all 0.2s ease, transform 0.2s ease',
+                        opacity: isReadOnlyItem ? 0.42 : 1,
+                        cursor: isReadOnlyItem ? 'not-allowed' : 'pointer',
+                        '&.Mui-disabled': { color: 'rgba(226,232,240,0.42)' },
                         '&:hover': {
                           backgroundColor: 'rgba(148,163,184,0.12)',
                           color: '#FFFFFF',

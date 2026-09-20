@@ -9,16 +9,70 @@ import {
   Typography,
   CircularProgress,
   Avatar,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Alert,
+  Autocomplete,
 } from '@mui/material';
 import { CloudUpload as CloudUploadIcon, Edit as EditIcon } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { recruiterService, userService } from '@services/api';
+import { authService } from '@services/supabase';
+import { INDUSTRY_TYPES } from '@constants/index';
 import toast from 'react-hot-toast';
+
+const LOCATION_SUGGESTIONS = [
+  'Hyderabad, Telangana',
+  'Bengaluru, Karnataka',
+  'Chennai, Tamil Nadu',
+  'Mumbai, Maharashtra',
+  'Pune, Maharashtra',
+  'Delhi NCR',
+  'Gurugram, Haryana',
+  'Noida, Uttar Pradesh',
+  'Ghaziabad, Uttar Pradesh',
+  'Faridabad, Haryana',
+  'Jaipur, Rajasthan',
+  'Jodhpur, Rajasthan',
+  'Udaipur, Rajasthan',
+  'Ahmedabad, Gujarat',
+  'Surat, Gujarat',
+  'Vadodara, Gujarat',
+  'Rajkot, Gujarat',
+  'Kolkata, West Bengal',
+  'Bhubaneswar, Odisha',
+  'Guwahati, Assam',
+  'Patna, Bihar',
+  'Ranchi, Jharkhand',
+  'Lucknow, Uttar Pradesh',
+  'Kanpur, Uttar Pradesh',
+  'Varanasi, Uttar Pradesh',
+  'Agra, Uttar Pradesh',
+  'Chandigarh, Chandigarh',
+  'Dehradun, Uttarakhand',
+  'Amritsar, Punjab',
+  'Ludhiana, Punjab',
+  'Srinagar, Jammu and Kashmir',
+  'Bhopal, Madhya Pradesh',
+  'Indore, Madhya Pradesh',
+  'Nagpur, Maharashtra',
+  'Nashik, Maharashtra',
+  'Aurangabad, Maharashtra',
+  'Goa, Goa',
+  'Kochi, Kerala',
+  'Thiruvananthapuram, Kerala',
+  'Kozhikode, Kerala',
+  'Coimbatore, Tamil Nadu',
+  'Madurai, Tamil Nadu',
+  'Tiruchirappalli, Tamil Nadu',
+  'Visakhapatnam, Andhra Pradesh',
+  'Vijayawada, Andhra Pradesh',
+  'Guntur, Andhra Pradesh',
+  'Tirupati, Andhra Pradesh',
+  'Mysuru, Karnataka',
+  'Mangaluru, Karnataka',
+  'Hubballi, Karnataka',
+  'Puducherry, Puducherry',
+  'Remote',
+];
 
 interface CompanyProfileProps {
   recruiterId: string;
@@ -136,10 +190,20 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
         logoUrl = await userService.uploadCompanyLogo(recruiterId, logoFile);
       }
 
-      await recruiterService.updateRecruiterProfile(recruiterId, {
+      const savedProfile = await recruiterService.updateRecruiterProfile(recruiterId, {
         ...formData,
         companyLogoUrl: logoUrl,
       });
+
+      if (!savedProfile?.id) {
+        throw new Error('Company profile was not saved');
+      }
+
+      const recruiterName = formData.hrContactPerson.trim();
+      if (recruiterName) {
+        await userService.updateProfile(recruiterId, { name: recruiterName });
+        await authService.updateUserMetadata({ name: recruiterName });
+      }
 
       toast.success('Company profile updated successfully!');
       setEditMode(false);
@@ -237,12 +301,20 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
                 </Grid>
 
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Industry Type"
-                    name="industryType"
+                  <Autocomplete
+                    freeSolo
+                    options={INDUSTRY_TYPES}
                     value={formData.industryType}
-                    onChange={handleChange}
+                    onChange={(_, value) => setFormData((previous) => ({ ...previous, industryType: value || '' }))}
+                    onInputChange={(_, value) => setFormData((previous) => ({ ...previous, industryType: value }))}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        fullWidth
+                        label="Industry Type"
+                        placeholder="Select or type an industry"
+                      />
+                    )}
                   />
                 </Grid>
 
@@ -258,12 +330,20 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
                 </Grid>
 
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Location"
-                    name="location"
+                  <Autocomplete
+                    freeSolo
+                    options={LOCATION_SUGGESTIONS}
                     value={formData.location}
-                    onChange={handleChange}
+                    onChange={(_, value) => setFormData((previous) => ({ ...previous, location: value || '' }))}
+                    onInputChange={(_, value) => setFormData((previous) => ({ ...previous, location: value }))}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        fullWidth
+                        label="Location"
+                        placeholder="Select or type a city"
+                      />
+                    )}
                   />
                 </Grid>
 
@@ -341,17 +421,6 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
                     name="hrContactPerson"
                     value={formData.hrContactPerson}
                     onChange={handleChange}
-                  />
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="HR Email"
-                    name="hrEmail"
-                    value={formData.hrEmail}
-                    onChange={handleChange}
-                    type="email"
                   />
                 </Grid>
 

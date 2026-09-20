@@ -280,6 +280,30 @@ export const RecruiterDashboard: React.FC = () => {
     claimed: false,
   };
 
+  const profileCompletionFields = [
+    recruiterProfile?.company_name,
+    recruiterProfile?.company_email,
+    recruiterProfile?.company_phone,
+    recruiterProfile?.company_website,
+    recruiterProfile?.company_address || recruiterProfile?.location,
+    recruiterProfile?.industry,
+    recruiterProfile?.description,
+    recruiterProfile?.gst_number,
+    recruiterProfile?.hr_name,
+    recruiterProfile?.hr_email,
+    recruiterProfile?.hr_phone,
+  ];
+  const profileCompletion = Math.round(
+    (profileCompletionFields.filter((field) => String(field || '').trim().length > 0).length / profileCompletionFields.length) * 100
+  );
+  const profileComplete = profileCompletion >= 80;
+
+  useEffect(() => {
+    if (!profileComplete && currentTab !== 'overview' && currentTab !== 'company-profile') {
+      setCurrentTab('overview');
+    }
+  }, [currentTab, profileComplete]);
+
   if (loading) {
     return (
       <Box
@@ -306,7 +330,7 @@ export const RecruiterDashboard: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
           >
-            {!welcomeBannerDismissed && welcomeUsage.claimed && (
+            {profileComplete && !welcomeBannerDismissed && welcomeUsage.claimed && (
               <Card
                 sx={{ mb: 3, borderRadius: 3, border: '1px solid rgba(59,130,246,0.18)', background: 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(168,85,247,0.06))' }}
               >
@@ -329,7 +353,7 @@ export const RecruiterDashboard: React.FC = () => {
               </Card>
             )}
 
-            {welcomeUsage.claimed && (
+            {profileComplete && welcomeUsage.claimed && (
               <Card sx={{ mb: 3, borderRadius: 3, border: `1px solid ${themeColors.border}`, background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.96))' }}>
                 <CardContent>
                   <Typography variant="h5" sx={{ fontWeight: 800, color: themeColors.text.primary }}>Welcome to Jobpoyt</Typography>
@@ -370,9 +394,12 @@ export const RecruiterDashboard: React.FC = () => {
               shortlisted={stats.shortlisted}
               rejected={stats.rejected}
               priorityCandidates={stats.priority_applicants}
-              onViewJobs={() => setCurrentTab('jobs')}
-              onViewApplicants={() => setCurrentTab('applicants')}
-              onPostJob={() => setJobPostingFormOpen(true)}
+              profileCompletion={profileCompletion}
+              profileComplete={profileComplete}
+              onEditProfile={() => setCurrentTab('company-profile')}
+              onViewJobs={profileComplete ? () => setCurrentTab('jobs') : undefined}
+              onViewApplicants={profileComplete ? () => setCurrentTab('applicants') : undefined}
+              onPostJob={profileComplete ? () => setJobPostingFormOpen(true) : undefined}
             />
 
             <Dialog open={subscriptionDialogOpen} onClose={() => setSubscriptionDialogOpen(false)} maxWidth="md" fullWidth>
@@ -400,7 +427,7 @@ export const RecruiterDashboard: React.FC = () => {
             </Dialog>
 
             {/* Quick Actions Section */}
-            <Grid container spacing={3} sx={{ mt: 2 }}>
+            {profileComplete && <Grid container spacing={3} sx={{ mt: 2 }}>
               {/* Post New Job Card */}
               <Grid item xs={12} md={6}>
                 <MotionCard
@@ -576,7 +603,7 @@ export const RecruiterDashboard: React.FC = () => {
                   </CardContent>
                 </MotionCard>
               </Grid>
-            </Grid>
+            </Grid>}
           </MotionBox>
         );
 
@@ -1249,6 +1276,7 @@ export const RecruiterDashboard: React.FC = () => {
       unreadMessagesCount={unreadMessagesCount}
       credits={layoutCredits}
       planName={layoutPlanName}
+      readOnly={!profileComplete}
       onNotificationsClick={() => navigate(ROUTES.DASHBOARD_NOTIFICATIONS)}
       onMessagesClick={() => setCurrentTab('messages')}
       onProfileClick={() => setCurrentTab('my-details')}

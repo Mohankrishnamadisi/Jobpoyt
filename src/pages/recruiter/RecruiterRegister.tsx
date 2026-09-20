@@ -19,6 +19,7 @@ import {
 import toast from 'react-hot-toast';
 
 const RECRUITER_REGISTER_VIDEO_URL = 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/login1.mp4?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9sb2dpbjEubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4OTg4NTI4NywiZXhwIjoyNDIwNjA1Mjg3fQ.Ez1vwU3QZa0AOW2vrHZM8UAeUFgiGHzlK_weBv6Hv3k';
+const RECRUITER_EMAIL_REDIRECT_URL = 'https://jobpoyt.com/recruiter/dashboard';
 
 // ── Country codes ──────────────────────────────────────────────────────────────
 const CountryCodes = [
@@ -661,7 +662,7 @@ export const RecruiterRegister: React.FC = () => {
           hr_email: formData.hrEmail,
           hr_phone: formData.hrPhone,
         },
-      });
+      }, RECRUITER_EMAIL_REDIRECT_URL);
 
       if (response.user) {
         if (response.session) {
@@ -1138,33 +1139,54 @@ export const RecruiterRegister: React.FC = () => {
               className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 z-10"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-11 h-11 rounded-full bg-green-100 flex items-center justify-center text-green-600 shadow-sm">
                   <Check size={20} />
                 </div>
-                <h2 className="text-lg font-bold text-gray-900">Verify Your Email</h2>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">Verify Your Email</h2>
+                  <p className="text-xs text-green-600 font-semibold mt-0.5">Registration successful</p>
+                </div>
               </div>
-              <p className="text-gray-600 text-sm mb-6">
+              <p className="text-gray-600 text-sm leading-6 mb-6">
                 A confirmation email has been sent to <span className="font-semibold">{formData.hrEmail}</span>.
                 Please verify your email before logging in.
               </p>
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-3">
                 <motion.button
                   onClick={() => window.open('https://mail.google.com', '_blank')}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl transition-all"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md shadow-blue-200"
                 >
-                  Open Gmail
+                  Open Email
                 </motion.button>
-                <motion.button
-                  onClick={() => setVerifyDialogOpen(false)}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex-1 border border-gray-300 text-gray-700 font-bold py-2.5 px-4 rounded-xl hover:bg-gray-50 transition-all"
-                >
-                  Close
-                </motion.button>
+                <div className="grid grid-cols-2 gap-3">
+                  <motion.button
+                    onClick={async () => {
+                      try {
+                        await authService.resendVerificationEmail(formData.hrEmail, RECRUITER_EMAIL_REDIRECT_URL);
+                        toast.success('Confirmation email resent');
+                      } catch (error) {
+                        const message = error instanceof Error ? error.message : 'Unable to resend email';
+                        toast.error(message);
+                      }
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="border border-blue-300 bg-white text-blue-700 font-bold py-2.5 px-3 rounded-xl hover:bg-blue-50 hover:border-blue-400 transition-all shadow-sm"
+                  >
+                    Resend Email
+                  </motion.button>
+                  <motion.button
+                    onClick={() => setVerifyDialogOpen(false)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="border border-slate-200 bg-slate-50 text-slate-600 font-bold py-2.5 px-3 rounded-xl hover:bg-slate-100 hover:border-slate-300 transition-all shadow-sm"
+                  >
+                    Re-edit
+                  </motion.button>
+                </div>
               </div>
             </motion.div>
           </motion.div>

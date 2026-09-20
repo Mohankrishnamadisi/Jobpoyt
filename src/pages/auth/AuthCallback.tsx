@@ -10,11 +10,9 @@ import { ROUTES, USER_ROLES } from '@constants/index';
 const restoreSessionFromHashToken = async () => {
   const fullHash = window.location.hash || '';
   const secondHashIndex = fullHash.indexOf('#', 1);
-  if (secondHashIndex === -1) {
-    return;
-  }
-
-  const tokenFragment = fullHash.slice(secondHashIndex + 1);
+  const tokenFragment = secondHashIndex >= 0
+    ? fullHash.slice(secondHashIndex + 1)
+    : fullHash.replace(/^#/, '');
   const params = new URLSearchParams(tokenFragment);
   const accessToken = params.get('access_token');
   const refreshToken = params.get('refresh_token');

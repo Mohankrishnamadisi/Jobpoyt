@@ -273,18 +273,35 @@ export const recruiterService = {
 
     Object.entries(updates).forEach(([key, value]) => {
       const dbKey = keyMap[key] || key;
-      payload[dbKey] = value;
+      if (dbKey !== 'id' && dbKey !== 'user_id') {
+        payload[dbKey] = value;
+      }
     });
 
+    const companyName = String(payload.company_name || '').trim();
+    if (!companyName) {
+      throw new Error('Company name is required');
+    }
+
+    payload.id = userId;
+    payload.user_id = userId;
+    payload.company_name = companyName;
     payload.updated_at = new Date().toISOString();
 
     const { data, error } = await supabase
       .from('recruiters')
-      .update(payload)
-      .eq('id', userId)
-      .select();
+      .upsert([payload], { onConflict: 'id' })
+      .select()
+      .single();
     if (error) throw error;
-    return data[0];
+    if (!data) throw new Error('Recruiter profile was not saved');
+
+    await userService.ensureRecruiterProfile(userId, {
+      name: String(payload.hr_name || companyName),
+      email: String(payload.company_email || payload.hr_email || ''),
+    } as Partial<Recruiter> & Record<string, unknown>);
+
+    return data;
   },
 
   async getRecruiterStats(recruiterId: string) {

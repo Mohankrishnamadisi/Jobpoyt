@@ -87,6 +87,14 @@ export const authService = {
     return data;
   },
 
+  async updateUserMetadata(metadata: Record<string, unknown>) {
+    const { data, error } = await supabase.auth.updateUser({
+      data: metadata,
+    });
+    if (error) throw error;
+    return data;
+  },
+
   async getSession() {
     const { data, error } = await supabase.auth.getSession();
     if (error) throw error;

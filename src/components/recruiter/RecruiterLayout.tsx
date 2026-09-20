@@ -21,6 +21,7 @@ interface RecruiterLayoutProps {
   onMessagesClick?: () => void;
   onProfileClick?: () => void;
   onSettingsClick?: () => void;
+  readOnly?: boolean;
 }
 
 export const RecruiterLayout: React.FC<RecruiterLayoutProps> = ({
@@ -37,6 +38,7 @@ export const RecruiterLayout: React.FC<RecruiterLayoutProps> = ({
   onMessagesClick,
   onProfileClick,
   onSettingsClick,
+  readOnly = false,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -101,6 +103,7 @@ export const RecruiterLayout: React.FC<RecruiterLayoutProps> = ({
             companyLogo={companyLogo}
             credits={credits}
             planName={planName}
+            readOnly={readOnly}
           />
         </Box>
       )}
@@ -139,6 +142,7 @@ export const RecruiterLayout: React.FC<RecruiterLayoutProps> = ({
               companyLogo={companyLogo}
               credits={credits}
               planName={planName}
+              readOnly={readOnly}
             />
           </Box>
         )}

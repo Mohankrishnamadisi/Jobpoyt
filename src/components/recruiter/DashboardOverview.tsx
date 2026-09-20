@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Grid, Card, CardContent, Typography, Button } from '@mui/material';
+import { Box, Grid, Card, CardContent, Typography, Button, LinearProgress } from '@mui/material';
 import {
   TrendingUp as TrendingUpIcon,
   People as PeopleIcon,
@@ -22,9 +22,54 @@ interface DashboardOverviewProps {
   onViewJobs?: () => void;
   onViewApplicants?: () => void;
   onPostJob?: () => void;
+  profileCompletion?: number;
+  profileComplete?: boolean;
+  onEditProfile?: () => void;
 }
 
 const MotionCard = motion(Card);
+
+const ProfileCompletionCard: React.FC<{
+  completion: number;
+  onEditProfile?: () => void;
+}> = ({ completion, onEditProfile }) => (
+  <Card
+    sx={{
+      borderRadius: '18px',
+      border: '1px solid rgba(37,99,235,0.18)',
+      background: 'linear-gradient(135deg, #FFFFFF 0%, #EFF6FF 100%)',
+      boxShadow: '0 14px 30px rgba(37,99,235,0.08)',
+    }}
+  >
+    <CardContent sx={{ p: { xs: 2, md: 2.5 } }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, gap: 2, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', minWidth: 0 }}>
+          <Box sx={{ width: 42, height: 42, borderRadius: 2.5, display: 'grid', placeItems: 'center', color: '#2563EB', background: 'linear-gradient(135deg, #DBEAFE, #BFDBFE)', flexShrink: 0 }}>
+            <SearchIcon />
+          </Box>
+          <Box>
+            <Typography sx={{ fontWeight: 800, color: themeColors.text.primary, fontSize: '1rem' }}>
+              Complete your recruiter profile
+            </Typography>
+            <Typography sx={{ mt: 0.35, color: themeColors.text.secondary, fontSize: '0.8rem' }}>
+              Add your company and HR details to unlock jobs, applicants, and candidate tools.
+            </Typography>
+          </Box>
+        </Box>
+        <Button variant="contained" onClick={onEditProfile} sx={{ borderRadius: 2.5, px: 2.2, fontWeight: 800, textTransform: 'none', background: 'linear-gradient(135deg, #2563EB, #4F46E5)', boxShadow: '0 8px 18px rgba(37,99,235,0.22)' }}>
+          Edit Profile
+        </Button>
+      </Box>
+      <Box sx={{ mt: 2.1 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.7 }}>
+          <Typography sx={{ color: themeColors.text.secondary, fontSize: '0.75rem', fontWeight: 700 }}>Profile completion</Typography>
+          <Typography sx={{ color: '#2563EB', fontSize: '0.82rem', fontWeight: 900 }}>{completion}%</Typography>
+        </Box>
+        <LinearProgress variant="determinate" value={completion} sx={{ height: 9, borderRadius: 99, backgroundColor: '#DBEAFE', '& .MuiLinearProgress-bar': { borderRadius: 99, background: 'linear-gradient(90deg, #2563EB, #7C3AED)' } }} />
+      </Box>
+    </CardContent>
+  </Card>
+);
 
 const StatCard: React.FC<{
   title: string;
@@ -130,7 +175,18 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   onViewJobs,
   onViewApplicants,
   onPostJob,
+  profileCompletion = 0,
+  profileComplete = false,
+  onEditProfile,
 }) => {
+  if (!profileComplete) {
+    return (
+      <Box sx={{ mb: 3 }}>
+        <ProfileCompletionCard completion={profileCompletion} onEditProfile={onEditProfile} />
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ mb: 3 }}>
       <Card
@@ -160,10 +216,10 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Button onClick={onViewJobs} variant="outlined" endIcon={<ArrowForwardIcon />} sx={{ color: '#E0F2FE', borderColor: 'rgba(186,230,253,0.45)', backgroundColor: 'rgba(255,255,255,0.06)', '&:hover': { borderColor: '#7DD3FC', backgroundColor: 'rgba(125,211,252,0.12)' } }}>
+              <Button disabled={!onViewJobs} onClick={onViewJobs} variant="outlined" endIcon={<ArrowForwardIcon />} sx={{ color: '#E0F2FE', borderColor: 'rgba(186,230,253,0.45)', backgroundColor: 'rgba(255,255,255,0.06)', '&:hover': { borderColor: '#7DD3FC', backgroundColor: 'rgba(125,211,252,0.12)' } }}>
                 View workspace
               </Button>
-              <Button onClick={onPostJob} variant="contained" startIcon={<WorkOutlineIcon />} sx={{ background: '#7DD3FC', color: '#091324', '&:hover': { background: '#BAE6FD' } }}>
+              <Button disabled={!onPostJob} onClick={onPostJob} variant="contained" startIcon={<WorkOutlineIcon />} sx={{ background: '#7DD3FC', color: '#091324', '&:hover': { background: '#BAE6FD' } }}>
                 Post a job
               </Button>
             </Box>
