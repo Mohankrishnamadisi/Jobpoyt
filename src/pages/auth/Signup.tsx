@@ -80,18 +80,34 @@ export const Signup: React.FC = () => {
               <Stack spacing={1.2} sx={{ mt: 3 }}>{['Personalized job discovery', 'A profile recruiters can find', 'One secure account for your journey'].map((item) => <Box key={item} sx={{ display: 'flex', gap: 1, alignItems: 'center' }}><CheckCircle sx={{ color: '#60A5FA', fontSize: 20 }} /><Typography>{item}</Typography></Box>)}</Stack>
             </Box>
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }} style={{ width: '100%', maxWidth: 450 }}>
-              <Card component="form" onSubmit={handleSignup} sx={{ mt: { xs: 1, md: 2 }, p: { xs: 3, sm: 3.75 }, borderRadius: 4, background: 'rgba(255,255,255,0.96)', backdropFilter: 'blur(16px)', boxShadow: '0 24px 70px rgba(2,12,32,0.34)' }}>
-                <Typography variant="h5" sx={{ fontWeight: 850, color: '#0F172A', mb: 0.5 }}>Create your account</Typography>
-                <Typography color="text.secondary" sx={{ mb: 2.25, fontSize: '0.92rem' }}>Start your JobPoyt journey in less than a minute.</Typography>
+              <Card component="form" onSubmit={handleSignup} sx={{
+                mt: { xs: 1, md: 2 },
+                p: { xs: 3, sm: 3.75 },
+                borderRadius: 4,
+                background: 'linear-gradient(145deg, rgba(255,255,255,0.96), rgba(219,234,254,0.9))',
+                border: '1px solid rgba(147,197,253,0.72)',
+                backdropFilter: 'blur(18px)',
+                boxShadow: '0 24px 70px rgba(2,12,32,0.42), 0 0 0 1px rgba(96,165,250,0.14)',
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  backgroundColor: 'rgba(239,246,255,0.8)',
+                  '& fieldset': { borderColor: 'rgba(37,99,235,0.2)' },
+                  '&:hover fieldset': { borderColor: 'rgba(37,99,235,0.45)' },
+                  '&.Mui-focused fieldset': { borderColor: '#2563EB' },
+                },
+                '& .MuiInputLabel-root.Mui-focused': { color: '#2563EB' },
+              }}>
+                <Typography variant="h5" sx={{ fontWeight: 850, color: '#0B1B3A', mb: 0.5 }}>Create your account</Typography>
+                <Typography sx={{ color: '#475569', mb: 2.25, fontSize: '0.92rem' }}>Start your JobPoyt journey in less than a minute.</Typography>
                 <Stack spacing={1.45}>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.45}><TextField fullWidth size="small" label="First name" name="firstName" value={formData.firstName} onChange={handleChange} required autoComplete="given-name" sx={{ '& .MuiInputBase-root': { height: 52 } }} /><TextField fullWidth size="small" label="Last name" name="lastName" value={formData.lastName} onChange={handleChange} required autoComplete="family-name" sx={{ '& .MuiInputBase-root': { height: 52 } }} /></Stack>
                   <TextField fullWidth size="small" label="Email" name="email" type="email" value={formData.email} onChange={handleChange} required autoComplete="email" sx={{ '& .MuiInputBase-root': { height: 52 } }} />
                   <TextField fullWidth size="small" label="Mobile Number" name="phone" value={formData.phone} onChange={handleChange} required autoComplete="tel" inputProps={{ inputMode: 'numeric', maxLength: 10 }} sx={{ '& .MuiInputBase-root': { height: 52 } }} />
                   <TextField fullWidth size="small" label="Password" name="password" type={showPassword ? 'text' : 'password'} value={formData.password} onChange={handleChange} required autoComplete="new-password" sx={{ '& .MuiInputBase-root': { height: 52 } }} InputProps={{ endAdornment: <InputAdornment position="end"><IconButton aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((visible) => !visible)} edge="end">{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment> }} />
                   <TextField fullWidth size="small" label="Confirm Password" name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} value={formData.confirmPassword} onChange={handleChange} required autoComplete="new-password" sx={{ '& .MuiInputBase-root': { height: 52 } }} InputProps={{ endAdornment: <InputAdornment position="end"><IconButton aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show password'} onClick={() => setShowConfirmPassword((visible) => !visible)} edge="end">{showConfirmPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment> }} />
-                  <Button type="submit" variant="contained" size="large" disabled={loading} endIcon={<ArrowForward />} sx={{ mt: 0.5, py: 1.5, borderRadius: 2 }}>{loading ? 'Creating Account...' : 'Register'}</Button>
+                  <Button type="submit" variant="contained" size="large" disabled={loading} endIcon={<ArrowForward />} sx={{ mt: 0.5, py: 1.5, borderRadius: 2, fontWeight: 800, textTransform: 'none', background: 'linear-gradient(135deg, #2563EB 0%, #0EA5E9 55%, #4F46E5 100%)', boxShadow: '0 12px 24px rgba(37,99,235,0.25)', '&:hover': { background: 'linear-gradient(135deg, #1D4ED8 0%, #0284C7 55%, #4338CA 100%)' } }}>{loading ? 'Creating Account...' : 'Register'}</Button>
                 </Stack>
-                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', mt: 2 }}>Already have an account? <Link component={RouterLink} to={ROUTES.LOGIN}>Login</Link></Typography>
+                <Typography variant="body2" sx={{ color: '#64748B', textAlign: 'center', mt: 2 }}>Already have an account? <Link component={RouterLink} to={ROUTES.LOGIN} sx={{ color: '#1D4ED8', fontWeight: 700 }}>Login</Link></Typography>
               </Card>
             </motion.div>
           </Stack>

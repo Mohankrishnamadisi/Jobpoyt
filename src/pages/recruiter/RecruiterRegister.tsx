@@ -88,7 +88,7 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
         onBlur={() => setIsFocused(false)}
         className={`
           w-full min-h-[52px] px-3 py-2.5 pt-5 rounded-lg border-2 transition-all duration-200
-          bg-white text-gray-900 text-sm font-medium
+          bg-slate-50/85 text-slate-900 text-sm font-medium
           ${showPlaceholder ? 'placeholder-gray-400' : 'placeholder-transparent'}
           peer focus:outline-none focus:ring-0
           ${error
@@ -176,7 +176,7 @@ const FloatingTextarea: React.FC<FloatingTextareaProps> = ({
         aria-required={required}
         className={`
           w-full px-3 py-2.5 pt-5 rounded-lg border transition-all duration-200
-          bg-white text-gray-900 placeholder-transparent text-sm font-medium
+          bg-slate-50/85 text-slate-900 placeholder-transparent text-sm font-medium
           peer focus:outline-none focus:ring-0 resize-none
           ${error
           ? 'border-red-300 focus:border-red-500'
@@ -742,9 +742,9 @@ export const RecruiterRegister: React.FC = () => {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
-            className="max-w-sm mx-auto bg-white/90 backdrop-blur-xl rounded-2xl border border-white/60 shadow-2xl overflow-hidden"
+            className="max-w-sm mx-auto bg-gradient-to-br from-white/92 via-slate-100/90 to-slate-200/90 backdrop-blur-xl rounded-2xl border border-white/80 shadow-[0_24px_70px_rgba(15,23,42,0.2)] ring-1 ring-slate-300/30 overflow-hidden"
           >
-            <form onSubmit={handleSubmit} noValidate className="divide-y divide-gray-100">
+            <form onSubmit={handleSubmit} noValidate className="divide-y divide-slate-200/70">
               {/* STEP 1: Company Info */}
               <motion.div
                 initial={currentStep !== 1 ? { opacity: 0, x: 100 } : {}}
@@ -821,7 +821,7 @@ export const RecruiterRegister: React.FC = () => {
                           name="companyPhoneCountry"
                           value={formData.companyPhoneCountry}
                           onChange={handleChange}
-                          className="w-full appearance-none pl-3 pr-8 py-3 rounded-xl border-2 border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all bg-white text-sm font-medium"
+                          className="w-full appearance-none pl-3 pr-8 py-3 rounded-xl border-2 border-slate-300/80 hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all bg-slate-50/85 text-slate-900 text-sm font-medium"
                         >
                           {CountryCodes.map(cc => (
                             <option key={cc.code} value={cc.code}>
@@ -936,7 +936,7 @@ export const RecruiterRegister: React.FC = () => {
                         name="hrPhoneCountry"
                         value={formData.hrPhoneCountry}
                         onChange={handleChange}
-                        className="w-20 px-2 py-2 rounded-lg border-2 border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all bg-white text-sm font-medium"
+                        className="w-20 px-2 py-2 rounded-lg border-2 border-slate-300/80 hover:border-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all bg-slate-50/85 text-slate-900 text-sm font-medium"
                       >
                         {CountryCodes.map(cc => (
                           <option key={cc.code} value={cc.code}>

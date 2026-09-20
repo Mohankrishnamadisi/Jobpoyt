@@ -177,7 +177,9 @@ export const Login: React.FC = () => {
           muted
           playsInline
           aria-hidden="true"
-          src="https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/login.mp4?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9sb2dpbi5tcDQiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg5ODgyODEwLCJleHAiOjIxMDUyNDI4MTB9.M_q3TjQ7kNDQY6j95WQBGyH6DZCDaBp01w2ZAgX8Lvo"
+          src={isCandidateLogin
+            ? 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/login.mp4?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9sb2dpbi5tcDQiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg5ODgyODEwLCJleHAiOjIxMDUyNDI4MTB9.M_q3TjQ7kNDQY6j95WQBGyH6DZCDaBp01w2ZAgX8Lvo'
+            : 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/login2.mp4?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9sb2dpbjIubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4OTkwNjk4NCwiZXhwIjoyMTA1MjY2OTg0fQ.fi62OqB0PblOq314Ycp4pSLcqFoWydFdxo_1Wq8UBvI'}
           sx={{
             position: 'fixed',
             inset: 0,
@@ -201,19 +203,19 @@ export const Login: React.FC = () => {
               sx={{
                 p: { xs: 2.5, sm: 3.25 },
                 borderRadius: 4,
-                border: '1px solid rgba(255, 255, 255, 0.7)',
-                boxShadow: '0 28px 80px rgba(15, 23, 42, 0.2)',
-                backdropFilter: 'blur(14px)',
+                border: '1px solid rgba(255, 255, 255, 0.82)',
+                boxShadow: '0 28px 80px rgba(15, 23, 42, 0.3), 0 0 0 1px rgba(96, 165, 250, 0.2)',
+                backdropFilter: 'blur(18px)',
                 position: 'relative',
                 overflow: 'hidden',
-                backgroundColor: 'rgba(255,255,255,0.93)',
+                background: 'linear-gradient(145deg, rgba(255,255,255,0.94), rgba(239,246,255,0.86))',
               }}
             >
               <Box
                 sx={{
                   position: 'absolute',
                   inset: 0,
-                  background: 'radial-gradient(circle at top right, rgba(59,130,246,0.14), transparent 30%), radial-gradient(circle at bottom left, rgba(245,158,11,0.12), transparent 28%)',
+                  background: 'radial-gradient(circle at top right, rgba(14,165,233,0.2), transparent 32%), radial-gradient(circle at bottom left, rgba(236,72,153,0.16), transparent 30%)',
                   pointerEvents: 'none',
                 }}
               />
@@ -233,7 +235,7 @@ export const Login: React.FC = () => {
                 >
                   Welcome Back
                 </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
+                <Typography variant="body2" sx={{ color: '#475569', mb: 0.5 }}>
                   {isCandidateLogin
                     ? 'Securely access your dashboard and discover premium opportunities.'
                     : 'Securely access your recruiter dashboard and manage your hiring workflow.'}
@@ -241,7 +243,7 @@ export const Login: React.FC = () => {
                 <Typography
                   variant="body2"
                   sx={{
-                    color: 'text.secondary',
+                    color: '#475569',
                     whiteSpace: 'nowrap',
                     fontSize: { xs: '0.75rem', sm: '0.875rem' },
                   }}
@@ -267,7 +269,10 @@ export const Login: React.FC = () => {
                     mb: 1.75,
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
-                      backgroundColor: 'rgba(255,255,255,0.72)',
+                      backgroundColor: 'rgba(239,246,255,0.78)',
+                      '& fieldset': { borderColor: 'rgba(37,99,235,0.18)' },
+                      '&:hover fieldset': { borderColor: 'rgba(37,99,235,0.42)' },
+                      '&.Mui-focused fieldset': { borderColor: '#2563EB' },
                     },
                   }}
                 />
@@ -286,7 +291,10 @@ export const Login: React.FC = () => {
                     mb: 1,
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
-                      backgroundColor: 'rgba(255,255,255,0.72)',
+                      backgroundColor: 'rgba(239,246,255,0.78)',
+                      '& fieldset': { borderColor: 'rgba(37,99,235,0.18)' },
+                      '&:hover fieldset': { borderColor: 'rgba(37,99,235,0.42)' },
+                      '&.Mui-focused fieldset': { borderColor: '#2563EB' },
                     },
                   }}
                   InputProps={{
@@ -307,7 +315,7 @@ export const Login: React.FC = () => {
                 <Link
                   component={RouterLink}
                   to={ROUTES.FORGOT_PASSWORD}
-                  sx={{ fontSize: '0.8rem', display: 'block', mb: 2 }}
+                  sx={{ fontSize: '0.8rem', display: 'block', mb: 2, color: '#1D4ED8', fontWeight: 600 }}
                 >
                   Forgot Password?
                 </Link>
@@ -325,8 +333,11 @@ export const Login: React.FC = () => {
                     fontWeight: 800,
                     textTransform: 'none',
                     fontSize: '0.98rem',
-                    background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
-                    boxShadow: '0 14px 30px rgba(37, 99, 235, 0.18)',
+                    background: 'linear-gradient(135deg, #2563EB 0%, #0EA5E9 55%, #7C3AED 100%)',
+                    boxShadow: '0 14px 30px rgba(37, 99, 235, 0.28)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #1D4ED8 0%, #0284C7 55%, #6D28D9 100%)',
+                    },
                   }}
                 >
                   {loading ? 'Logging in...' : 'Login'}
@@ -335,7 +346,7 @@ export const Login: React.FC = () => {
 
               {isCandidateLogin && (
                 <>
-                  <Divider sx={{ my: 2 }}>OR</Divider>
+                  <Divider sx={{ my: 2, color: '#64748B', '&::before, &::after': { borderColor: 'rgba(100,116,139,0.28)' } }}>OR</Divider>
 
                   <button
                     type="button"
