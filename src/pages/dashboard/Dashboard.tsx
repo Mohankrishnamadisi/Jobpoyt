@@ -85,6 +85,7 @@ import { messagingService } from '@services/messaging';
 import Swal from '@utils/sweetAlert';
 import { formatDate } from '@utils/index';
 import { getPlanDisplayName, isCandidatePremium, isSubscriptionActive } from '@utils/candidateSubscriptionHelpers';
+import { calculateProfileCompletion } from '@utils/profileCompletion';
 import {
   getCandidateProfileViewCount,
   getCandidateProfileViewRecruiters,
@@ -115,25 +116,6 @@ type SavedJobItem = {
   };
 };
 
-
-const calculateProfileStrength = (profile: any, user: any): number => {
-  const checks = [
-    profile?.name || user?.name,
-    profile?.email || user?.email,
-    profile?.phone,
-    profile?.bio,
-    profile?.experience,
-    profile?.resume_url || profile?.resumeUrl,
-    Array.isArray(profile?.skills) && profile.skills.length > 0,
-    Array.isArray(profile?.education_details || profile?.education)
-      && (profile?.education_details || profile?.education).length > 0,
-    Array.isArray(profile?.work_experience || profile?.workExperience)
-      && (profile?.work_experience || profile?.workExperience).length > 0,
-  ];
-
-  const completed = checks.filter(Boolean).length;
-  return Math.round((completed / checks.length) * 100);
-};
 
 export const Dashboard: React.FC = () => {
   const { user, logout } = useAuthStore();
@@ -255,7 +237,7 @@ export const Dashboard: React.FC = () => {
       try {
         const result = await userService.getProfile(user.id);
         setProfile(result || null);
-        setProfileCompletion(calculateProfileStrength(result, user));
+        setProfileCompletion(calculateProfileCompletion(result));
       } catch (error) {
         console.error('Failed to load candidate profile:', error);
       }

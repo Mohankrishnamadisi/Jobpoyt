@@ -72,6 +72,7 @@ import {
 } from '../../utils/experience';
 import toast from 'react-hot-toast';
 import type { Certification, Project, Education, WorkExperience } from '../../types';
+import { calculateProfileCompletion } from '@utils/profileCompletion';
 
 // ─── Extended interfaces ───────────────────────────────────────────────────────
 
@@ -156,11 +157,11 @@ const SectionCard: React.FC<{
       },
     }}
   >
-    <CardContent sx={{ p: 3 }}>
+    <CardContent sx={{ p: { xs: 2.25, md: 3 } }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Box sx={{ width: 3, height: 20, borderRadius: 2, bgcolor: '#6366f1' }} />
-          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1rem', color: isDarkMode ? '#FFFFFF' : '#1e293b', letterSpacing: '-0.01em' }}>
+          <Box sx={{ width: 4, height: 22, borderRadius: 2, bgcolor: '#0f9f9a' }} />
+          <Typography variant="h6" sx={{ fontWeight: 800, fontSize: '1rem', color: isDarkMode ? '#FFFFFF' : '#102a43', letterSpacing: '-0.01em' }}>
             {title}
           </Typography>
         </Box>
@@ -215,16 +216,16 @@ const CompletionRing: React.FC<{ completion: number; src?: string; name: string 
     <CircularProgress
       variant="determinate" value={completion} size={148} thickness={3.5}
       sx={{
-        color: completion === 100 ? '#4ade80' : '#fbbf24',
+        color: completion === 100 ? '#5eead4' : '#fbbf24',
         position: 'absolute', top: 0, left: 0,
-        filter: completion === 100 ? 'drop-shadow(0 0 6px #4ade80)' : 'drop-shadow(0 0 6px #fbbf24)',
+        filter: completion === 100 ? 'drop-shadow(0 0 6px #5eead4)' : 'drop-shadow(0 0 6px #fbbf24)',
       }}
     />
     <Avatar
       src={src}
       sx={{
         width: 122, height: 122, position: 'absolute', top: 13, left: 13,
-        bgcolor: '#312e81', fontSize: '2.8rem', fontWeight: 800,
+        bgcolor: '#0b6070', fontSize: '2.8rem', fontWeight: 800,
         boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
         border: '3px solid rgba(255,255,255,0.9)',
       }}
@@ -234,7 +235,7 @@ const CompletionRing: React.FC<{ completion: number; src?: string; name: string 
     <Box
       sx={{
         position: 'absolute', bottom: -10, left: '50%', transform: 'translateX(-50%)',
-        bgcolor: completion === 100 ? '#4ade80' : '#fbbf24',
+        bgcolor: completion === 100 ? '#14b8a6' : '#fbbf24',
         borderRadius: 10, px: 1.25, py: 0.4, whiteSpace: 'nowrap',
         boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
       }}
@@ -462,32 +463,12 @@ export const ProfilePage: React.FC = () => {
   }, [formData.skills, formData.experienceYears, formData.experienceMonths, formData.profileSummary, formData.preferredJobTitles]);
 
   // ── Derived ──────────────────────────────────────────────────────────────────
-  // Section-based completion — each UI section = 10%, all 10 filled = 100%
-  const completion = (() => {
-    const sections = [
-      Boolean(profileImageUrl || profileImage),
-      Boolean(resumeUrl || resume),
-      Boolean(formData.resumeHeadline),
-      formData.skills.length > 0,
-      formData.workExperience.length > 0,
-      formData.education.length > 0,
-      itSkills.length > 0,
-      Boolean(formData.profileSummary),
-      Boolean(
-        formData.currentIndustry ||
-        formData.desiredJobTypes.length > 0 ||
-        formData.preferredJobTitles.length > 0 ||
-        formData.preferredWorkLocations.length > 0
-      ),
-      Boolean(
-        formData.gender &&
-        formData.dateOfBirth &&
-        formData.phone &&
-        (formData.currentDesignation || formData.currentCompany)
-      ),
-    ];
-    return Math.round((sections.filter(Boolean).length / sections.length) * 100);
-  })();
+  const completion = calculateProfileCompletion({
+    ...formData,
+    profileImage: profileImageUrl || profileImage,
+    resume: resumeUrl || resume,
+    itSkills,
+  });
 
   useEffect(() => {
     if (!user?.id || completion >= 80) return undefined;
@@ -530,16 +511,24 @@ export const ProfilePage: React.FC = () => {
     });
 
   // ── Save ─────────────────────────────────────────────────────────────────────
-  const handleSave = async (overrides?: Partial<typeof formData>) => {
+  const handleSave = async (
+    overrides?: Partial<typeof formData>,
+    itSkillsOverride?: ITSkill[],
+    resumeOverride?: File | null,
+    resumeUrlOverride?: string,
+  ) => {
     if (!user?.id) return;
     const data = overrides ? { ...formData, ...overrides } : formData;
     setSaving(true);
     try {
-      let newResumeUrl = resumeUrl;
+      let newResumeUrl = resumeUrlOverride === undefined ? resumeUrl : resumeUrlOverride;
       let newImageUrl = profileImageUrl;
-      if (resume) {
-        newResumeUrl = await userService.uploadResume(user.id, resume);
-        setResumeFileName(resume.name);
+      const selectedResume = resumeUrlOverride === undefined
+        ? (resumeOverride === undefined ? resume : resumeOverride)
+        : null;
+      if (selectedResume) {
+        newResumeUrl = await userService.uploadResume(user.id, selectedResume);
+        setResumeFileName(selectedResume.name);
         setResumeUploadDate(
           new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
         );
@@ -594,7 +583,7 @@ export const ProfilePage: React.FC = () => {
         preferred_work_locations: data.preferredWorkLocations,
         preferred_shift: data.preferredShift,
         // IT skills + languages (new jsonb columns)
-        it_skills: itSkills,
+        it_skills: itSkillsOverride || itSkills,
         languages: languages,
         // Personal details extras (new columns)
         marital_status: data.maritalStatus,
@@ -613,6 +602,16 @@ export const ProfilePage: React.FC = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const saveFormUpdate = (updates: Partial<typeof formData>) => {
+    setFormData((previous) => ({ ...previous, ...updates }));
+    void handleSave(updates);
+  };
+
+  const saveItSkillsUpdate = (nextItSkills: ITSkill[]) => {
+    setItSkills(nextItSkills);
+    void handleSave(undefined, nextItSkills);
   };
 
   // ── Loading ──────────────────────────────────────────────────────────────────
@@ -634,9 +633,9 @@ export const ProfilePage: React.FC = () => {
       <Box
         className={isDarkMode ? 'profile-dark-mode' : undefined}
         sx={{
-          bgcolor: isDarkMode ? '#000000' : '#f3f2f0',
+          bgcolor: isDarkMode ? '#07111f' : '#eef3f5',
           minHeight: '100vh',
-          py: 2,
+          py: { xs: 2, md: 4 },
           color: isDarkMode ? '#FFFFFF' : undefined,
           '&.profile-dark-mode .MuiCard-root': { backgroundColor: '#0B0F17', color: '#FFFFFF' },
           '&.profile-dark-mode .MuiTypography-root': { color: '#FFFFFF' },
@@ -646,20 +645,29 @@ export const ProfilePage: React.FC = () => {
           '&.profile-dark-mode .MuiInputLabel-root': { color: '#CBD5E1' },
           '&.profile-dark-mode .MuiOutlinedInput-notchedOutline': { borderColor: '#475569' },
           '&.profile-dark-mode .MuiFormHelperText-root': { color: '#CBD5E1' },
+          '& .MuiTypography-body2': { lineHeight: 1.65 },
+          '& .MuiTypography-caption': { letterSpacing: '0.01em' },
         }}
       >
-        <Container maxWidth="lg">
+        <Container maxWidth="xl">
 
           {/* ── Profile Header ──────────────────────────────────────────── */}
           <Card
             sx={{
-              mb: 2, borderRadius: 2,
-              border: `1px solid ${isDarkMode ? '#263244' : '#e0ddd8'}`,
-              background: isDarkMode ? '#0B0F17' : undefined,
-              boxShadow: isDarkMode ? '0 1px 3px rgba(0,0,0,0.4)' : '0 1px 3px rgba(0,0,0,0.06)',
+              mb: 3, borderRadius: 4,
+              border: `1px solid ${isDarkMode ? '#1e3a4f' : '#123b5d'}`,
+              background: 'linear-gradient(120deg, #08243a 0%, #0d3d55 54%, #087f82 100%)',
+              boxShadow: '0 18px 40px rgba(8, 36, 58, 0.2)',
+              overflow: 'hidden',
+              position: 'relative',
+              '&::after': {
+                content: '""', position: 'absolute', width: 280, height: 280, borderRadius: '50%',
+                right: -100, top: -150, border: '1px solid rgba(255,255,255,0.12)',
+                boxShadow: '0 0 0 28px rgba(255,255,255,0.025), 0 0 0 56px rgba(255,255,255,0.02)',
+              },
             }}
           >
-            <Box sx={{ bgcolor: isDarkMode ? '#111827' : '#fdf8f0', px: 3, pt: 3, pb: 2, borderRadius: '8px 8px 0 0' }}>
+            <Box sx={{ bgcolor: 'transparent', px: { xs: 2.5, md: 4 }, pt: { xs: 3, md: 4 }, pb: 3, borderRadius: '16px 16px 0 0', position: 'relative', zIndex: 1 }}>
               <Grid container spacing={2} alignItems="flex-start">
 
                 {/* Avatar with ring */}
@@ -696,29 +704,29 @@ export const ProfilePage: React.FC = () => {
                 {/* Name + info */}
                 <Grid item xs>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.25 }}>
-                    <Typography variant="h5" sx={{ fontWeight: 700, color: isDarkMode ? '#FFFFFF' : '#1a1a1a', fontSize: '1.4rem' }}>
+                    <Typography variant="h5" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: { xs: '1.55rem', md: '1.8rem' }, letterSpacing: '-0.03em' }}>
                       {formData.fullName || 'Your Name'}
                     </Typography>
-                    <IconButton size="small" onClick={() => setHeaderDialog(true)} sx={{ color: isDarkMode ? '#CBD5E1' : '#888' }}>
+                    <IconButton size="small" onClick={() => setHeaderDialog(true)} sx={{ color: 'rgba(255,255,255,0.72)', '&:hover': { color: '#fff', bgcolor: 'rgba(255,255,255,0.12)' } }}>
                       <EditIcon fontSize="small" />
                     </IconButton>
                   </Box>
 
                   {/* Designation on its own line, company on next — matching Naukri layout */}
                   {formData.currentDesignation && (
-                    <Typography variant="body1" sx={{ fontWeight: 600, color: isDarkMode ? '#FFFFFF' : '#222', lineHeight: 1.3 }}>
+                    <Typography variant="body1" sx={{ fontWeight: 700, color: '#b9f3ef', lineHeight: 1.3 }}>
                       {formData.currentDesignation}
                     </Typography>
                   )}
                   {formData.currentCompany && (
-                    <Typography variant="body2" sx={{ color: isDarkMode ? '#FFFFFF' : '#555', mb: 1.5 }}>
+                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.72)', mb: 1.5 }}>
                       at {formData.currentCompany}
                     </Typography>
                   )}
                   {!formData.currentDesignation && !formData.currentCompany && (
                     <Typography
                       variant="body2"
-                      sx={{ color: '#1a73e8', cursor: 'pointer', mb: 1.5, fontWeight: 500 }}
+                      sx={{ color: '#9cf1eb', cursor: 'pointer', mb: 1.5, fontWeight: 700 }}
                       onClick={() => setHeaderDialog(true)}
                     >
                       + Add designation &amp; company
@@ -730,22 +738,22 @@ export const ProfilePage: React.FC = () => {
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.9 }}>
                         {formData.city && (
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                            <LocationIcon sx={{ fontSize: 15, color: isDarkMode ? '#CBD5E1' : '#888', flexShrink: 0 }} />
-                            <Typography variant="body2" sx={{ color: isDarkMode ? '#FFFFFF' : '#555' }}>
+                            <LocationIcon sx={{ fontSize: 16, color: '#9cf1eb', flexShrink: 0 }} />
+                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)' }}>
                               {[formData.city, formData.state].filter(Boolean).join(', ')}{formData.country ? `, ${formData.country}` : ''}
                             </Typography>
                           </Box>
                         )}
                         {experienceLabel !== 'Not specified' && (
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                            <WorkIcon sx={{ fontSize: 15, color: isDarkMode ? '#CBD5E1' : '#888', flexShrink: 0 }} />
-                            <Typography variant="body2" sx={{ color: isDarkMode ? '#FFFFFF' : '#555' }}>{experienceLabel}</Typography>
+                            <WorkIcon sx={{ fontSize: 16, color: '#9cf1eb', flexShrink: 0 }} />
+                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)' }}>{experienceLabel}</Typography>
                           </Box>
                         )}
                         {formData.currentCTC && (
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                            <CurrencyRupeeIcon sx={{ fontSize: 15, color: isDarkMode ? '#CBD5E1' : '#888', flexShrink: 0 }} />
-                            <Typography variant="body2" sx={{ color: isDarkMode ? '#FFFFFF' : '#555' }}>{formData.currentCTC}</Typography>
+                            <CurrencyRupeeIcon sx={{ fontSize: 16, color: '#9cf1eb', flexShrink: 0 }} />
+                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)' }}>{formData.currentCTC}</Typography>
                           </Box>
                         )}
                       </Box>
@@ -754,22 +762,22 @@ export const ProfilePage: React.FC = () => {
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.9 }}>
                         {formData.phone && (
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                            <PhoneIcon sx={{ fontSize: 15, color: isDarkMode ? '#CBD5E1' : '#888', flexShrink: 0 }} />
-                            <Typography variant="body2" sx={{ color: isDarkMode ? '#FFFFFF' : '#555' }}>{formData.phone}</Typography>
+                            <PhoneIcon sx={{ fontSize: 16, color: '#9cf1eb', flexShrink: 0 }} />
+                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)' }}>{formData.phone}</Typography>
                             <CheckCircleIcon sx={{ fontSize: 14, color: '#43a047' }} />
                           </Box>
                         )}
                         {formData.email && (
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                            <EmailIcon sx={{ fontSize: 15, color: isDarkMode ? '#CBD5E1' : '#888', flexShrink: 0 }} />
-                            <Typography variant="body2" sx={{ color: isDarkMode ? '#FFFFFF' : '#555' }}>{formData.email}</Typography>
+                            <EmailIcon sx={{ fontSize: 16, color: '#9cf1eb', flexShrink: 0 }} />
+                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)' }}>{formData.email}</Typography>
                             <CheckCircleIcon sx={{ fontSize: 14, color: '#43a047' }} />
                           </Box>
                         )}
                         {formData.noticePeriod && (
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                            <ScheduleIcon sx={{ fontSize: 15, color: isDarkMode ? '#CBD5E1' : '#888', flexShrink: 0 }} />
-                            <Typography variant="body2" sx={{ color: isDarkMode ? '#FFFFFF' : '#555' }}>{formData.noticePeriod} notice period</Typography>
+                            <ScheduleIcon sx={{ fontSize: 16, color: '#9cf1eb', flexShrink: 0 }} />
+                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)' }}>{formData.noticePeriod} notice period</Typography>
                           </Box>
                         )}
                       </Box>
@@ -779,14 +787,14 @@ export const ProfilePage: React.FC = () => {
 
                 {/* Top-right meta */}
                 <Grid item xs={12} sm="auto" sx={{ textAlign: { sm: 'right' } }}>
-                  <Typography variant="caption" sx={{ color: isDarkMode ? '#FFFFFF' : '#94a3b8', fontSize: '0.75rem' }}>
+                  <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem' }}>
                     Profile last updated · Today
                   </Typography>
                   {user?.subscriptionPlan && user.subscriptionPlan !== 'free' && (
                     <Box
                       sx={{
                         mt: 1, display: 'inline-flex', alignItems: 'center',
-                        bgcolor: '#fff8e1', border: '1px solid #ffca28',
+                        bgcolor: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.25)',
                         borderRadius: 10, px: 1.5, py: 0.5,
                       }}
                     >
@@ -812,7 +820,7 @@ export const ProfilePage: React.FC = () => {
                     Update Profile
                   </Button>
                 )}
-                sx={{ mx: 3, mb: 2, alignItems: 'center', '& .MuiAlert-message': { fontWeight: 700 } }}
+                      sx={{ mx: { xs: 2, md: 4 }, mb: 2, alignItems: 'center', borderRadius: 2, '& .MuiAlert-message': { fontWeight: 700 } }}
               >
                 Please update your profile to improve your job matches. Current completion: {completion}%.
               </Alert>
@@ -839,18 +847,21 @@ export const ProfilePage: React.FC = () => {
                   borderRadius: 3,
                     border: `1px solid ${isDarkMode ? '#263244' : '#e2e8f0'}`,
                     background: isDarkMode ? '#0B0F17' : undefined,
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                  position: 'sticky', top: 80,
+                  boxShadow: '0 10px 26px rgba(15, 42, 67, 0.08)',
+                  position: 'sticky', top: 88,
                   overflow: 'hidden',
                 }}
               >
-                <Box sx={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #4338ca 100%)', px: 2.5, py: 2 }}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#fff', fontSize: '0.9rem', letterSpacing: '0.02em' }}>
-                    Quick links
+                <Box sx={{ background: 'linear-gradient(135deg, #08243a 0%, #087f82 100%)', px: 2.5, py: 2.25 }}>
+                  <Typography variant="overline" sx={{ fontWeight: 800, color: '#9cf1eb', fontSize: '0.68rem', letterSpacing: '0.12em' }}>
+                    Profile checklist
+                  </Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#fff', fontSize: '1rem', mt: -0.25 }}>
+                    Keep your profile moving
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                     <Box sx={{ flex: 1, height: 4, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.2)' }}>
-                      <Box sx={{ width: `${completion}%`, height: '100%', borderRadius: 2, bgcolor: completion === 100 ? '#4ade80' : '#fbbf24', transition: 'width 0.4s ease' }} />
+                      <Box sx={{ width: `${completion}%`, height: '100%', borderRadius: 2, bgcolor: completion === 100 ? '#5eead4' : '#fbbf24', transition: 'width 0.4s ease' }} />
                     </Box>
                     <Typography variant="caption" sx={{ color: '#fff', fontWeight: 700, fontSize: '0.7rem', flexShrink: 0 }}>{completion}%</Typography>
                   </Box>
@@ -880,7 +891,7 @@ export const ProfilePage: React.FC = () => {
                         sx={{
                           px: 2.5, py: 1,
                           borderBottom: `1px solid ${isDarkMode ? '#263244' : '#f8fafc'}`,
-                          '&:hover': { bgcolor: isDarkMode ? '#172033' : '#f5f3ff', color: '#818CF8' },
+                          '&:hover': { bgcolor: isDarkMode ? '#172033' : '#e8f7f6', color: '#087f82' },
                           transition: 'all 0.15s',
                           cursor: 'pointer',
                         }}
@@ -891,7 +902,7 @@ export const ProfilePage: React.FC = () => {
                         />
                         {badge && (
                           <Typography variant="caption"
-                            sx={{ color: '#A5B4FC', fontWeight: 700, bgcolor: isDarkMode ? '#1E293B' : '#f0f0ff', px: 1, py: 0.25, borderRadius: 1, fontSize: '0.7rem' }}>
+                            sx={{ color: '#087f82', fontWeight: 800, bgcolor: isDarkMode ? '#1E293B' : '#e8f7f6', px: 1, py: 0.25, borderRadius: 1, fontSize: '0.7rem' }}>
                             {badge}
                           </Typography>
                         )}
@@ -928,7 +939,12 @@ export const ProfilePage: React.FC = () => {
                         )}
                         <IconButton
                           size="small" sx={{ color: '#e53935' }}
-                          onClick={() => { setResume(null); setResumeUrl(''); setResumeFileName(''); }}
+                          onClick={() => {
+                            setResume(null);
+                            setResumeUrl('');
+                            setResumeFileName('');
+                            void handleSave(undefined, undefined, null, '');
+                          }}
                         >
                           <DeleteIcon fontSize="small" />
                         </IconButton>
@@ -952,8 +968,9 @@ export const ProfilePage: React.FC = () => {
                           type="file" hidden accept=".pdf,.doc,.docx,.rtf"
                           onChange={(e) => {
                             if (e.target.files?.[0]) {
-                              setResume(e.target.files[0]);
-                              toast.success('Resume selected – click Save Profile to upload');
+                              const selectedFile = e.target.files[0];
+                              setResume(selectedFile);
+                              void handleSave(undefined, undefined, selectedFile);
                             }
                           }}
                         />
@@ -981,8 +998,9 @@ export const ProfilePage: React.FC = () => {
                         type="file" hidden accept=".pdf,.doc,.docx,.rtf"
                         onChange={(e) => {
                           if (e.target.files?.[0]) {
-                            setResume(e.target.files[0]);
-                            toast.success('Resume selected – click Save Profile to upload');
+                            const selectedFile = e.target.files[0];
+                            setResume(selectedFile);
+                            void handleSave(undefined, undefined, selectedFile);
                           }
                         }}
                       />
@@ -1072,7 +1090,7 @@ export const ProfilePage: React.FC = () => {
                         </Box>
                         <IconButton
                           size="small" sx={{ color: '#e53935' }}
-                          onClick={() => setFormData((p) => ({ ...p, workExperience: p.workExperience.filter((e) => e.id !== exp.id) }))}
+                          onClick={() => saveFormUpdate({ workExperience: formData.workExperience.filter((e) => e.id !== exp.id) })}
                         >
                           <DeleteIcon sx={{ fontSize: 16 }} />
                         </IconButton>
@@ -1120,7 +1138,7 @@ export const ProfilePage: React.FC = () => {
                         </Box>
                         <IconButton
                           size="small" sx={{ color: '#e53935' }}
-                          onClick={() => setFormData((p) => ({ ...p, education: p.education.filter((e) => e.id !== edu.id) }))}
+                          onClick={() => saveFormUpdate({ education: formData.education.filter((e) => e.id !== edu.id) })}
                         >
                           <DeleteIcon sx={{ fontSize: 16 }} />
                         </IconButton>
@@ -1176,7 +1194,7 @@ export const ProfilePage: React.FC = () => {
                                 <EditIcon sx={{ fontSize: 14 }} />
                               </IconButton>
                               <IconButton size="small" sx={{ color: '#e53935' }}
-                                onClick={() => setItSkills((p) => p.filter((x) => x.id !== s.id))}>
+                                onClick={() => saveItSkillsUpdate(itSkills.filter((x) => x.id !== s.id))}>
                                 <DeleteIcon sx={{ fontSize: 14 }} />
                               </IconButton>
                             </Box>
@@ -1214,7 +1232,7 @@ export const ProfilePage: React.FC = () => {
                           )}
                         </Box>
                         <IconButton size="small" sx={{ color: '#e53935' }}
-                          onClick={() => setFormData((p) => ({ ...p, projects: p.projects.filter((pr) => pr.id !== proj.id) }))}>
+                          onClick={() => saveFormUpdate({ projects: formData.projects.filter((pr) => pr.id !== proj.id) })}>
                           <DeleteIcon sx={{ fontSize: 16 }} />
                         </IconButton>
                       </Box>
@@ -1309,7 +1327,7 @@ export const ProfilePage: React.FC = () => {
                           </Typography>
                         </Box>
                         <IconButton size="small" sx={{ color: '#e53935' }}
-                          onClick={() => setFormData((p) => ({ ...p, certifications: p.certifications.filter((c) => c.id !== cert.id) }))}>
+                            onClick={() => saveFormUpdate({ certifications: formData.certifications.filter((c) => c.id !== cert.id) })}>
                           <DeleteIcon sx={{ fontSize: 14 }} />
                         </IconButton>
                       </Box>
@@ -1480,19 +1498,40 @@ export const ProfilePage: React.FC = () => {
               </SectionCard>
 
               {/* Save All */}
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 4 }}>
+              <Box sx={{ height: 74, mb: 2 }}>
+                <Box
+                  sx={{
+                    position: 'fixed',
+                    right: { xs: 16, sm: 28, md: 38 },
+                    bottom: { xs: 16, sm: 24 },
+                    zIndex: 1200,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.25,
+                    p: 1,
+                    borderRadius: 3,
+                    bgcolor: isDarkMode ? 'rgba(8, 24, 38, 0.92)' : 'rgba(255,255,255,0.94)',
+                    border: `1px solid ${isDarkMode ? '#28516a' : '#c5dfe0'}`,
+                    boxShadow: '0 14px 34px rgba(8, 36, 58, 0.2)',
+                    backdropFilter: 'blur(12px)',
+                  }}
+                >
+                  <Typography sx={{ display: { xs: 'none', sm: 'block' }, px: 1, color: isDarkMode ? '#c5e7e5' : '#486273', fontSize: 12, fontWeight: 700 }}>
+                    Changes ready?
+                  </Typography>
                 <Button
                   variant="contained" size="large"
                   onClick={() => handleSave()} disabled={saving}
                   sx={{
-                    px: 6, borderRadius: 3, textTransform: 'none', fontWeight: 700, fontSize: '1rem',
-                    background: 'linear-gradient(135deg, #4338ca, #7c3aed)',
-                    boxShadow: '0 4px 16px rgba(99,102,241,0.4)',
-                    '&:hover': { background: 'linear-gradient(135deg, #3730a3, #6d28d9)', boxShadow: '0 6px 20px rgba(99,102,241,0.5)' },
+                    px: { xs: 2.25, sm: 3.5 }, minHeight: 46, borderRadius: 2.25, textTransform: 'none', fontWeight: 800, fontSize: '0.92rem',
+                    background: 'linear-gradient(135deg, #0b817f, #0b6070)',
+                    boxShadow: '0 7px 18px rgba(8, 127, 130, 0.3)',
+                    '&:hover': { background: 'linear-gradient(135deg, #096d6b, #084b5d)', boxShadow: '0 9px 22px rgba(8, 127, 130, 0.38)' },
                   }}
                 >
                   {saving ? 'Saving…' : 'Save Profile'}
                 </Button>
+                </Box>
               </Box>
 
             </Grid>{/* end main */}
@@ -1761,22 +1800,20 @@ export const ProfilePage: React.FC = () => {
                 ? `${newWorkExp.startDate}${endLabel ? ' – ' + endLabel : ''}`
                 : endLabel;
               if (editingWorkExpId) {
-                setFormData((p) => ({
-                  ...p,
-                  workExperience: p.workExperience.map((e) =>
+                saveFormUpdate({
+                  workExperience: formData.workExperience.map((e) =>
                     e.id === editingWorkExpId
                       ? { ...e, position: newWorkExp.position, company: newWorkExp.company, duration, description: newWorkExp.description }
                       : e
                   ),
-                }));
+                });
               } else {
-                setFormData((p) => ({
-                  ...p,
+                saveFormUpdate({
                   workExperience: [
-                    ...p.workExperience,
+                    ...formData.workExperience,
                     { id: Date.now().toString(), position: newWorkExp.position, company: newWorkExp.company, duration, description: newWorkExp.description },
                   ],
-                }));
+                });
               }
               setWorkExpDialog(false);
             }}>
@@ -1809,9 +1846,9 @@ export const ProfilePage: React.FC = () => {
                 return;
               }
               if (editingEducationId) {
-                setFormData((p) => ({ ...p, education: p.education.map((e) => e.id === editingEducationId ? { ...e, ...newEducation } : e) }));
+                saveFormUpdate({ education: formData.education.map((e) => e.id === editingEducationId ? { ...e, ...newEducation } : e) });
               } else {
-                setFormData((p) => ({ ...p, education: [...p.education, { id: Date.now().toString(), ...newEducation }] }));
+                saveFormUpdate({ education: [...formData.education, { id: Date.now().toString(), ...newEducation }] });
               }
               setEducationDialog(false);
             }}>
@@ -1862,9 +1899,9 @@ export const ProfilePage: React.FC = () => {
               const experience = [y ? `${y} Year${y !== 1 ? 's' : ''}` : '', m ? `${m} Month${m !== 1 ? 's' : ''}` : ''].filter(Boolean).join(' ');
               const entry = { skill: newITSkill.skill, version: newITSkill.version, lastUsed: newITSkill.lastUsed, experience };
               if (editingITSkillId) {
-                setItSkills((p) => p.map((s) => s.id === editingITSkillId ? { ...s, ...entry } : s));
+                saveItSkillsUpdate(itSkills.map((s) => s.id === editingITSkillId ? { ...s, ...entry } : s));
               } else {
-                setItSkills((p) => [...p, { id: Date.now().toString(), ...entry }]);
+                saveItSkillsUpdate([...itSkills, { id: Date.now().toString(), ...entry }]);
               }
               setItSkillDialog(false);
             }}>
@@ -1889,7 +1926,7 @@ export const ProfilePage: React.FC = () => {
           <Button variant="contained"
             onClick={() => {
               if (!newProject.title) { toast.error('Project title is required'); return; }
-              setFormData((p) => ({ ...p, projects: [...p.projects, { id: Date.now().toString(), ...newProject }] }));
+              saveFormUpdate({ projects: [...formData.projects, { id: Date.now().toString(), ...newProject }] });
               setProjectDialog(false);
             }}>
             Add
@@ -1913,7 +1950,7 @@ export const ProfilePage: React.FC = () => {
           <Button variant="contained"
             onClick={() => {
               if (!newCert.name || !newCert.issuer) { toast.error('Fill required fields'); return; }
-              setFormData((p) => ({ ...p, certifications: [...p.certifications, { id: Date.now().toString(), ...newCert }] }));
+              saveFormUpdate({ certifications: [...formData.certifications, { id: Date.now().toString(), ...newCert }] });
               setCertDialog(false);
             }}>
             Add
