@@ -55,7 +55,11 @@ export const authService = {
     return data;
   },
 
-  async signInWithGoogle() {
+  async signInWithGoogle(loginMode: 'candidate' | 'recruiter' = 'candidate') {
+    if (loginMode === 'recruiter') {
+      throw new Error('Recruiter accounts cannot sign in with Google.');
+    }
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

@@ -636,7 +636,7 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                 >
                   <MenuItem
                     component={RouterLink}
-                    to={ROUTES.LOGIN}
+                    to={`${ROUTES.LOGIN}?role=${USER_ROLES.RECRUITER}`}
                     onClick={handleRecruiterMenuClose}
                   >
                     🔐 Recruiter Sign In
