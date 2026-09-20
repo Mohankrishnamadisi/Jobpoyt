@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Building2, User, Lock, Upload, Eye, EyeOff, ChevronDown, Search, X, Check, AlertCircle
+  Building2, Lock, Upload, Eye, EyeOff, ChevronDown, Search, X, Check, AlertCircle
 } from 'lucide-react';
 import { Layout } from '@components/layout/Layout';
 import { useAuthStore } from '@store/index';
@@ -12,13 +12,12 @@ import { ROUTES, USER_ROLES, INDUSTRY_TYPES } from '@constants/index';
 import {
   validateEmail,
   validatePassword,
-  validateURL,
-  validateGST,
   validateFileSize,
 } from '@utils/index';
 import toast from 'react-hot-toast';
 
 const RECRUITER_REGISTER_VIDEO_URL = 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/login1.mp4?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9sb2dpbjEubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4OTg4NTI4NywiZXhwIjoyNDIwNjA1Mjg3fQ.Ez1vwU3QZa0AOW2vrHZM8UAeUFgiGHzlK_weBv6Hv3k';
+const RECRUITER_SIDE_VIDEO_URL = 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/recruiter.mp4?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9yZWNydWl0ZXIubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4OTg5NzU5OCwiZXhwIjoyMTA1MjU3NTk4fQ.NnlHw9gHCUHefjBdpqKRhVUl1UmG24JPK5fe4mGml28';
 const RECRUITER_EMAIL_REDIRECT_URL = 'https://jobpoyt.com/recruiter/dashboard';
 
 // ── Country codes ──────────────────────────────────────────────────────────────
@@ -77,12 +76,12 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
         required={required}
         aria-required={required}
         className={`
-          w-full px-3 py-2.5 pt-5 rounded-lg border transition-all duration-200
+          w-full min-h-[52px] px-3 py-2.5 pt-5 rounded-lg border-2 transition-all duration-200
           bg-white text-gray-900 placeholder-transparent text-sm font-medium
           peer focus:outline-none focus:ring-0
           ${error
           ? 'border-red-300 focus:border-red-500'
-          : 'border-gray-300 hover:border-gray-400 focus:border-blue-500'
+          : 'border-slate-300 hover:border-slate-400 focus:border-blue-500'
         }
         `}
         style={{ paddingLeft: prefix ? '3.5rem' : '0.75rem' }}
@@ -420,14 +419,14 @@ const PasswordStrengthMeter: React.FC<PasswordStrengthProps> = ({ password }) =>
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="flex w-full items-center justify-between gap-1">
             {requirements.map((req, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, x: -4 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className="flex items-center gap-2 text-xs"
+                className="flex shrink-0 items-center gap-0.5 text-[8px] whitespace-nowrap"
               >
                 <motion.div
                   initial={{ scale: 0 }}
@@ -435,9 +434,9 @@ const PasswordStrengthMeter: React.FC<PasswordStrengthProps> = ({ password }) =>
                   transition={{ delay: idx * 0.05 }}
                 >
                   {req.met ? (
-                    <Check size={14} className="text-green-500" strokeWidth={3} />
+                    <Check size={11} className="flex-shrink-0 text-green-500" strokeWidth={3} />
                   ) : (
-                    <div className="w-3.5 h-3.5 border-2 border-gray-300 rounded" />
+                    <div className="w-2.5 h-2.5 border-2 border-gray-300 rounded" />
                   )}
                 </motion.div>
                 <span className={req.met ? 'text-gray-700 font-medium' : 'text-gray-500'}>
@@ -448,58 +447,6 @@ const PasswordStrengthMeter: React.FC<PasswordStrengthProps> = ({ password }) =>
           </div>
         </>
       )}
-    </div>
-  );
-};
-
-// ── Step Indicator ─────────────────────────────────────────────────────────────
-interface StepIndicatorProps {
-  currentStep: number;
-  totalSteps: number;
-}
-
-const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep, totalSteps }) => {
-  const steps = ['Company', 'HR Contact', 'Account'];
-
-  return (
-    <div className="flex items-center gap-4 justify-center mb-6">
-      {steps.map((step, idx) => (
-        <React.Fragment key={idx}>
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: idx * 0.1 }}
-            className="flex flex-col items-center"
-          >
-            <motion.div
-              animate={{
-                backgroundColor: idx + 1 <= currentStep ? '#3b82f6' : '#e5e7eb',
-                scale: idx + 1 === currentStep ? 1.1 : 1,
-              }}
-              transition={{ duration: 0.3 }}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md"
-            >
-              {idx + 1 < currentStep ? (
-                <Check size={20} strokeWidth={3} />
-              ) : (
-                idx + 1
-              )}
-            </motion.div>
-            <span className="text-xs font-semibold text-gray-600 mt-2 text-center">{step}</span>
-          </motion.div>
-
-          {idx < totalSteps - 1 && (
-            <motion.div
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: idx + 1 < currentStep ? 1 : 0.3 }}
-              transition={{ duration: 0.4 }}
-              className={`h-1 w-12 rounded-full origin-left ${idx + 1 < currentStep ? 'bg-blue-500' : 'bg-gray-200'
-              }`}
-              style={{ originX: 0 }}
-            />
-          )}
-        </React.Fragment>
-      ))}
     </div>
   );
 };
@@ -579,6 +526,21 @@ export const RecruiterRegister: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  useEffect(() => {
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+
+    document.documentElement.classList.add('recruiter-register-scrollbar-hidden');
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.documentElement.classList.remove('recruiter-register-scrollbar-hidden');
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+    };
+  }, []);
+
   const [formData, setFormData] = useState({
     companyName: '',
     gstNumber: '',
@@ -617,14 +579,6 @@ export const RecruiterRegister: React.FC = () => {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.companyName.trim()) newErrors.companyName = 'Company name is required';
-    if (!validateGST(formData.gstNumber)) newErrors.gstNumber = 'Valid 15-character GST number required';
-    if (!validateEmail(formData.companyEmail)) newErrors.companyEmail = 'Valid company email required';
-    if (formData.companyPhone && formData.companyPhone.length !== 10) newErrors.companyPhone = 'Phone must be exactly 10 digits';
-    if (!validateURL(formData.companyWebsite)) newErrors.companyWebsite = 'Valid website URL required';
-    if (!formData.companyAddress.trim()) newErrors.companyAddress = 'Company address is required';
-    if (!formData.companyDescription.trim()) newErrors.companyDescription = 'Company description is required';
-    if (formData.industryType.length === 0) newErrors.industryType = 'At least one industry type is required';
     if (!formData.hrContactPerson.trim()) newErrors.hrContactPerson = 'HR contact person is required';
     if (!validateEmail(formData.hrEmail)) newErrors.hrEmail = 'Valid HR email required';
     if (formData.hrPhone.length !== 10) newErrors.hrPhone = 'Phone must be exactly 10 digits';
@@ -649,15 +603,6 @@ export const RecruiterRegister: React.FC = () => {
         name: formData.hrContactPerson,
         role: USER_ROLES.RECRUITER,
         recruiterProfile: {
-          company_name: formData.companyName,
-          company_website: formData.companyWebsite,
-          industry: formData.industryType.join(', '),
-          description: formData.companyDescription,
-          location: formData.companyAddress,
-          company_email: formData.companyEmail,
-          company_phone: formData.companyPhone,
-          gst_number: formData.gstNumber,
-          cin_number: formData.cinNumber || undefined,
           hr_name: formData.hrContactPerson,
           hr_email: formData.hrEmail,
           hr_phone: formData.hrPhone,
@@ -695,7 +640,7 @@ export const RecruiterRegister: React.FC = () => {
 
   return (
     <Layout footer={false}>
-      <div className="relative min-h-screen overflow-hidden py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
+      <div className="recruiter-register-page relative min-h-screen overflow-hidden py-1 sm:py-2 px-4 sm:px-6 lg:px-8">
         <video
           className="fixed inset-0 h-full w-full object-cover pointer-events-none -z-20"
           src={RECRUITER_REGISTER_VIDEO_URL}
@@ -706,55 +651,68 @@ export const RecruiterRegister: React.FC = () => {
           aria-hidden="true"
         />
 
-        <div className="max-w-xl mx-auto">
-          {/* Hero Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-5"
-          >
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 lg:min-h-[calc(100vh-84px)] lg:grid-cols-[minmax(0,0.85fr)_minmax(420px,0.95fr)] gap-6 items-start lg:items-center">
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 text-blue-700 text-xs font-bold px-4 py-2 rounded-full border border-blue-200/60 mb-4"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.35, duration: 0.5 }}
+                className="w-full max-w-xs mx-auto lg:max-w-none h-[450px] lg:h-[640px] rounded-2xl overflow-hidden border border-white/70 shadow-xl bg-black/10"
             >
-              <Building2 size={16} />
-              <span>Premium Recruiter Portal</span>
+              <video
+                className="block w-full h-full object-cover"
+                src={RECRUITER_SIDE_VIDEO_URL}
+                autoPlay
+                muted
+                loop
+                playsInline
+                aria-label="Recruiter overview video"
+              />
             </motion.div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 mb-2 leading-tight tracking-tight whitespace-nowrap"
-            >
-              Register Your{' '}
-              <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                Company
-              </span>
-            </motion.h1>
+            <div className="min-w-0">
+              {/* Hero Header */}
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="text-center mb-4"
+              >
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-400/25 via-blue-500/20 to-violet-500/25 text-blue-700 text-xs font-bold px-4 py-2 rounded-full border border-cyan-200/70 mb-3"
+                >
+                  <Building2 size={16} />
+                  <span>Premium Recruiter Portal</span>
+                </motion.div>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="text-gray-600 text-sm sm:text-base whitespace-nowrap"
-            >
-              Join thousands of recruiters hiring top talent. Get started in minutes.
-            </motion.p>
-          </motion.div>
+                <motion.h1
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-xl sm:text-2xl lg:text-3xl font-black bg-gradient-to-r from-cyan-500 via-blue-600 to-violet-600 bg-clip-text text-transparent mb-1 leading-tight tracking-tight whitespace-nowrap"
+                >
+                  Recruiter Registration
+                </motion.h1>
 
-          {/* Step Indicator */}
-          <StepIndicator currentStep={currentStep} totalSteps={3} />
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-slate-600 text-[11px] sm:text-xs whitespace-nowrap"
+                >
+                  Join thousands of recruiters hiring top talent. Get started in minutes.
+                </motion.p>
+              </motion.div>
 
-          {/* Main Card */}
+              {/* Main Card */}
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
-            className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white/60 shadow-2xl overflow-hidden"
+            className="max-w-sm mx-auto bg-white/90 backdrop-blur-xl rounded-2xl border border-white/60 shadow-2xl overflow-hidden"
           >
             <form onSubmit={handleSubmit} noValidate className="divide-y divide-gray-100">
               {/* STEP 1: Company Info */}
@@ -762,7 +720,7 @@ export const RecruiterRegister: React.FC = () => {
                 initial={currentStep !== 1 ? { opacity: 0, x: 100 } : {}}
                 animate={currentStep === 1 ? { opacity: 1, x: 0 } : currentStep > 1 ? { opacity: 0, x: -100 } : {}}
                 transition={{ duration: 0.4 }}
-                className={currentStep === 1 ? 'p-6 sm:p-8 space-y-4' : 'hidden'}
+                className="hidden"
               >
                 <div className="flex items-start gap-4">
                   <div className="p-3 bg-blue-100 rounded-2xl text-blue-600 mt-1 flex-shrink-0">
@@ -774,7 +732,7 @@ export const RecruiterRegister: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <FloatingInput
                     label="Company Name"
                     name="companyName"
@@ -827,7 +785,7 @@ export const RecruiterRegister: React.FC = () => {
                     <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
                       Company Phone
                     </label>
-                    <div className="flex gap-3">
+                    <div className="flex gap-2">
                       <div className="relative w-24">
                         <select
                           name="companyPhoneCountry"
@@ -912,24 +870,14 @@ export const RecruiterRegister: React.FC = () => {
 
               {/* STEP 2: HR Contact */}
               <motion.div
-                initial={currentStep !== 2 ? { opacity: 0, x: 100 } : {}}
-                animate={currentStep === 2 ? { opacity: 1, x: 0 } : currentStep > 2 ? { opacity: 0, x: -100 } : {}}
+                initial={currentStep !== 1 ? { opacity: 0, x: 100 } : {}}
+                animate={currentStep === 1 ? { opacity: 1, x: 0 } : currentStep > 1 ? { opacity: 0, x: -100 } : {}}
                 transition={{ duration: 0.4 }}
-                className={currentStep === 2 ? 'p-6 sm:p-8 space-y-4' : 'hidden'}
+                className={currentStep === 1 ? 'p-4 sm:p-5 space-y-2' : 'hidden'}
               >
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-purple-100 rounded-2xl text-purple-600 mt-1 flex-shrink-0">
-                    <User size={28} />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">HR Contact Details</h2>
-                    <p className="text-gray-500 text-sm mt-1">Primary point of contact for hiring</p>
-                  </div>
-                </div>
-
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <FloatingInput
-                    label="HR Contact Person"
+                    label="HR / Recruiter Name"
                     name="hrContactPerson"
                     value={formData.hrContactPerson}
                     onChange={handleChange}
@@ -938,7 +886,7 @@ export const RecruiterRegister: React.FC = () => {
                   />
 
                   <FloatingInput
-                    label="HR Email"
+                    label="Work Email"
                     name="hrEmail"
                     type="email"
                     value={formData.hrEmail}
@@ -949,14 +897,14 @@ export const RecruiterRegister: React.FC = () => {
 
                   <div className="space-y-2">
                     <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                      HR Phone <span className="text-red-500">*</span>
+                      Mobile Number <span className="text-red-500">*</span>
                     </label>
                     <div className="flex gap-3">
                       <select
                         name="hrPhoneCountry"
                         value={formData.hrPhoneCountry}
                         onChange={handleChange}
-                        className="w-24 px-4 py-3 rounded-xl border-2 border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all bg-white text-sm font-medium"
+                        className="w-20 px-2 py-2 rounded-lg border-2 border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all bg-white text-sm font-medium"
                       >
                         {CountryCodes.map(cc => (
                           <option key={cc.code} value={cc.code}>
@@ -966,7 +914,7 @@ export const RecruiterRegister: React.FC = () => {
                       </select>
                       <div className="flex-1">
                         <FloatingInput
-                          label="Phone"
+                          label="Enter mobile number"
                           name="hrPhone"
                           value={formData.hrPhone}
                           onChange={handleChange}
@@ -976,48 +924,7 @@ export const RecruiterRegister: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex gap-3 mt-8">
-                  <motion.button
-                    type="button"
-                    onClick={() => setCurrentStep(1)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="flex-1 border-2 border-gray-200 hover:border-gray-300 text-gray-700 font-bold py-4 px-6 rounded-2xl transition-all duration-200"
-                  >
-                    Back
-                  </motion.button>
-                  <motion.button
-                    type="button"
-                    onClick={() => setCurrentStep(3)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-4 px-6 rounded-2xl transition-all duration-200 shadow-lg shadow-blue-200"
-                  >
-                    Continue to Account
-                  </motion.button>
-                </div>
-              </motion.div>
-
-              {/* STEP 3: Account Setup */}
-              <motion.div
-                initial={currentStep !== 3 ? { opacity: 0, x: 100 } : {}}
-                animate={currentStep === 3 ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.4 }}
-                className={currentStep === 3 ? 'p-6 sm:p-8 space-y-4' : 'hidden'}
-              >
-                <div className="flex items-start gap-4">
-                  <div className="p-3 bg-emerald-100 rounded-2xl text-emerald-600 mt-1 flex-shrink-0">
-                    <Lock size={28} />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">Account Setup</h2>
-                    <p className="text-gray-500 text-sm mt-1">Create your recruiter login credentials</p>
-                  </div>
-                </div>
-
-                <div className="space-y-6">
                   <FloatingInput
                     label="Password"
                     name="password"
@@ -1045,7 +952,39 @@ export const RecruiterRegister: React.FC = () => {
                     showPassword={showConfirm}
                     onToggle={() => setShowConfirm(!showConfirm)}
                   />
+                </div>
 
+                <div className="flex justify-end mt-4">
+                  <motion.button
+                    type="submit"
+                    disabled={loading}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-auto min-w-32 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-bold py-2 px-5 rounded-lg transition-all duration-200 shadow-lg shadow-blue-200 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Registering...' : 'Register'}
+                  </motion.button>
+                </div>
+              </motion.div>
+
+              {/* STEP 3: Account Setup */}
+              <motion.div
+                initial={currentStep !== 2 ? { opacity: 0, x: 100 } : {}}
+                animate={currentStep === 2 ? { opacity: 1, x: 0 } : {}}
+                transition={{ duration: 0.4 }}
+                className={currentStep === 2 ? 'p-4 sm:p-5 space-y-2' : 'hidden'}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-emerald-100 rounded-2xl text-emerald-600 mt-1 flex-shrink-0">
+                    <Lock size={28} />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Account Setup</h2>
+                    <p className="text-gray-500 text-sm mt-1">Create your recruiter login credentials</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
                   {/* Terms */}
                   <div className="pt-2 text-xs text-gray-500 text-center">
                     By registering, you agree to our{' '}
@@ -1060,13 +999,13 @@ export const RecruiterRegister: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex gap-3 mt-8">
+                <div className="flex gap-3 mt-5">
                   <motion.button
                     type="button"
-                    onClick={() => setCurrentStep(2)}
+                    onClick={() => setCurrentStep(1)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="flex-1 border-2 border-gray-200 hover:border-gray-300 text-gray-700 font-bold py-4 px-6 rounded-2xl transition-all duration-200"
+                    className="flex-1 border-2 border-gray-200 hover:border-gray-300 text-gray-700 font-bold py-3 px-4 rounded-xl transition-all duration-200"
                   >
                     Back
                   </motion.button>
@@ -1075,7 +1014,7 @@ export const RecruiterRegister: React.FC = () => {
                     disabled={loading}
                     whileHover={!loading ? { scale: 1.02 } : {}}
                     whileTap={!loading ? { scale: 0.98 } : {}}
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-bold py-4 px-6 rounded-2xl transition-all duration-200 shadow-lg shadow-blue-200 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-400 text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 shadow-lg shadow-blue-200 flex items-center justify-center gap-2 disabled:cursor-not-allowed"
                   >
                     {loading ? (
                       <>
@@ -1106,19 +1045,21 @@ export const RecruiterRegister: React.FC = () => {
             </form>
           </motion.div>
 
-          {/* Trust Badges */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="flex items-center justify-center gap-6 mt-12 flex-wrap"
-          >
-            {['🔒 ISO 27001', '✅ GDPR Compliant', '⭐ Enterprise Grade'].map((badge, idx) => (
-              <div key={idx} className="text-xs font-semibold text-gray-600">
-                {badge}
-              </div>
-            ))}
-          </motion.div>
+              {/* Trust Badges */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="flex items-center justify-center gap-3 mt-2 flex-wrap"
+              >
+                {['🔒 ISO 27001', '✅ GDPR Compliant', '⭐ Enterprise Grade'].map((badge, idx) => (
+                  <div key={idx} className="text-[11px] font-semibold text-gray-600">
+                    {badge}
+                  </div>
+                ))}
+              </motion.div>
+            </div>
+          </div>
         </div>
       </div>
 
