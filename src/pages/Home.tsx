@@ -229,7 +229,7 @@ export const Home: React.FC = () => {
           backgroundSize: 'cover',
           backgroundPosition: 'center center',
           backgroundRepeat: 'no-repeat',
-          py: { xs: 2.5, sm: 3.5, md: 4.5 },
+          py: { xs: 3.5, sm: 5, md: 6.5 },
         }}
         variants={containerVariants}
         initial="hidden"
@@ -237,7 +237,7 @@ export const Home: React.FC = () => {
       >
         <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
           <MotionBox sx={{ maxWidth: { xs: '100%', md: 860 }, textAlign: 'center', mx: 'auto', transform: { md: 'translateX(-4%)' } }} variants={itemVariants}>
-            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.7, mb: 1.5 }}>
+            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.7, mb: { xs: 2, md: 2.4 } }}>
               <Chip
                 icon={<ExploreIcon sx={{ fontSize: '0.85rem !important' }} />}
                 label="India's Career Gateway"
@@ -259,7 +259,7 @@ export const Home: React.FC = () => {
                 mx: 'auto',
                 fontSize: { xs: '1.6rem', sm: '2.1rem', md: '2.55rem' },
                 fontWeight: 800,
-                mb: 1.5,
+                mb: { xs: 2, md: 2.2 },
                 color: '#102A43',
                 letterSpacing: 0,
                 lineHeight: 1.08,
@@ -277,7 +277,7 @@ export const Home: React.FC = () => {
               variant="h5"
               sx={{
                 color: '#334E68',
-                mb: 2,
+                mb: { xs: 2.5, md: 3 },
                 fontSize: { xs: '0.76rem', md: '0.88rem' },
                 fontWeight: 400,
                 maxWidth: 700,
@@ -291,7 +291,7 @@ export const Home: React.FC = () => {
               step in your career journey. All in one place.
             </MotionTypography>
 
-            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="center" divider={<Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' }, borderColor: 'rgba(71, 85, 105, 0.24)' }} />} sx={{ mb: 3.8 }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="center" divider={<Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' }, borderColor: 'rgba(71, 85, 105, 0.24)' }} />} sx={{ mb: { xs: 4.5, md: 5.2 } }}>
               {[
                 { value: heroStats.activeJobs === null ? '—' : heroStats.activeJobs.toLocaleString(), label: 'Active Jobs', Icon: WorkIcon },
                 { value: heroStats.companies === null ? '—' : heroStats.companies.toLocaleString(), label: 'Hiring Companies', Icon: EmojiEventsIcon },
@@ -309,7 +309,7 @@ export const Home: React.FC = () => {
             </Stack>
           </MotionBox>
 
-          <MotionBox variants={itemVariants} sx={{ maxWidth: 940, mx: 'auto', mt: { xs: 1.5, md: 2 } }}>
+          <MotionBox variants={itemVariants} sx={{ maxWidth: 940, mx: 'auto', mt: { xs: 2, md: 2.8 } }}>
             <Paper
               elevation={0}
               sx={{
@@ -466,16 +466,23 @@ export const Home: React.FC = () => {
             </Paper>
           </MotionBox>
 
-          <Grid container spacing={1.1} sx={{ maxWidth: 940, mx: 'auto', mt: { xs: 2.2, md: 2.8 } }}>
+          <Grid container spacing={{ xs: 1.5, md: 1.8 }} justifyContent="center" sx={{ width: '100%', maxWidth: 940, mx: 'auto', mt: { xs: 3, md: 3.8 }, transform: { md: 'translateX(12%)' } }}>
             {[
               { title: 'Discover Opportunities', detail: 'Find the right roles for your skills', Icon: ExploreIcon },
               { title: 'Apply with Confidence', detail: 'Verified jobs from trusted employers', Icon: VerifiedUserIcon },
               { title: 'Grow Continuously', detail: 'Access learning & career resources', Icon: SchoolIcon },
               { title: 'Achieve Your Goals', detail: 'Take your career to the next level', Icon: EmojiEventsIcon },
-            ].map(({ title, detail, Icon }) => (
+            ].map(({ title, detail, Icon }, index) => (
               <Grid item xs={12} sm={6} md={3} key={title}>
                 <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', gap: 0.7, p: 0.9, borderRadius: 1.7, background: 'rgba(255,255,255,0.58)', border: '1px solid rgba(148, 197, 255, 0.24)' }}>
-                  <Box sx={{ width: 27, height: 27, flexShrink: 0, borderRadius: '50%', display: 'grid', placeItems: 'center', color: '#1D4ED8', bgcolor: '#DBEAFE' }}><Icon sx={{ fontSize: 14 }} /></Box>
+                  <MotionBox
+                    animate={{ y: [0, -2, 0], scale: [1, 1.04, 1] }}
+                    transition={{ duration: 2.8, repeat: Infinity, delay: index * 0.2, ease: 'easeInOut' }}
+                    whileHover={{ scale: 1.16, rotate: 8 }}
+                    sx={{ width: 27, height: 27, flexShrink: 0, borderRadius: '50%', display: 'grid', placeItems: 'center', color: '#1D4ED8', bgcolor: '#DBEAFE', cursor: 'default' }}
+                  >
+                    <Icon sx={{ fontSize: 14 }} />
+                  </MotionBox>
                   <Box>
                     <Typography sx={{ color: '#102A43', fontSize: '0.68rem', fontWeight: 800, lineHeight: 1.2 }}>{title}</Typography>
                     <Typography sx={{ color: '#627D98', fontSize: '0.58rem', mt: 0.25, lineHeight: 1.25 }}>{detail}</Typography>
