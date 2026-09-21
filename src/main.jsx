@@ -8,7 +8,7 @@ import App from './App.tsx'
 window.addEventListener('beforeinstallprompt', (event) => {
   event.preventDefault();
   window.__jobpoytDeferredInstallPrompt = event;
-  window.dispatchEvent(new CustomEvent('pwa:beforeinstallprompt')); 
+  window.dispatchEvent(new CustomEvent('pwa:beforeinstallprompt'));
 }, { once: true });
 
 const registerServiceWorker = async () => {

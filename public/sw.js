@@ -1,18 +1,13 @@
-const CACHE_PREFIX = 'jobpoyt-cache';
+const CACHE_PREFIX = 'jobpoyt-v4';
+const LEGACY_CACHE_PREFIXES = ['jobpoyt-cache', 'jobpoyt-v'];
 const SHELL_CACHE_ASSETS = [
   '/',
   '/index.html',
   '/favicon.svg',
   '/manifest.json',
-  '/icons/icon-72x72.png',
-  '/icons/icon-96x96.png',
-  '/icons/icon-128x128.png',
-  '/icons/icon-144x144.png',
-  '/icons/icon-152x152.png',
-  '/icons/icon-192x192.png',
-  '/icons/icon-384x384.png',
-  '/icons/icon-512x512.png',
-  '/icons/icon-512x512-maskable.png',
+  '/icons/jobpoyt-icon-192-v4.png',
+  '/icons/jobpoyt-icon-512-v4.png',
+  '/icons/jobpoyt-icon-512-maskable-v4.png',
   '/jobpoyttitle.png',
 ];
 
@@ -55,7 +50,15 @@ self.addEventListener('install', (event) => {
     (async () => {
       const cacheName = await getCacheName();
       const cache = await caches.open(cacheName);
-      await cache.addAll(SHELL_CACHE_ASSETS);
+      await Promise.all(
+        SHELL_CACHE_ASSETS.map(async (asset) => {
+          try {
+            await cache.add(asset);
+          } catch (error) {
+            // A non-critical optional asset must not block SW installation.
+          }
+        })
+      );
       self.skipWaiting();
     })()
   );
@@ -68,7 +71,10 @@ self.addEventListener('activate', (event) => {
       const cacheNames = await caches.keys();
       await Promise.all(
         cacheNames
-          .filter((cacheName) => cacheName.startsWith(CACHE_PREFIX) && cacheName !== currentCacheName)
+          .filter((cacheName) => (
+            LEGACY_CACHE_PREFIXES.some((prefix) => cacheName.startsWith(prefix)) &&
+            cacheName !== currentCacheName
+          ))
           .map((cacheName) => caches.delete(cacheName))
       );
       self.clients.claim();

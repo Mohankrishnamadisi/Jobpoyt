@@ -175,14 +175,7 @@ export const usePWAInstall = () => {
   }, []);
 
   useEffect(() => {
-    const onBeforeInstallPrompt = (event: Event) => {
-      event.preventDefault();
-      const prompt = event as unknown as DeferredInstallPrompt;
-      window.__jobpoytDeferredInstallPrompt = prompt;
-      setDeferredPrompt(prompt);
-    };
-
-    const onStoredBeforeInstallPrompt = () => {
+    const onPromptCaptured = () => {
       if (window.__jobpoytDeferredInstallPrompt) {
         setDeferredPrompt(window.__jobpoytDeferredInstallPrompt);
       }
@@ -205,8 +198,7 @@ export const usePWAInstall = () => {
       }
     };
 
-    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt as EventListener);
-    window.addEventListener('pwa:beforeinstallprompt', onStoredBeforeInstallPrompt);
+    window.addEventListener('pwa:beforeinstallprompt', onPromptCaptured);
     window.addEventListener('appinstalled', onAppInstalled as EventListener);
 
     if (media && typeof media.addEventListener === 'function') {
@@ -214,8 +206,7 @@ export const usePWAInstall = () => {
     }
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt as EventListener);
-      window.removeEventListener('pwa:beforeinstallprompt', onStoredBeforeInstallPrompt);
+      window.removeEventListener('pwa:beforeinstallprompt', onPromptCaptured);
       window.removeEventListener('appinstalled', onAppInstalled as EventListener);
       if (media && typeof media.removeEventListener === 'function') {
         media.removeEventListener('change', onDisplayModeChanged);

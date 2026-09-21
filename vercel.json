@@ -30,7 +30,7 @@
   ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!manifest\\.json|sw\\.js|icons/|favicon|apple-touch-icon).*)",
       "destination": "/index.html"
     }
   ]

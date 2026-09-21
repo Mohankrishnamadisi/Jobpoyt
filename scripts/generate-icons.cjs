@@ -7,14 +7,8 @@ const input = path.join(__dirname, '..', 'public', 'jobpoyttitle.png');
 const outDir = path.join(__dirname, '..', 'public', 'icons');
 
 const sizes = [
-  { name: 'icon-72x72.png', size: 72 },
-  { name: 'icon-96x96.png', size: 96 },
-  { name: 'icon-128x128.png', size: 128 },
-  { name: 'icon-144x144.png', size: 144 },
-  { name: 'icon-152x152.png', size: 152 },
-  { name: 'icon-192x192.png', size: 192 },
-  { name: 'icon-384x384.png', size: 384 },
-  { name: 'icon-512x512.png', size: 512 },
+  { name: 'jobpoyt-icon-192-v4.png', size: 192 },
+  { name: 'jobpoyt-icon-512-v4.png', size: 512 },
 ];
 
 async function ensureDir() {
@@ -39,7 +33,7 @@ async function generate() {
   }
 
   // Create maskable 512
-  const maskOut = path.join(outDir, 'icon-512x512-maskable.png');
+  const maskOut = path.join(outDir, 'jobpoyt-icon-512-maskable-v4.png');
   await sharp(input)
     .resize(512, 512, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 0 } })
     .png({ quality: 90 })
