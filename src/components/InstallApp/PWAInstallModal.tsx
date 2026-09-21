@@ -16,6 +16,8 @@ import {
   AddToHomeScreen as AddToHomeScreenIcon,
   Close as CloseIcon,
   IosShare as IosShareIcon,
+  MoreVert as MoreVertIcon,
+  InstallMobile as InstallMobileIcon,
   SwipeUp as SwipeUpIcon,
   TouchApp as TouchAppIcon,
 } from '@mui/icons-material';
@@ -54,6 +56,12 @@ const steps = [
   },
 ];
 
+const androidSteps = [
+  { id: 1, title: 'Open the browser menu', description: 'Tap the three dots in Chrome or Samsung Internet.', icon: MoreVertIcon },
+  { id: 2, title: 'Choose Install app', description: 'Tap Install app or Add to Home screen.', icon: InstallMobileIcon },
+  { id: 3, title: 'Confirm installation', description: 'Tap Install and launch JobPoyt from your home screen.', icon: AddToHomeScreenIcon },
+];
+
 export const PWAInstallModal: React.FC<PWAInstallModalProps> = ({ open, platform, onClose }) => {
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
@@ -61,7 +69,9 @@ export const PWAInstallModal: React.FC<PWAInstallModalProps> = ({ open, platform
     onClose(dontShowAgain);
   };
 
-  const platformLabel = platform === 'ipados' ? 'iPad' : 'iPhone';
+  const isAndroid = platform === 'android';
+  const platformLabel = isAndroid ? 'Android' : platform === 'ipados' ? 'iPad' : 'iPhone';
+  const platformSteps = isAndroid ? androidSteps : steps;
 
   return (
     <Dialog
@@ -96,7 +106,7 @@ export const PWAInstallModal: React.FC<PWAInstallModalProps> = ({ open, platform
             Install on {platformLabel}
           </Typography>
           <Typography variant="body2" sx={{ color: 'rgba(226,232,240,0.9)' }}>
-            Add this app to Home Screen for a native-like experience.
+            {isAndroid ? 'Install JobPoyt from your browser menu for a native-like experience.' : 'Add this app to Home Screen for a native-like experience.'}
           </Typography>
         </Box>
         <IconButton aria-label="Close install instructions" onClick={handleClose} sx={{ color: '#CBD5E1' }}>
@@ -106,7 +116,7 @@ export const PWAInstallModal: React.FC<PWAInstallModalProps> = ({ open, platform
 
       <DialogContent sx={{ p: { xs: 1.5, md: 2 } }}>
         <Grid container spacing={1.2}>
-          {steps.map((step) => (
+          {platformSteps.map((step) => (
             <Grid item xs={12} sm={6} key={step.id}>
               <Box
                 sx={{
@@ -159,7 +169,7 @@ export const PWAInstallModal: React.FC<PWAInstallModalProps> = ({ open, platform
               checked={dontShowAgain}
               onChange={(event) => setDontShowAgain(event.target.checked)}
               color="primary"
-              inputProps={{ 'aria-label': 'Do not show iOS install instructions again' }}
+              inputProps={{ 'aria-label': 'Do not show install instructions again' }}
             />
           }
           label={<Typography variant="body2">Don&apos;t show again</Typography>}

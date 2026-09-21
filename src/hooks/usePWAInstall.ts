@@ -326,6 +326,10 @@ export const usePWAInstall = () => {
         platform: env.platform,
         browser: env.browser,
       });
+      if (env.platform === 'android' || env.platform === 'ios' || env.platform === 'ipados') {
+        openIosInstructions();
+        return { outcome: env.platform === 'android' ? 'unsupported' : 'ios-instructions' };
+      }
       return { outcome: 'unsupported' };
     }
 
