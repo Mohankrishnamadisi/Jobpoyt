@@ -297,9 +297,23 @@ export const usePWAInstall = () => {
     }
   }, [updatePreferences]);
 
+  const updateInstalledApp = useCallback(async () => {
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        await registration?.update();
+      } catch {
+        // Reload still lets the browser use the newest available app shell.
+      }
+    }
+
+    window.location.reload();
+  }, []);
+
   const promptInstall = useCallback(async (): Promise<PromptInstallResult> => {
     if (isInstalled || isStandalone) {
-      return { outcome: 'already-installed' };
+      await updateInstalledApp();
+      return { outcome: 'accepted' };
     }
 
     if (availability === 'ios_instructions') {
@@ -347,7 +361,7 @@ export const usePWAInstall = () => {
     } catch (error) {
       return { outcome: 'error', reason: error instanceof Error ? error.message : 'install prompt failed' };
     }
-  }, [availability, deferredPrompt, env.browser, env.platform, isInstalled, isStandalone, openIosInstructions]);
+  }, [availability, deferredPrompt, env.browser, env.platform, isInstalled, isStandalone, openIosInstructions, updateInstalledApp]);
 
   const state: UsePwaInstallState = {
     platform: env.platform,
@@ -370,6 +384,7 @@ export const usePWAInstall = () => {
     ...state,
     iosModalOpen,
     promptInstall,
+    updateInstalledApp,
     openIosInstructions,
     closeIosInstructions,
     hideInstallBanner,
