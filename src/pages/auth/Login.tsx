@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Container,
@@ -8,7 +8,6 @@ import {
   Typography,
   Link,
   Divider,
-  Alert,
   IconButton,
   InputAdornment,
 } from '@mui/material';
@@ -37,6 +36,21 @@ export const Login: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoadingState] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    const mobileQuery = window.matchMedia('(max-width: 1023px)');
+    if (!mobileQuery.matches) return undefined;
+
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+    };
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -167,7 +181,7 @@ export const Login: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
-          py: { xs: 1.5, sm: 2 },
+          py: { xs: 1, lg: 2 },
         }}
       >
         <Box
@@ -197,12 +211,12 @@ export const Login: React.FC = () => {
             background: 'linear-gradient(90deg, rgba(2, 6, 23, 0.06), rgba(2, 6, 23, 0.02)), linear-gradient(180deg, rgba(2, 6, 23, 0.02), rgba(2, 6, 23, 0.06))',
           }}
         />
-        <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 1, px: { xs: 2, sm: 0 }, maxWidth: { sm: 500 } }}>
+        <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 1, px: { xs: 1, lg: 0 }, maxWidth: { xs: 360, lg: 500 } }}>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <Card
               sx={{
-                p: { xs: 2.5, sm: 3.25 },
-                borderRadius: 4,
+                p: { xs: 1.5, lg: 3.25 },
+                borderRadius: { xs: 3, lg: 4 },
                 border: '1px solid rgba(255, 255, 255, 0.82)',
                 boxShadow: '0 28px 80px rgba(15, 23, 42, 0.3), 0 0 0 1px rgba(96, 165, 250, 0.2)',
                 backdropFilter: 'blur(18px)',
@@ -219,12 +233,12 @@ export const Login: React.FC = () => {
                   pointerEvents: 'none',
                 }}
               />
-              <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center', mb: 2.5 }}>
+              <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center', mb: { xs: 1.25, lg: 2.5 } }}>
                 <Typography
                   variant="h4"
                   sx={{
                     fontWeight: 850,
-                    fontSize: { xs: '1.75rem', sm: '1.95rem' },
+                    fontSize: { xs: '1.35rem', lg: '1.95rem' },
                     letterSpacing: '-0.02em',
                     mb: 0.75,
                     background: 'linear-gradient(135deg, #0F172A 0%, #2563EB 100%)',
@@ -235,7 +249,7 @@ export const Login: React.FC = () => {
                 >
                   Welcome Back
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#475569', mb: 0.5 }}>
+                <Typography variant="body2" sx={{ color: '#475569', mb: 0.35, fontSize: { xs: '0.75rem', lg: '0.875rem' } }}>
                   {isCandidateLogin
                     ? 'Securely access your dashboard and discover premium opportunities.'
                     : 'Securely access your recruiter dashboard and manage your hiring workflow.'}
@@ -245,7 +259,7 @@ export const Login: React.FC = () => {
                   sx={{
                     color: '#475569',
                     whiteSpace: 'nowrap',
-                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    fontSize: { xs: '0.65rem', lg: '0.875rem' },
                   }}
                 >
                   {isCandidateLogin
@@ -266,7 +280,7 @@ export const Login: React.FC = () => {
                   helperText={errors.email}
                   size="small"
                   sx={{
-                    mb: 1.75,
+                    mb: { xs: 1, lg: 1.75 },
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
                       backgroundColor: 'rgba(239,246,255,0.78)',
@@ -274,6 +288,11 @@ export const Login: React.FC = () => {
                       '&:hover fieldset': { borderColor: 'rgba(37,99,235,0.42)' },
                       '&.Mui-focused fieldset': { borderColor: '#2563EB' },
                     },
+                    '& .MuiInputBase-input': {
+                      fontSize: { xs: '0.82rem', lg: '1rem' },
+                      py: { xs: 0.9, lg: 1 },
+                    },
+                    '& .MuiInputLabel-root': { fontSize: { xs: '0.78rem', lg: '1rem' } },
                   }}
                 />
 
@@ -288,7 +307,7 @@ export const Login: React.FC = () => {
                   helperText={errors.password}
                   size="small"
                   sx={{
-                    mb: 1,
+                    mb: { xs: 0.75, lg: 1 },
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 2,
                       backgroundColor: 'rgba(239,246,255,0.78)',
@@ -296,6 +315,11 @@ export const Login: React.FC = () => {
                       '&:hover fieldset': { borderColor: 'rgba(37,99,235,0.42)' },
                       '&.Mui-focused fieldset': { borderColor: '#2563EB' },
                     },
+                    '& .MuiInputBase-input': {
+                      fontSize: { xs: '0.82rem', lg: '1rem' },
+                      py: { xs: 0.9, lg: 1 },
+                    },
+                    '& .MuiInputLabel-root': { fontSize: { xs: '0.78rem', lg: '1rem' } },
                   }}
                   InputProps={{
                     endAdornment: (
@@ -315,7 +339,7 @@ export const Login: React.FC = () => {
                 <Link
                   component={RouterLink}
                   to={ROUTES.FORGOT_PASSWORD}
-                  sx={{ fontSize: '0.8rem', display: 'block', mb: 2, color: '#1D4ED8', fontWeight: 600 }}
+                  sx={{ fontSize: { xs: '0.7rem', lg: '0.8rem' }, display: 'block', mb: { xs: 1.25, lg: 2 }, color: '#1D4ED8', fontWeight: 600 }}
                 >
                   Forgot Password?
                 </Link>
@@ -327,12 +351,12 @@ export const Login: React.FC = () => {
                   size="large"
                   disabled={loading}
                   sx={{
-                    py: 1.25,
-                    mb: 1.5,
+                    py: { xs: 0.85, lg: 1.25 },
+                    mb: { xs: 1, lg: 1.5 },
                     borderRadius: 2,
                     fontWeight: 800,
                     textTransform: 'none',
-                    fontSize: '0.98rem',
+                    fontSize: { xs: '0.82rem', lg: '0.98rem' },
                     background: 'linear-gradient(135deg, #2563EB 0%, #0EA5E9 55%, #7C3AED 100%)',
                     boxShadow: '0 14px 30px rgba(37, 99, 235, 0.28)',
                     '&:hover': {
@@ -346,7 +370,7 @@ export const Login: React.FC = () => {
 
               {isCandidateLogin && (
                 <>
-                  <Divider sx={{ my: 2, color: '#64748B', '&::before, &::after': { borderColor: 'rgba(100,116,139,0.28)' } }}>OR</Divider>
+                  <Divider sx={{ my: { xs: 1.25, lg: 2 }, color: '#64748B', fontSize: { xs: '0.8rem', lg: '1rem' }, '&::before, &::after': { borderColor: 'rgba(100,116,139,0.28)' } }}>OR</Divider>
 
                   <button
                     type="button"

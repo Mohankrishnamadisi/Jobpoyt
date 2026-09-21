@@ -14,7 +14,6 @@ export const InstallApp: React.FC = () => {
   const {
     isInstalled,
     promptInstall,
-    availability,
     platform,
     iosModalOpen,
     closeIosInstructions,
@@ -24,7 +23,7 @@ export const InstallApp: React.FC = () => {
     await promptInstall();
   };
 
-  if (isInstalled || availability === 'already_installed' || availability === 'unsupported') return null;
+  if (isInstalled) return null;
 
   if (isMobile) {
     return (

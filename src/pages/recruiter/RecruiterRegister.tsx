@@ -87,8 +87,8 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         className={`
-          w-full min-h-[52px] px-3 py-2.5 pt-5 rounded-lg border-2 transition-all duration-200
-          bg-slate-50/85 text-slate-900 text-sm font-medium
+          w-full min-h-[42px] lg:min-h-[52px] px-2.5 lg:px-3 py-1.5 lg:py-2.5 pt-3.5 lg:pt-5 rounded-lg border-2 transition-all duration-200
+          bg-slate-50/85 text-slate-900 text-xs lg:text-sm font-medium
           ${showPlaceholder ? 'placeholder-gray-400' : 'placeholder-transparent'}
           peer focus:outline-none focus:ring-0
           ${error
@@ -103,7 +103,7 @@ const FloatingInput: React.FC<FloatingInputProps> = ({
       <label
         className={`
           absolute left-3 transition-all duration-200 pointer-events-none
-          ${isFloating ? 'top-1 translate-y-0 text-xs font-semibold' : 'top-1/2 -translate-y-1/2 text-base font-medium'}
+          ${isFloating ? 'top-1 translate-y-0 text-[9px] lg:text-xs font-semibold' : 'top-1/2 -translate-y-1/2 text-[13px] lg:text-base font-medium'}
         ${error ? 'text-red-600' : valid ? 'text-emerald-600' : isFocused ? 'text-blue-600' : 'text-gray-400'}
         `}
       >
@@ -712,7 +712,7 @@ export const RecruiterRegister: React.FC = () => {
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-400/25 via-blue-500/20 to-violet-500/25 text-blue-700 text-xs font-bold px-4 py-2 rounded-full border border-cyan-200/70 mb-3"
+                  className="inline-flex items-center gap-1.5 lg:gap-2 bg-gradient-to-r from-cyan-400/25 via-blue-500/20 to-violet-500/25 text-blue-700 text-[11px] lg:text-xs font-bold px-3 lg:px-4 py-1.5 lg:py-2 rounded-full border border-cyan-200/70 mb-2 lg:mb-3"
                 >
                   <Building2 size={16} />
                   <span>Premium Recruiter Portal</span>
@@ -722,7 +722,7 @@ export const RecruiterRegister: React.FC = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="relative -top-1 text-xl sm:text-2xl lg:text-3xl font-black bg-gradient-to-r from-cyan-500 via-blue-600 to-violet-600 bg-clip-text text-transparent mb-1 leading-tight tracking-tight whitespace-nowrap"
+                  className="relative -top-1 text-lg lg:text-3xl font-black bg-gradient-to-r from-cyan-500 via-blue-600 to-violet-600 bg-clip-text text-transparent mb-1 leading-tight tracking-tight whitespace-nowrap"
                 >
                   Recruiter Registration
                 </motion.h1>
@@ -742,7 +742,7 @@ export const RecruiterRegister: React.FC = () => {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
-            className="max-w-sm mx-auto bg-gradient-to-br from-white/92 via-slate-100/90 to-slate-200/90 backdrop-blur-xl rounded-2xl border border-white/80 shadow-[0_24px_70px_rgba(15,23,42,0.2)] ring-1 ring-slate-300/30 overflow-hidden"
+            className="w-full max-w-[310px] lg:max-w-sm mx-auto bg-gradient-to-br from-white/92 via-slate-100/90 to-slate-200/90 backdrop-blur-xl rounded-2xl border border-white/80 shadow-[0_24px_70px_rgba(15,23,42,0.2)] ring-1 ring-slate-300/30 overflow-hidden"
           >
             <form onSubmit={handleSubmit} noValidate className="divide-y divide-slate-200/70">
               {/* STEP 1: Company Info */}
@@ -903,7 +903,7 @@ export const RecruiterRegister: React.FC = () => {
                 initial={currentStep !== 1 ? { opacity: 0, x: 100 } : {}}
                 animate={currentStep === 1 ? { opacity: 1, x: 0 } : currentStep > 1 ? { opacity: 0, x: -100 } : {}}
                 transition={{ duration: 0.4 }}
-                className={currentStep === 1 ? 'p-4 sm:p-5 space-y-2' : 'hidden'}
+                className={currentStep === 1 ? 'p-2.5 lg:p-5 space-y-1 lg:space-y-2' : 'hidden'}
               >
                 <div className="space-y-2">
                   <FloatingInput
