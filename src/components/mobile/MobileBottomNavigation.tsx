@@ -3,31 +3,34 @@ import { Box, IconButton, Stack, Typography } from '@mui/material';
 import {
   Work as JobsIcon,
   Home as HomeIcon,
-  MoreHoriz as MoreIcon,
+  Download as InstallIcon,
   Person as ProfileIcon,
   School as LearnIcon,
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@constants/index';
 import { useAuthStore } from '@store/index';
+import usePWAInstall from '@hooks/usePWAInstall';
 
 interface NavItem {
   label: string;
   icon: typeof HomeIcon;
-  to: string;
+  to?: string;
+  action?: () => void;
 }
 
 export const MobileBottomNavigation: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const { promptInstall } = usePWAInstall();
 
   const navItems: NavItem[] = [
     { label: 'Home', icon: HomeIcon, to: ROUTES.HOME },
     { label: 'Jobs', icon: JobsIcon, to: ROUTES.JOBS },
     { label: 'Learn', icon: LearnIcon, to: ROUTES.DASHBOARD_LEARNING },
     { label: 'Profile', icon: ProfileIcon, to: user ? ROUTES.DASHBOARD_PROFILE : ROUTES.LOGIN },
-    { label: 'More', icon: MoreIcon, to: user ? ROUTES.DASHBOARD_SETTINGS : ROUTES.PRICING },
+    { label: 'Install', icon: InstallIcon, action: () => { void promptInstall(); } },
   ];
 
   const isActive = (item: NavItem) => {
@@ -35,7 +38,7 @@ export const MobileBottomNavigation: React.FC = () => {
       return location.pathname === ROUTES.HOME || location.pathname === '/';
     }
 
-    return location.pathname.startsWith(item.to) || location.pathname === item.to;
+    return item.to ? location.pathname.startsWith(item.to) || location.pathname === item.to : false;
   };
 
   return (
@@ -65,14 +68,14 @@ export const MobileBottomNavigation: React.FC = () => {
         spacing={0.5}
         sx={{ width: '100%' }}
       >
-        {navItems.map(({ label, icon: Icon, to }) => {
+        {navItems.map(({ label, icon: Icon, to, action }) => {
           const active = isActive({ label, icon: Icon, to });
 
           return (
             <Box key={label} sx={{ flex: 1 }}>
               <IconButton
                 fullWidth
-                onClick={() => navigate(to)}
+                onClick={() => (action ? action() : navigate(to!))}
                 sx={{
                   minHeight: 52,
                   borderRadius: 2,
