@@ -481,20 +481,6 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
               justifyContent: 'flex-end',
             }}
           >
-            <IconButton
-              onClick={handleMobileMenuOpen}
-              sx={{
-                display: { xs: 'inline-flex', md: 'none' },
-                color: isDarkMode ? '#E2E8F0' : '#0F172A',
-                bgcolor: isDarkMode ? 'rgba(30, 41, 59, 0.65)' : 'rgba(248, 250, 252, 0.96)',
-                border: isDarkMode ? '1px solid rgba(100, 116, 139, 0.45)' : '1px solid rgba(148, 163, 184, 0.35)',
-                '&:hover': {
-                  bgcolor: isDarkMode ? 'rgba(51, 65, 85, 0.78)' : 'rgba(241, 245, 249, 1)',
-                },
-              }}
-            >
-              <MenuIcon />
-            </IconButton>
             {showPremiumThemeToggle ? (
               <IconButton
                 onClick={() => setThemeMode(isDarkMode ? 'light' : 'dark')}
@@ -953,6 +939,20 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                 />
               </Box>
             )}
+            <IconButton
+              onClick={handleMobileMenuOpen}
+              sx={{
+                display: { xs: 'inline-flex', md: 'none' },
+                color: isDarkMode ? '#E2E8F0' : '#0F172A',
+                bgcolor: isDarkMode ? 'rgba(30, 41, 59, 0.65)' : 'rgba(248, 250, 252, 0.96)',
+                border: isDarkMode ? '1px solid rgba(100, 116, 139, 0.45)' : '1px solid rgba(148, 163, 184, 0.35)',
+                '&:hover': {
+                  bgcolor: isDarkMode ? 'rgba(51, 65, 85, 0.78)' : 'rgba(241, 245, 249, 1)',
+                },
+              }}
+            >
+              <MenuIcon />
+            </IconButton>
           </Box>
         </Toolbar>
       </Container>

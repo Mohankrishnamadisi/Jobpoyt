@@ -257,7 +257,7 @@ export const Home: React.FC = () => {
               sx={{
                 maxWidth: { xs: '100%', md: 820 },
                 mx: 'auto',
-                fontSize: { xs: '1.38rem', sm: '2.1rem', md: '2.55rem' },
+                fontSize: { xs: '1.5rem', sm: '2.1rem', md: '2.55rem' },
                 fontWeight: 800,
                 mb: { xs: 2, md: 2.2 },
                 color: '#102A43',
@@ -278,7 +278,7 @@ export const Home: React.FC = () => {
               sx={{
                 color: '#334E68',
                 mb: { xs: 2.5, md: 3 },
-                fontSize: { xs: '0.72rem', md: '0.88rem' },
+                fontSize: { xs: '0.8rem', md: '0.88rem' },
                 fontWeight: 400,
                 maxWidth: 700,
                 mx: 'auto',
@@ -530,7 +530,7 @@ export const Home: React.FC = () => {
           </MotionTypography>
 
           <MotionBox variants={sectionRevealVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-            <Grid container spacing={2.5}>
+            <Grid container spacing={{ xs: 0.75, sm: 2.5 }}>
             {JOB_CATEGORIES.map((category, index) => {
               const Icon = categoryIcons[category] || WorkIcon;
               return (
@@ -550,7 +550,7 @@ export const Home: React.FC = () => {
                       border: '1px solid',
                       borderColor: 'divider',
                       transition: 'all 0.2s ease',
-                      borderRadius: 3,
+                      borderRadius: { xs: 2, md: 3 },
                       position: 'relative',
                       overflow: 'hidden',
                       '&::before': {
@@ -559,7 +559,7 @@ export const Home: React.FC = () => {
                         top: 0,
                         left: 0,
                         width: '100%',
-                        height: 4,
+                        height: { xs: 3, md: 4 },
                         background: categoryIconColors[index % categoryIconColors.length],
                       },
                       '&:hover': {
@@ -568,11 +568,11 @@ export const Home: React.FC = () => {
                       },
                     }}
                   >
-                    <CardContent sx={{ textAlign: 'center', py: 3 }}>
+                    <CardContent sx={{ textAlign: 'center', px: { xs: 0.5, md: 2 }, py: { xs: 1, md: 3 } }}>
                       <Box
                         sx={{
-                          width: 48,
-                          height: 48,
+                          width: { xs: 30, md: 48 },
+                          height: { xs: 30, md: 48 },
                           borderRadius: 2,
                           background: categoryIconColors[index % categoryIconColors.length],
                           boxShadow: '0 12px 22px rgba(15, 23, 42, 0.12)',
@@ -580,12 +580,12 @@ export const Home: React.FC = () => {
                           alignItems: 'center',
                           justifyContent: 'center',
                           mx: 'auto',
-                          mb: 1.5,
+                          mb: { xs: 0.5, md: 1.5 },
                         }}
                       >
-                        <Icon sx={{ color: '#fff', fontSize: 24 }} />
+                        <Icon sx={{ color: '#fff', fontSize: { xs: 16, md: 24 } }} />
                       </Box>
-                      <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.3 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: { xs: '0.66rem', md: '0.875rem' }, lineHeight: 1.2 }}>
                         {category}
                       </Typography>
                     </CardContent>
@@ -599,7 +599,7 @@ export const Home: React.FC = () => {
         </MotionBox>
 
         <MotionBox
-          sx={{ mt: 8, mb: 6 }}
+          sx={{ mt: { xs: 3, md: 8 }, mb: { xs: 3, md: 6 } }}
           variants={sectionRevealVariants}
           initial="hidden"
           whileInView="visible"
@@ -609,16 +609,16 @@ export const Home: React.FC = () => {
             Jobs You May Be Interested In
           </MotionTypography>
           <MotionBox variants={sectionRevealVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-            <Grid container spacing={2}>
+            <Grid container spacing={{ xs: 1.25, md: 2 }}>
             {suggestedJobs.map((job) => (
               <Grid item xs={12} sm={6} md={3} key={job.title + job.company}>
                 <MotionBox variants={sectionItemVariants}>
                 <MotionCard
                   whileHover={{ y: -6 }}
                   sx={{
-                    borderRadius: 3,
-                    p: 2,
-                    minHeight: 220,
+                    borderRadius: { xs: 2.5, md: 3 },
+                    p: { xs: 1.25, md: 2 },
+                    minHeight: { xs: 0, md: 220 },
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
@@ -628,16 +628,16 @@ export const Home: React.FC = () => {
                   }}
                 >
                   <Box>
-                    <Typography variant="subtitle2" sx={{ color: 'primary.main', fontWeight: 700, mb: 1 }}>
+                    <Typography variant="subtitle2" sx={{ color: 'primary.main', fontWeight: 700, mb: { xs: 0.5, md: 1 }, fontSize: { xs: '0.78rem', md: '0.875rem' } }}>
                       Recommended
                     </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: { xs: 0.5, md: 1 }, fontSize: { xs: '0.98rem', md: '1.25rem' } }}>
                       {job.title}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
+                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: { xs: 0.25, md: 0.5 }, fontSize: { xs: '0.82rem', md: '0.875rem' } }}>
                       {job.company}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: { xs: '0.7rem', md: '0.75rem' } }}>
                       {job.location}
                     </Typography>
                   </Box>
@@ -650,7 +650,10 @@ export const Home: React.FC = () => {
                       navigate(`${ROUTES.JOBS}?${filters.toString()}`);
                     }}
                     sx={{
-                      mt: 2,
+                      mt: { xs: 1.25, md: 2 },
+                      minHeight: { xs: 36, md: 0 },
+                      py: { xs: 0.6, md: 1 },
+                      fontSize: { xs: '0.78rem', md: '0.875rem' },
                       textTransform: 'none',
                       color: '#fff',
                       background: 'linear-gradient(90deg, rgb(2, 132, 199), rgb(37, 99, 235))',
@@ -680,18 +683,18 @@ export const Home: React.FC = () => {
             <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <MotionBox variants={sectionItemVariants}>
-              <Card sx={{ borderRadius: 3, p: 3, height: '100%', background: isDarkMode ? '#0B0F17' : 'linear-gradient(180deg, #EFF6FF 0%, #FFFFFF 100%)', boxShadow: isDarkMode ? '0 18px 38px rgba(0, 0, 0, 0.42)' : '0 18px 38px rgba(15, 23, 42, 0.08)' }}>
+              <Card sx={{ borderRadius: { xs: 2, md: 3 }, p: { xs: 1.25, md: 3 }, height: '100%', background: isDarkMode ? '#0B0F17' : 'linear-gradient(180deg, #EFF6FF 0%, #FFFFFF 100%)', boxShadow: isDarkMode ? '0 18px 38px rgba(0, 0, 0, 0.42)' : '0 18px 38px rgba(15, 23, 42, 0.08)' }}>
                 <Typography variant="h5" sx={{ fontWeight: 700, mb: { xs: 1.25, md: 2 }, fontSize: { xs: '1rem', md: '1.5rem' } }}>
                   Top Companies Hiring Now
                 </Typography>
-                <Grid container spacing={2}>
+                <Grid container spacing={{ xs: 0.75, md: 2 }}>
                   {topCompanies.map((company) => (
                     <Grid item xs={6} key={company.name}>
-                      <Paper sx={{ p: 2, borderRadius: 2, background: isDarkMode ? '#111827' : '#fff', border: '1px solid', borderColor: 'divider' }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.5 }}>
+                      <Paper sx={{ p: { xs: 1, md: 2 }, borderRadius: { xs: 1.5, md: 2 }, background: isDarkMode ? '#111827' : '#fff', border: '1px solid', borderColor: 'divider' }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: { xs: 0.25, md: 0.5 }, fontSize: { xs: '0.82rem', md: '1rem' } }}>
                           {company.name}
                         </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: { xs: '0.72rem', md: '0.875rem' } }}>
                           {company.hiring}
                         </Typography>
                       </Paper>
@@ -700,7 +703,7 @@ export const Home: React.FC = () => {
                 </Grid>
                 <Button
                   variant="text"
-                  sx={{ mt: 3, textTransform: 'none', fontWeight: 700 }}
+                  sx={{ mt: { xs: 1.25, md: 3 }, px: { xs: 0.5, md: 1 }, minHeight: { xs: 30, md: 0 }, fontSize: { xs: '0.76rem', md: '0.875rem' }, textTransform: 'none', fontWeight: 700 }}
                   onClick={() => {
                     const filters = new URLSearchParams();
                     filters.append('keyword', 'Jobs at top companies');
@@ -722,12 +725,12 @@ export const Home: React.FC = () => {
                 <Grid container spacing={2}>
                   {featuredCompanies.map((company) => (
                     <Grid item xs={12} key={company.name}>
-                      <Paper sx={{ p: 2, borderRadius: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid', borderColor: 'divider' }}>
+                      <Paper sx={{ p: { xs: 1, md: 2 }, borderRadius: { xs: 1.5, md: 2 }, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: { xs: 0.75, md: 2 }, border: '1px solid', borderColor: 'divider' }}>
                         <Box>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: { xs: '0.85rem', md: '1rem' } }}>
                             {company.name}
                           </Typography>
-                          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                          <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: { xs: '0.72rem', md: '0.875rem' }, lineHeight: { xs: 1.35, md: 1.5 } }}>
                             {company.description}
                           </Typography>
                         </Box>
@@ -742,6 +745,12 @@ export const Home: React.FC = () => {
                           sx={{
                             textTransform: 'none',
                             color: '#fff',
+                            minWidth: { xs: 68, md: 0 },
+                            minHeight: { xs: 38, md: 0 },
+                            px: { xs: 1, md: 2 },
+                            py: { xs: 0.5, md: 0.75 },
+                            fontSize: { xs: '0.7rem', md: '0.875rem' },
+                            lineHeight: 1.2,
                             background: 'linear-gradient(90deg, rgb(2, 132, 199), rgb(37, 99, 235))',
                             '&:hover': {
                               background: 'linear-gradient(90deg, rgb(3, 105, 161), rgb(29, 78, 216))',
@@ -769,15 +778,15 @@ export const Home: React.FC = () => {
           viewport={{ once: true }}
         >
           <MotionBox variants={sectionItemVariants}>
-            <Paper sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, background: isDarkMode ? '#0B0F17' : 'linear-gradient(180deg, #EFF8FF 0%, #FFFFFF 100%)', color: isDarkMode ? '#FFFFFF' : undefined, border: '1px solid', borderColor: 'divider', boxShadow: isDarkMode ? '0 20px 40px rgba(0, 0, 0, 0.42)' : '0 20px 40px rgba(15, 23, 42, 0.08)' }}>
-            <MotionTypography variants={sectionItemVariants} variant="h4" sx={{ fontWeight: 700, mb: { xs: 1.25, md: 2 }, fontSize: { xs: '1.1rem', md: '2.125rem' }, textAlign: 'center' }}>
+            <Paper sx={{ p: { xs: 1.25, md: 4 }, borderRadius: { xs: 2, md: 3 }, background: isDarkMode ? '#0B0F17' : 'linear-gradient(180deg, #EFF8FF 0%, #FFFFFF 100%)', color: isDarkMode ? '#FFFFFF' : undefined, border: '1px solid', borderColor: 'divider', boxShadow: isDarkMode ? '0 20px 40px rgba(0, 0, 0, 0.42)' : '0 20px 40px rgba(15, 23, 42, 0.08)' }}>
+            <MotionTypography variants={sectionItemVariants} variant="h4" sx={{ fontWeight: 700, mb: { xs: 0.75, md: 2 }, fontSize: { xs: '1rem', md: '2.125rem' }, textAlign: 'center' }}>
               Interview Questions by Role
             </MotionTypography>
-            <MotionTypography variants={sectionItemVariants} variant="body1" sx={{ color: 'text.secondary', mb: 3, textAlign: 'center' }}>
+            <MotionTypography variants={sectionItemVariants} variant="body1" sx={{ color: 'text.secondary', mb: { xs: 1.25, md: 3 }, fontSize: { xs: '0.78rem', md: '1rem' }, lineHeight: { xs: 1.45, md: 1.5 }, textAlign: 'center' }}>
               Discover role-specific interview questions and prepare with real AmbitionBox resources.
             </MotionTypography>
 
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 3, alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 1, md: 2 }, mb: { xs: 1.5, md: 3 }, alignItems: 'center', justifyContent: 'space-between' }}>
               <TextField
                 fullWidth
                 placeholder="Search roles like React, Java, DevOps, Data Scientist"
@@ -790,15 +799,16 @@ export const Home: React.FC = () => {
                     </InputAdornment>
                   ),
                 }}
-                sx={{ background: isDarkMode ? '#111827' : '#fff', borderRadius: 2 }}
+                size="small"
+                sx={{ background: isDarkMode ? '#111827' : '#fff', borderRadius: 2, '& .MuiInputBase-input': { fontSize: { xs: '0.78rem', md: '1rem' }, py: { xs: 1, md: 1.5 } }, '& .MuiSvgIcon-root': { fontSize: { xs: 20, md: 24 } } }}
               />
-              <FormControl sx={{ minWidth: 180 }}>
+              <FormControl size="small" sx={{ minWidth: { xs: 150, md: 180 }, width: { xs: 150, md: 'auto' } }}>
                 <InputLabel>Category</InputLabel>
                 <Select
                   value={selectedRoleCategory}
                   label="Category"
                   onChange={(e) => setSelectedRoleCategory(e.target.value)}
-                  sx={{ background: isDarkMode ? '#111827' : '#fff', borderRadius: 2 }}
+                  sx={{ background: isDarkMode ? '#111827' : '#fff', borderRadius: 2, fontSize: { xs: '0.8rem', md: '1rem' } }}
                 >
                   {INTERVIEW_ROLE_CATEGORIES.map((category) => (
                     <MenuItem key={category} value={category}>
@@ -810,7 +820,7 @@ export const Home: React.FC = () => {
             </Box>
 
             <MotionBox variants={sectionRevealVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-              <Grid container spacing={3}>
+              <Grid container spacing={{ xs: 1.25, md: 3 }}>
               {filteredInterviewRoles.slice(0, 4).map((role) => (
                 <Grid item xs={12} sm={6} md={3} key={role.title}>
                   <MotionBox variants={sectionItemVariants}>
@@ -821,8 +831,8 @@ export const Home: React.FC = () => {
                     transition={{ duration: 0.25 }}
                     onClick={() => window.open(role.url, '_blank')}
                     sx={{
-                      p: 3,
-                      borderRadius: 4,
+                      p: { xs: 1.25, md: 3 },
+                      borderRadius: { xs: 2.5, md: 4 },
                       background: isDarkMode ? '#111827' : '#fff',
                       boxShadow: '0 18px 45px rgba(15, 23, 42, 0.08)',
                       border: '1px solid transparent',
@@ -847,18 +857,18 @@ export const Home: React.FC = () => {
                     variants={roleCardVariants}
                   >
                     <Box>
-                      <Typography variant="h6" sx={{ fontWeight: 800, mb: 1.25 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 800, mb: { xs: 0.5, md: 1.25 }, fontSize: { xs: '0.95rem', md: '1.25rem' } }}>
                         {role.title}
                       </Typography>
-                      <Typography variant="subtitle2" sx={{ color: 'primary.main', fontWeight: 700, mb: 1 }}>
+                      <Typography variant="subtitle2" sx={{ color: 'primary.main', fontWeight: 700, mb: { xs: 0.5, md: 1 }, fontSize: { xs: '0.78rem', md: '0.875rem' } }}>
                         {role.count}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
+                      <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: { xs: '0.78rem', md: '0.875rem' }, lineHeight: { xs: 1.45, md: 1.7 } }}>
                         {role.description}
                       </Typography>
                     </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 3 }}>
-                      <Box sx={{ color: 'primary.main', fontSize: '1.2rem' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: { xs: 1, md: 3 } }}>
+                      <Box sx={{ color: 'primary.main', fontSize: { xs: '1rem', md: '1.2rem' } }}>
                         <ArrowForwardIcon />
                       </Box>
                     </Box>
@@ -876,13 +886,13 @@ export const Home: React.FC = () => {
               </Grid>
             </MotionBox>
             {filteredInterviewRoles.length > 4 && (
-              <Box sx={{ mt: 4, overflowX: 'auto', py: 1, mx: -2, px: 2 }}>
+              <Box sx={{ mt: { xs: 1.5, md: 4 }, overflowX: 'auto', py: { xs: 0.5, md: 1 }, mx: { xs: -1, md: -2 }, px: { xs: 1, md: 2 } }}>
                 <MotionBox
                   variants={sectionRevealVariants}
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true }}
-                  sx={{ display: 'flex', gap: 2, minWidth: 'max-content' }}
+                  sx={{ display: 'flex', gap: { xs: 1, md: 2 }, minWidth: 'max-content' }}
                 >
                   {filteredInterviewRoles.slice(4).map((role) => (
                     <MotionBox key={role.title} variants={sectionItemVariants}>
@@ -893,13 +903,13 @@ export const Home: React.FC = () => {
                       transition={{ duration: 0.25 }}
                       onClick={() => window.open(role.url, '_blank')}
                       sx={{
-                        p: 3,
-                        borderRadius: 4,
+                        p: { xs: 1.25, md: 3 },
+                        borderRadius: { xs: 2.5, md: 4 },
                         background: isDarkMode ? '#111827' : '#fff',
                         boxShadow: '0 18px 45px rgba(15, 23, 42, 0.08)',
                         border: '1px solid transparent',
                         textAlign: 'left',
-                        minWidth: 300,
+                        minWidth: { xs: 250, md: 300 },
                         flex: '0 0 auto',
                         display: 'flex',
                         flexDirection: 'column',
@@ -920,18 +930,18 @@ export const Home: React.FC = () => {
                       variants={roleCardVariants}
                     >
                       <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 800, mb: 1.25 }}>
+                        <Typography variant="h6" sx={{ fontWeight: 800, mb: { xs: 0.5, md: 1.25 }, fontSize: { xs: '0.95rem', md: '1.25rem' } }}>
                           {role.title}
                         </Typography>
-                        <Typography variant="subtitle2" sx={{ color: 'primary.main', fontWeight: 700, mb: 1 }}>
+                        <Typography variant="subtitle2" sx={{ color: 'primary.main', fontWeight: 700, mb: { xs: 0.5, md: 1 }, fontSize: { xs: '0.78rem', md: '0.875rem' } }}>
                           {role.count}
                         </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
+                        <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: { xs: '0.78rem', md: '0.875rem' }, lineHeight: { xs: 1.45, md: 1.7 } }}>
                           {role.description}
                         </Typography>
                       </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 3 }}>
-                        <Box sx={{ color: 'primary.main', fontSize: '1.2rem' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: { xs: 1, md: 3 } }}>
+                        <Box sx={{ color: 'primary.main', fontSize: { xs: '1rem', md: '1.2rem' } }}>
                           <ArrowForwardIcon />
                         </Box>
                       </Box>
