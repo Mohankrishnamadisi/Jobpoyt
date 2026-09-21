@@ -245,7 +245,6 @@ export const JobDetails: React.FC = () => {
     ],
   };
   const screeningQuestions = job.screeningQuestions || [];
-  const applicationsCount = job.applicationsCount || 0;
   const canUseNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
   const handleRecommendedMessage = (candidateId: string, candidateName: string) => {
@@ -828,10 +827,6 @@ export const JobDetails: React.FC = () => {
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>Experience</Typography>
                     <Typography variant="body2" sx={{ fontWeight: 700 }}>{job.experience || 'Not specified'}</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>Applications</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{applicationsCount}</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>Work Mode</Typography>

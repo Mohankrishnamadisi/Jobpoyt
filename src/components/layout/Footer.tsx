@@ -84,14 +84,21 @@ export const Footer: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 1,
-                  fontSize: { xs: '1.15rem', md: '1.4rem' },
+                  fontSize: { xs: '0.95rem', md: '1.4rem' },
                   lineHeight: 1.2,
                 }}
               >
                 <TrendingUpIcon sx={{ color: '#34D399', fontSize: { xs: 20, md: 24 } }} />
                 Built For Faster Hiring And Better Careers
               </Typography>
-              <Typography variant="body2" sx={{ color: 'rgba(226, 232, 240, 0.9)', lineHeight: 1.6 }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'rgba(226, 232, 240, 0.9)',
+                  lineHeight: 1.6,
+                  fontSize: { xs: '0.78rem', md: '0.875rem' },
+                }}
+              >
                 Jobpoyt helps candidates and recruiters discover the right opportunities with modern tools, better matching, and seamless workflows.
               </Typography>
             </Grid>
@@ -142,7 +149,7 @@ export const Footer: React.FC = () => {
 
         <Grid container spacing={3} sx={{ mb: 1.5, position: 'relative', zIndex: 1 }}>
           <Grid item xs={12} md={7}>
-            <Typography variant="h6" sx={{ fontWeight: 750, mb: 1.2, color: '#FFFFFF', fontSize: { xs: '1.6rem', md: '1.7rem' } }}>
+            <Typography variant="h6" sx={{ fontWeight: 750, mb: 1.2, color: '#FFFFFF', fontSize: { xs: '1.15rem', md: '1.7rem' } }}>
               Jobpoyt
             </Typography>
             <Typography
@@ -152,7 +159,7 @@ export const Footer: React.FC = () => {
                 mb: 1.6,
                 maxWidth: '100%',
                 lineHeight: 1.5,
-                fontSize: '0.96rem',
+                fontSize: { xs: '0.78rem', md: '0.96rem' },
                 whiteSpace: { md: 'nowrap' },
               }}
             >

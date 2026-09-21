@@ -28,7 +28,7 @@ import {
   Apartment as ApartmentIcon,
   TravelExplore as TravelExploreIcon,
   Notifications as NotificationsIcon,
-  Login as LoginIcon,
+  ArrowForward as ArrowForwardIcon,
   PersonAddAlt1 as SignupIcon,
 } from '@mui/icons-material';
 import { Badge } from '@mui/material';
@@ -477,9 +477,10 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
           <Box
             sx={{
               display: 'flex',
-              gap: { xs: 0.35, sm: 0.85 },
+              gap: { xs: 'clamp(2px, 0.8vw, 4px)', sm: 0.85 },
               alignItems: 'center',
               justifyContent: 'flex-end',
+              flexShrink: 0,
             }}
           >
             {showPremiumThemeToggle ? (
@@ -582,7 +583,8 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                   endIcon={<KeyboardArrowDownIcon sx={{ fontSize: { xs: 13, md: 18 }, display: { xs: 'none', sm: 'inline-flex' } }} />}
                   aria-haspopup="menu"
                   aria-expanded={Boolean(recruiterAnchor) ? 'true' : undefined}
-                  aria-label="Hire Talent"
+                  aria-label="Recruiter"
+                  title="Recruiter"
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
@@ -591,17 +593,17 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                     color: '#1d4ed8',
                     px: { xs: 0, md: 1.5 },
                     py: { xs: 0, md: 0.72 },
-                    width: { xs: 34, md: 'auto' },
-                    height: { xs: 34, md: 'auto' },
-                    minHeight: { xs: 0, md: 'auto' },
+                    width: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
+                    height: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
+                    minHeight: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
                     lineHeight: { xs: 1, md: 'inherit' },
-                    minWidth: { xs: 34, md: 132 },
+                    minWidth: { xs: 'clamp(40px, 11vw, 44px)', md: 132 },
                     fontSize: { xs: '0.62rem', md: '0.86rem' },
                     fontWeight: 700,
                     textTransform: 'none',
-                    borderRadius: { xs: 1.25, md: 999 },
-                    bgcolor: 'rgba(37, 99, 235, 0.05)',
-                    '& .MuiButton-startIcon': { mr: { xs: 0, md: 1 } },
+                    borderRadius: { xs: 1.5, md: 999 },
+                    bgcolor: { xs: '#FFFFFF', md: 'rgba(37, 99, 235, 0.05)' },
+                    '& .MuiButton-startIcon': { mr: { xs: 0, md: 1 }, display: { xs: 'none', sm: 'inline-flex' } },
                     '&:hover': {
                       borderColor: '#2563EB',
                       background: 'rgba(59, 130, 246, 0.14)',
@@ -609,7 +611,7 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                   }}
                 >
                   <Box component="span" sx={{ display: { xs: 'inline-flex', sm: 'none' } }}>
-                    <WorkIcon sx={{ fontSize: 16 }} />
+                    <WorkIcon sx={{ fontSize: 21 }} />
                   </Box>
                   <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Hire Talent</Box>
                 </Button>
@@ -640,37 +642,44 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
             )}
 
             {!user ? (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.2, md: 1 } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 'clamp(2px, 0.8vw, 4px)', md: 1 }, flexShrink: 0 }}>
                 <Button
                   component={RouterLink}
                   to={ROUTES.LOGIN}
                   variant="text"
                   aria-label="Login"
+                  title="Login"
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: 'text.primary',
                     textTransform: 'none',
                     px: { xs: 0, md: 1.6 },
                     py: { xs: 0, md: 0.74 },
-                    width: { xs: 34, md: 'auto' },
-                    height: { xs: 34, md: 'auto' },
-                    minHeight: { xs: 0, md: 'auto' },
+                    width: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
+                    height: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
+                    minHeight: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
                     lineHeight: { xs: 1, md: 'inherit' },
-                    minWidth: { xs: 34, md: 64 },
+                    minWidth: { xs: 'clamp(40px, 11vw, 44px)', md: 64 },
                     fontSize: { xs: '0.62rem', md: '0.9rem' },
                     fontWeight: 700,
-                    borderRadius: { xs: 1.25, md: 999 },
-                    border: '1px solid rgba(148, 163, 184, 0.28)',
-                    bgcolor: isDarkMode ? 'rgba(30, 41, 59, 0.58)' : 'rgba(248, 250, 252, 0.92)',
+                    borderRadius: { xs: 1.5, md: 999 },
+                    border: '1px solid rgba(37, 99, 235, 0.28)',
+                    bgcolor: {
+                      xs: isDarkMode ? '#1E40AF' : '#DBEAFE',
+                      md: isDarkMode ? 'rgba(29, 78, 216, 0.22)' : 'rgba(219, 234, 254, 0.82)',
+                    },
+                    color: isDarkMode ? '#93C5FD' : '#2563EB',
                     '&:hover': {
-                      bgcolor: isDarkMode ? 'rgba(51, 65, 85, 0.74)' : 'rgba(241, 245, 249, 1)',
+                      bgcolor: isDarkMode ? 'rgba(29, 78, 216, 0.32)' : 'rgba(191, 219, 254, 0.95)',
                     },
                   }}
                 >
                   <Box component="span" sx={{ display: { xs: 'inline-flex', md: 'none' } }}>
-                    <LoginIcon sx={{ fontSize: 16 }} />
+                    <Box sx={{ display: 'inline-flex', alignItems: 'center', height: 22 }}>
+                      <PersonIcon sx={{ fontSize: 20 }} />
+                      <ArrowForwardIcon sx={{ fontSize: 14, ml: -0.45 }} />
+                    </Box>
                   </Box>
                   <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>Login</Box>
                 </Button>
@@ -679,7 +688,8 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                     component={RouterLink}
                     to={ROUTES.SIGNUP}
                     variant="contained"
-                    aria-label="Sign up"
+                    aria-label="Register"
+                    title="Register"
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -687,14 +697,14 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                       textTransform: 'none',
                       px: { xs: 0, md: 2 },
                       py: { xs: 0, md: 0.82 },
-                      width: { xs: 34, md: 'auto' },
-                      height: { xs: 34, md: 'auto' },
-                      minHeight: { xs: 0, md: 'auto' },
+                      width: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
+                      height: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
+                      minHeight: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
                       lineHeight: { xs: 1, md: 'inherit' },
-                      minWidth: { xs: 34, md: 64 },
+                      minWidth: { xs: 'clamp(40px, 11vw, 44px)', md: 64 },
                       fontSize: { xs: '0.62rem', md: '0.9rem' },
                       fontWeight: 700,
-                      borderRadius: { xs: 1.25, md: 999 },
+                      borderRadius: { xs: 1.5, md: 999 },
                       background: 'linear-gradient(90deg, #0284c7, #2563eb)',
                       color: '#ffffff',
                       boxShadow: { xs: 'none', md: '0 10px 20px rgba(37, 99, 235, 0.24)' },
@@ -705,7 +715,7 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                     }}
                   >
                     <Box component="span" sx={{ display: { xs: 'inline-flex', md: 'none' } }}>
-                      <SignupIcon sx={{ fontSize: 16 }} />
+                      <SignupIcon sx={{ fontSize: 21 }} />
                     </Box>
                     <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>Register</Box>
                   </Button>
@@ -940,20 +950,30 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                 />
               </Box>
             )}
-            <IconButton
-              onClick={handleMobileMenuOpen}
-              sx={{
-                display: { xs: 'inline-flex', md: 'none' },
-                color: isDarkMode ? '#E2E8F0' : '#0F172A',
-                bgcolor: isDarkMode ? 'rgba(30, 41, 59, 0.65)' : 'rgba(248, 250, 252, 0.96)',
-                border: isDarkMode ? '1px solid rgba(100, 116, 139, 0.45)' : '1px solid rgba(148, 163, 184, 0.35)',
-                '&:hover': {
-                  bgcolor: isDarkMode ? 'rgba(51, 65, 85, 0.78)' : 'rgba(241, 245, 249, 1)',
-                },
-              }}
-            >
-              <MenuIcon />
-            </IconButton>
+            {location.pathname === ROUTES.HOME && (
+              <IconButton
+                onClick={handleMobileMenuOpen}
+                aria-label="Menu"
+                title="Menu"
+                sx={{
+                  display: { xs: 'inline-flex', md: 'none' },
+                  width: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
+                  height: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
+                  minWidth: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
+                  minHeight: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
+                  p: { xs: 0, md: 1 },
+                  borderRadius: { xs: 1.5, md: 2 },
+                  color: { xs: '#0F172A', md: isDarkMode ? '#E2E8F0' : '#0F172A' },
+                  bgcolor: { xs: '#FFFFFF', md: isDarkMode ? 'rgba(30, 41, 59, 0.65)' : 'rgba(248, 250, 252, 0.96)' },
+                  border: isDarkMode ? '1px solid rgba(100, 116, 139, 0.45)' : '1px solid rgba(148, 163, 184, 0.35)',
+                  '&:hover': {
+                    bgcolor: isDarkMode ? 'rgba(51, 65, 85, 0.78)' : 'rgba(241, 245, 249, 1)',
+                  },
+                }}
+              >
+                <MenuIcon sx={{ fontSize: { xs: 22, md: 24 } }} />
+              </IconButton>
+            )}
           </Box>
         </Toolbar>
       </Container>

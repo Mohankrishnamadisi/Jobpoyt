@@ -27,18 +27,21 @@ export const InstallApp: React.FC = () => {
       <>
         <IconButton
           onClick={handleInstall}
-          aria-label="Install app"
-          title="Install app"
+          aria-label="Install App"
+          title="Install App"
           sx={{
-            width: 32,
-            height: 32,
+            width: 'clamp(40px, 11vw, 44px)',
+            height: 'clamp(40px, 11vw, 44px)',
+            minWidth: 'clamp(40px, 11vw, 44px)',
+            minHeight: 'clamp(40px, 11vw, 44px)',
+            p: 0,
             borderRadius: 1.5,
-            color: isDarkMode ? '#93C5FD' : '#1d4ed8',
-            bgcolor: isDarkMode ? 'rgba(29, 78, 216, 0.22)' : 'rgba(29, 78, 216, 0.08)',
-            border: `1px solid ${isDarkMode ? 'rgba(147, 197, 253, 0.35)' : 'rgba(29, 78, 216, 0.28)'}`,
+            color: '#1d4ed8',
+            bgcolor: '#FFFFFF',
+            border: '1px solid rgba(29, 78, 216, 0.28)',
           }}
         >
-          <DownloadIcon sx={{ fontSize: 17 }} />
+          <DownloadIcon sx={{ fontSize: 22 }} />
         </IconButton>
         <Suspense fallback={null}>
           <PWAInstallModal
@@ -57,8 +60,8 @@ export const InstallApp: React.FC = () => {
         onClick={handleInstall}
         type="button"
         className={`install-app-button install-app-type1${isDarkMode ? ' install-app-dark' : ''}`}
-        aria-label="Install app"
-        title="Install app"
+        aria-label="Install App"
+        title="Install App"
       >
       </button>
       <Suspense fallback={null}>

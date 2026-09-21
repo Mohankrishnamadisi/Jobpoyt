@@ -55,7 +55,7 @@
 
   /* Shrink the Job Details page content on mobile */
   .job-details-page .MuiCardContent-root {
-    padding: 10px !important;
+    padding: 16px !important;
   }
 
   .job-details-page .MuiTypography-h3 {
