@@ -229,7 +229,7 @@ export const Home: React.FC = () => {
           backgroundSize: 'cover',
           backgroundPosition: 'center center',
           backgroundRepeat: 'no-repeat',
-          py: { xs: 3.5, sm: 5, md: 6.5 },
+          py: { xs: 1.75, sm: 5, md: 6.5 },
         }}
         variants={containerVariants}
         initial="hidden"
@@ -237,7 +237,7 @@ export const Home: React.FC = () => {
       >
         <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
           <MotionBox sx={{ maxWidth: { xs: '100%', md: 860 }, textAlign: 'center', mx: 'auto', transform: { md: 'translateX(-4%)' } }} variants={itemVariants}>
-            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.7, mb: { xs: 2, md: 2.4 } }}>
+            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.7, mb: { xs: 1.2, md: 2.4 } }}>
               <Chip
                 icon={<ExploreIcon sx={{ fontSize: '0.85rem !important' }} />}
                 label="India's Career Gateway"
@@ -257,7 +257,7 @@ export const Home: React.FC = () => {
               sx={{
                 maxWidth: { xs: '100%', md: 820 },
                 mx: 'auto',
-                fontSize: { xs: '1.6rem', sm: '2.1rem', md: '2.55rem' },
+                fontSize: { xs: '1.18rem', sm: '2.1rem', md: '2.55rem' },
                 fontWeight: 800,
                 mb: { xs: 2, md: 2.2 },
                 color: '#102A43',
@@ -266,10 +266,10 @@ export const Home: React.FC = () => {
                 cursor: 'default',
               }}
             >
-              <Box component="span" sx={{ display: 'block', whiteSpace: { md: 'nowrap' } }}>
+              <Box component="span" sx={{ display: 'block', whiteSpace: { xs: 'nowrap', md: 'nowrap' } }}>
                 Your Skills. Real Opportunities.
               </Box>
-              <Box component="span" sx={{ display: 'block', whiteSpace: { md: 'nowrap' }, background: 'linear-gradient(90deg, #159BEF 0%, #2563EB 52%, #8B5CF6 100%)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <Box component="span" sx={{ display: 'block', whiteSpace: { xs: 'nowrap', md: 'nowrap' }, background: 'linear-gradient(90deg, #159BEF 0%, #2563EB 52%, #8B5CF6 100%)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 A Better Tomorrow.
               </Box>
             </MotionTypography>
@@ -278,7 +278,7 @@ export const Home: React.FC = () => {
               sx={{
                 color: '#334E68',
                 mb: { xs: 2.5, md: 3 },
-                fontSize: { xs: '0.76rem', md: '0.88rem' },
+                fontSize: { xs: '0.72rem', md: '0.88rem' },
                 fontWeight: 400,
                 maxWidth: 700,
                 mx: 'auto',
@@ -286,23 +286,36 @@ export const Home: React.FC = () => {
               }}
               variants={itemVariants}
             >
-              Explore verified jobs from trusted companies, match your skills, and take the next
-              <br />
-              step in your career journey. All in one place.
+              <Box component="span" sx={{ display: { xs: 'block', sm: 'none' } }}>
+                Explore verified jobs, match your skills,
+                <br />
+                and grow your career — all in one place.
+              </Box>
+              <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                Explore verified jobs from trusted companies, match your skills, and take the next
+                <br />
+                step in your career journey. All in one place.
+              </Box>
             </MotionTypography>
 
-            <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="center" divider={<Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' }, borderColor: 'rgba(71, 85, 105, 0.24)' }} />} sx={{ mb: { xs: 4.5, md: 5.2 } }}>
+            <Stack
+              direction="row"
+              flexWrap="nowrap"
+              justifyContent="center"
+              divider={<Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' }, borderColor: 'rgba(71, 85, 105, 0.24)' }} />}
+              sx={{ mb: { xs: 3, md: 5.2 }, px: { xs: 0.5, sm: 0 }, overflowX: { xs: 'auto', sm: 'visible' }, '&::-webkit-scrollbar': { display: 'none' } }}
+            >
               {[
                 { value: heroStats.activeJobs === null ? '—' : heroStats.activeJobs.toLocaleString(), label: 'Active Jobs', Icon: WorkIcon },
                 { value: heroStats.companies === null ? '—' : heroStats.companies.toLocaleString(), label: 'Hiring Companies', Icon: EmojiEventsIcon },
                 { value: '500K+', label: 'Job Seekers', Icon: SchoolIcon },
                 { value: '100%', label: 'Verified Listings', Icon: VerifiedUserIcon },
               ].map(({ value, label, Icon }) => (
-                <Box key={label} sx={{ minWidth: { xs: 135, sm: 130 }, px: { xs: 1.2, sm: 1.6 }, py: 0.45, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.7 }}>
-                  <Box sx={{ width: 29, height: 29, borderRadius: 1.3, display: 'grid', placeItems: 'center', color: '#0369A1', bgcolor: 'rgba(186, 230, 253, 0.7)' }}><Icon sx={{ fontSize: 16 }} /></Box>
+                <Box key={label} sx={{ flexShrink: 0, minWidth: { xs: 78, sm: 130 }, px: { xs: 0.5, sm: 1.6 }, py: 0.45, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: { xs: 0.4, sm: 0.7 } }}>
+                  <Box sx={{ width: { xs: 20, sm: 29 }, height: { xs: 20, sm: 29 }, borderRadius: 1.3, display: 'grid', placeItems: 'center', color: '#0369A1', bgcolor: 'rgba(186, 230, 253, 0.7)', flexShrink: 0 }}><Icon sx={{ fontSize: { xs: 11, sm: 16 } }} /></Box>
                   <Box sx={{ textAlign: 'left' }}>
-                    <Typography sx={{ color: '#102A43', fontWeight: 800, fontSize: '0.92rem', lineHeight: 1.1 }}>{value}</Typography>
-                    <Typography sx={{ color: '#486581', fontSize: '0.62rem', mt: 0.2 }}>{label}</Typography>
+                    <Typography sx={{ color: '#102A43', fontWeight: 800, fontSize: { xs: '0.68rem', sm: '0.92rem' }, lineHeight: 1.1, whiteSpace: 'nowrap' }}>{value}</Typography>
+                    <Typography sx={{ color: '#486581', fontSize: { xs: '0.5rem', sm: '0.62rem' }, mt: 0.2, whiteSpace: 'nowrap' }}>{label}</Typography>
                   </Box>
                 </Box>
               ))}

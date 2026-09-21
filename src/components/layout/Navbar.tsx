@@ -11,6 +11,7 @@ import {
   Avatar,
   Typography,
   Divider,
+  useMediaQuery,
 } from '@mui/material';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -27,6 +28,8 @@ import {
   Apartment as ApartmentIcon,
   TravelExplore as TravelExploreIcon,
   Notifications as NotificationsIcon,
+  Login as LoginIcon,
+  PersonAddAlt1 as SignupIcon,
 } from '@mui/icons-material';
 import { Badge } from '@mui/material';
 import { motion } from 'framer-motion';
@@ -52,6 +55,7 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
   const { subscription } = useSubscription(user?.id || null);
   const { setThemeMode } = useThemeMode();
   const theme = useTheme();
+  const isXs = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const location = useLocation();
   const isRecruiter = user?.role === USER_ROLES.RECRUITER;
@@ -352,7 +356,7 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: 1,
+              gap: { xs: 0.2, md: 1 },
               flexShrink: 0,
             }}
           >
@@ -361,9 +365,12 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                 className={isDarkMode ? 'navbar-dark-mode' : undefined}
                 onClick={handleBackNavigation}
                 sx={{
-                  transform: 'scale(0.62)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  transform: { xs: 'none', md: 'scale(0.62)' },
                   transformOrigin: 'left center',
-                  ml: -1,
+                  zoom: { xs: 0.62, md: 'normal' },
+                  ml: { xs: -1, md: -1 },
                   cursor: 'pointer',
                   color: isDarkMode ? '#E2E8F0' : '#334155',
                 }}
@@ -371,7 +378,7 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                 <AnimatedBackButton onClick={handleBackNavigation} ariaLabel="Go back" />
               </Box>
             )}
-            <Logo size="medium" />
+            <Logo size={isXs ? 'small' : 'medium'} />
           </Box>
 
           <Box
@@ -469,7 +476,7 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
           <Box
             sx={{
               display: 'flex',
-              gap: 0.85,
+              gap: { xs: 0.35, sm: 0.85 },
               alignItems: 'center',
               justifyContent: 'flex-end',
             }}
@@ -564,34 +571,16 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                     Logout
                   </MenuItem>
                 </>
-              ) : (
-                <>
-                  <MenuItem
-                    component={RouterLink}
-                    to={ROUTES.LOGIN}
-                    onClick={handleMobileMenuClose}
-                  >
-                    Login
-                  </MenuItem>
-                  <MenuItem
-                    component={RouterLink}
-                    to={ROUTES.SIGNUP}
-                    onClick={handleMobileMenuClose}
-                  >
-                    Sign Up
-                  </MenuItem>
-                </>
-              )}
+              ) : null}
             </Menu>
 
             <Box
               sx={{
                 display: 'flex',
-                width: { xs: '100%', sm: 'auto' },
-                justifyContent: { xs: 'center', sm: 'flex-end' },
-                transform: { xs: 'scale(0.78)', sm: 'scale(0.9)', md: 'scale(1)' },
+                justifyContent: 'flex-end',
+                transform: { xs: 'scale(1)', sm: 'scale(0.9)', md: 'scale(1)' },
                 transformOrigin: 'right center',
-                mr: { xs: -1.4, sm: -0.3, md: 0 },
+                mr: { sm: -0.3, md: 0 },
               }}
             >
               <InstallApp />
@@ -602,29 +591,40 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                   onClick={handleRecruiterMenuOpen}
                   variant="outlined"
                   size="small"
-                  startIcon={<WorkIcon sx={{ fontSize: 18 }} />}
-                  endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 18 }} />}
+                  startIcon={<WorkIcon sx={{ fontSize: { xs: 15, md: 18 }, display: { xs: 'none', sm: 'inline-flex' } }} />}
+                  endIcon={<KeyboardArrowDownIcon sx={{ fontSize: { xs: 13, md: 18 }, display: { xs: 'none', sm: 'inline-flex' } }} />}
                   aria-haspopup="menu"
                   aria-expanded={Boolean(recruiterAnchor) ? 'true' : undefined}
+                  aria-label="Hire Talent"
                   sx={{
-                    display: { xs: 'none', md: 'flex' },
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     borderColor: 'rgba(37, 99, 235, 0.32)',
                     color: '#1d4ed8',
-                    px: 1.5,
-                    py: 0.72,
-                    minWidth: 132,
-                    fontSize: '0.86rem',
+                    px: { xs: 0, md: 1.5 },
+                    py: { xs: 0, md: 0.72 },
+                    width: { xs: 34, md: 'auto' },
+                    height: { xs: 34, md: 'auto' },
+                    minHeight: { xs: 0, md: 'auto' },
+                    lineHeight: { xs: 1, md: 'inherit' },
+                    minWidth: { xs: 34, md: 132 },
+                    fontSize: { xs: '0.62rem', md: '0.86rem' },
                     fontWeight: 700,
                     textTransform: 'none',
-                    borderRadius: 999,
+                    borderRadius: { xs: 1.25, md: 999 },
                     bgcolor: 'rgba(37, 99, 235, 0.05)',
+                    '& .MuiButton-startIcon': { mr: { xs: 0, md: 1 } },
                     '&:hover': {
                       borderColor: '#2563EB',
                       background: 'rgba(59, 130, 246, 0.14)',
                     },
                   }}
                 >
-                  Hire Talent
+                  <Box component="span" sx={{ display: { xs: 'inline-flex', sm: 'none' } }}>
+                    <WorkIcon sx={{ fontSize: 16 }} />
+                  </Box>
+                  <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Hire Talent</Box>
                 </Button>
                 <Menu
                   anchorEl={recruiterAnchor}
@@ -653,19 +653,28 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
             )}
 
             {!user ? (
-              <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.2, md: 1 } }}>
                 <Button
                   component={RouterLink}
                   to={ROUTES.LOGIN}
                   variant="text"
+                  aria-label="Login"
                   sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     color: 'text.primary',
                     textTransform: 'none',
-                    px: 1.6,
-                    py: 0.74,
-                    fontSize: '0.9rem',
+                    px: { xs: 0, md: 1.6 },
+                    py: { xs: 0, md: 0.74 },
+                    width: { xs: 34, md: 'auto' },
+                    height: { xs: 34, md: 'auto' },
+                    minHeight: { xs: 0, md: 'auto' },
+                    lineHeight: { xs: 1, md: 'inherit' },
+                    minWidth: { xs: 34, md: 64 },
+                    fontSize: { xs: '0.62rem', md: '0.9rem' },
                     fontWeight: 700,
-                    borderRadius: 999,
+                    borderRadius: { xs: 1.25, md: 999 },
                     border: '1px solid rgba(148, 163, 184, 0.28)',
                     bgcolor: isDarkMode ? 'rgba(30, 41, 59, 0.58)' : 'rgba(248, 250, 252, 0.92)',
                     '&:hover': {
@@ -673,20 +682,32 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                     },
                   }}
                 >
-                  Login
+                  <Box component="span" sx={{ display: { xs: 'inline-flex', md: 'none' } }}>
+                    <LoginIcon sx={{ fontSize: 16 }} />
+                  </Box>
+                  <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>Login</Box>
                 </Button>
                 <MotionBox whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
                   <Button
                     component={RouterLink}
                     to={ROUTES.SIGNUP}
                     variant="contained"
+                    aria-label="Sign up"
                     sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                       textTransform: 'none',
-                      px: 2,
-                      py: 0.82,
-                      fontSize: '0.9rem',
+                      px: { xs: 0, md: 2 },
+                      py: { xs: 0, md: 0.82 },
+                      width: { xs: 34, md: 'auto' },
+                      height: { xs: 34, md: 'auto' },
+                      minHeight: { xs: 0, md: 'auto' },
+                      lineHeight: { xs: 1, md: 'inherit' },
+                      minWidth: { xs: 34, md: 64 },
+                      fontSize: { xs: '0.62rem', md: '0.9rem' },
                       fontWeight: 700,
-                      borderRadius: '999px',
+                      borderRadius: { xs: 1.25, md: 999 },
                       background: 'linear-gradient(90deg, #0284c7, #2563eb)',
                       color: '#ffffff',
                       boxShadow: '0 10px 20px rgba(37, 99, 235, 0.24)',
@@ -696,7 +717,10 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                       },
                     }}
                   >
-                    Register
+                    <Box component="span" sx={{ display: { xs: 'inline-flex', md: 'none' } }}>
+                      <SignupIcon sx={{ fontSize: 16 }} />
+                    </Box>
+                    <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>Register</Box>
                   </Button>
                 </MotionBox>
               </Box>

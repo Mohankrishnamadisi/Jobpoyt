@@ -130,10 +130,29 @@ const detectBrowser = (ua: string): PwaBrowser => {
   return 'unknown';
 };
 
+const INSTALLED_FLAG_KEY = 'actro:pwa-installed:v1';
+
+const readInstalledFlag = (): boolean => {
+  try {
+    return window.localStorage.getItem(INSTALLED_FLAG_KEY) === 'true';
+  } catch {
+    return false;
+  }
+};
+
+const writeInstalledFlag = () => {
+  try {
+    window.localStorage.setItem(INSTALLED_FLAG_KEY, 'true');
+  } catch {
+    // no-op
+  }
+};
+
 const isStandaloneMode = (): boolean => {
   const displayStandalone = typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches;
   const iosStandalone = (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
-  return displayStandalone || iosStandalone;
+  const androidAppReferrer = document.referrer.startsWith('android-app://');
+  return displayStandalone || iosStandalone || androidAppReferrer || readInstalledFlag();
 };
 
 const getUnsupportedTip = (platform: PwaPlatform): string => {
@@ -172,6 +191,7 @@ export const usePWAInstall = () => {
     };
 
     const onAppInstalled = () => {
+      writeInstalledFlag();
       setIsInstalled(true);
       setIsStandalone(true);
       setDeferredPrompt(null);
@@ -183,7 +203,10 @@ export const usePWAInstall = () => {
     const onDisplayModeChanged = () => {
       const standalone = isStandaloneMode();
       setIsStandalone(standalone);
-      if (standalone) setIsInstalled(true);
+      if (standalone) {
+        writeInstalledFlag();
+        setIsInstalled(true);
+      }
     };
 
     window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt as EventListener);
@@ -337,6 +360,7 @@ export const usePWAInstall = () => {
       setDeferredPrompt(null);
 
       if (choice.outcome === 'accepted') {
+        writeInstalledFlag();
         setIsInstalled(true);
         setIsStandalone(true);
         pwaInstallAnalyticsService.track('install_accepted', {

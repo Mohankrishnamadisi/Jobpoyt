@@ -511,7 +511,7 @@ export const JobDetails: React.FC = () => {
         type="article"
         structuredData={jobPostingSchema ? [jobPostingSchema, jobBreadcrumbSchema] : jobBreadcrumbSchema}
       />
-      <Container maxWidth="xl" sx={{ py: { xs: 2.5, md: 4 } }}>
+      <Container maxWidth="xl" className="job-details-page" sx={{ py: { xs: 2.5, md: 4 }, mt: { xs: -7, md: 0 } }}>
         <Card
           sx={{
             mb: 3,
@@ -523,7 +523,7 @@ export const JobDetails: React.FC = () => {
             boxShadow: '0 30px 70px rgba(15, 23, 42, 0.24)',
           }}
         >
-          <CardContent sx={{ p: { xs: 2.2, md: 3.2 } }}>
+          <CardContent sx={{ p: { xs: 1.4, md: 3.2 } }}>
             <Grid container spacing={2.5} alignItems="center">
               <Grid item xs={12} md={8}>
                 <Typography
@@ -531,7 +531,7 @@ export const JobDetails: React.FC = () => {
                   sx={{
                     fontWeight: 800,
                     lineHeight: 1.12,
-                    fontSize: { xs: '1.65rem', md: '2.3rem' },
+                    fontSize: { xs: '1.15rem', md: '2.3rem' },
                     mb: 1,
                   }}
                 >
@@ -542,6 +542,7 @@ export const JobDetails: React.FC = () => {
                   sx={{
                     color: 'rgba(226, 232, 240, 0.92)',
                     mb: 1.5,
+                    fontSize: { xs: '0.78rem', md: '1rem' },
                     ...(showRemotePremium ? { filter: 'blur(4px)', userSelect: 'none' } : {}),
                   }}
                 >
@@ -549,30 +550,30 @@ export const JobDetails: React.FC = () => {
                 </Typography>
 
                 <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 1.6 }}>
-                  <Chip label={jobTypeLabel} sx={{ bgcolor: 'rgba(56, 189, 248, 0.2)', color: '#e0f2fe', fontWeight: 700 }} />
-                  <Chip label={workModeLabel} sx={{ bgcolor: 'rgba(59, 130, 246, 0.22)', color: '#dbeafe', fontWeight: 700 }} />
+                  <Chip label={jobTypeLabel} sx={{ bgcolor: 'rgba(56, 189, 248, 0.2)', color: '#e0f2fe', fontWeight: 700, height: { xs: 22, md: 32 }, fontSize: { xs: '0.62rem', md: '0.8125rem' } }} />
+                  <Chip label={workModeLabel} sx={{ bgcolor: 'rgba(59, 130, 246, 0.22)', color: '#dbeafe', fontWeight: 700, height: { xs: 22, md: 32 }, fontSize: { xs: '0.62rem', md: '0.8125rem' } }} />
                   <Chip
-                    icon={<CalendarMonthIcon sx={{ color: '#bfdbfe !important' }} />}
+                    icon={<CalendarMonthIcon sx={{ color: '#bfdbfe !important', fontSize: { xs: 14, md: 20 } }} />}
                     label={`Posted ${postedOn}`}
-                    sx={{ bgcolor: 'rgba(148, 163, 184, 0.18)', color: '#e2e8f0', fontWeight: 600 }}
+                    sx={{ bgcolor: 'rgba(148, 163, 184, 0.18)', color: '#e2e8f0', fontWeight: 600, height: { xs: 22, md: 32 }, fontSize: { xs: '0.62rem', md: '0.8125rem' } }}
                   />
                 </Stack>
 
-                <Stack direction="row" spacing={2.2} useFlexGap flexWrap="wrap">
+                <Stack direction="row" spacing={{ xs: 1.2, md: 2.2 }} useFlexGap flexWrap="wrap">
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                    <LocationOnIcon sx={{ color: '#7dd3fc' }} />
-                    <Typography variant="body2" sx={{ color: '#e2e8f0' }}>{job.location}</Typography>
+                    <LocationOnIcon sx={{ color: '#7dd3fc', fontSize: { xs: 15, md: 24 } }} />
+                    <Typography variant="body2" sx={{ color: '#e2e8f0', fontSize: { xs: '0.68rem', md: '0.875rem' } }}>{job.location}</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                    <MonetizationOnIcon sx={{ color: '#86efac' }} />
-                    <Typography variant="body2" sx={{ color: '#bbf7d0', fontWeight: 700 }}>
+                    <MonetizationOnIcon sx={{ color: '#86efac', fontSize: { xs: 15, md: 24 } }} />
+                    <Typography variant="body2" sx={{ color: '#bbf7d0', fontWeight: 700, fontSize: { xs: '0.68rem', md: '0.875rem' } }}>
                       {formatJobSalary(job.salaryMin, job.salaryMax)}
                     </Typography>
                   </Box>
                   {(job.positionsAvailable || job.positions_available) ? (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                      <WorkIcon sx={{ color: '#93c5fd' }} />
-                      <Typography variant="body2" sx={{ color: '#dbeafe', ...(showRemotePremium ? { filter: 'blur(4px)', userSelect: 'none' } : {}) }}>
+                      <WorkIcon sx={{ color: '#93c5fd', fontSize: { xs: 15, md: 24 } }} />
+                      <Typography variant="body2" sx={{ color: '#dbeafe', fontSize: { xs: '0.68rem', md: '0.875rem' }, ...(showRemotePremium ? { filter: 'blur(4px)', userSelect: 'none' } : {}) }}>
                         {showRemotePremium ? 'Positions hidden - Upgrade' : `Hiring ${job.positionsAvailable || job.positions_available} position${(job.positionsAvailable || job.positions_available) === 1 ? '' : 's'}`}
                       </Typography>
                     </Box>
@@ -583,7 +584,7 @@ export const JobDetails: React.FC = () => {
               <Grid item xs={12} md={4}>
                 <Box
                   sx={{
-                    p: 2,
+                    p: { xs: 1.2, md: 2 },
                     borderRadius: 3,
                     border: '1px solid rgba(148, 163, 184, 0.34)',
                     background: 'rgba(15, 23, 42, 0.28)',
@@ -603,6 +604,8 @@ export const JobDetails: React.FC = () => {
                       bgcolor: isSaved ? 'rgba(37, 99, 235, 0.62)' : 'rgba(30, 41, 59, 0.55)',
                       textTransform: 'none',
                       fontWeight: 700,
+                      py: { xs: 0.4, md: 1 },
+                      fontSize: { xs: '0.72rem', md: '0.9rem' },
                       '&:hover': {
                         bgcolor: isSaved ? 'rgba(29, 78, 216, 0.72)' : 'rgba(51, 65, 85, 0.72)',
                         borderColor: 'rgba(148, 163, 184, 0.62)',
@@ -640,6 +643,8 @@ export const JobDetails: React.FC = () => {
                       bgcolor: 'rgba(2, 132, 199, 0.34)',
                       textTransform: 'none',
                       fontWeight: 700,
+                      py: { xs: 0.4, md: 1 },
+                      fontSize: { xs: '0.72rem', md: '0.9rem' },
                       '&:hover': {
                         bgcolor: 'rgba(3, 105, 161, 0.48)',
                         borderColor: 'rgba(148, 163, 184, 0.62)',

@@ -672,7 +672,7 @@ export const RecruiterRegister: React.FC = () => {
     <Layout footer={false}>
       <div className="recruiter-register-page relative min-h-screen overflow-hidden py-1 sm:py-2 px-4 sm:px-6 lg:px-8">
         <video
-          className="fixed inset-0 h-full w-full object-cover pointer-events-none -z-20"
+          className="hidden sm:block fixed inset-0 h-full w-full object-cover pointer-events-none -z-20"
           src={RECRUITER_REGISTER_VIDEO_URL}
           autoPlay
           muted
@@ -687,7 +687,7 @@ export const RecruiterRegister: React.FC = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.35, duration: 0.5 }}
-                className="w-full max-w-xs mx-auto lg:max-w-none h-[450px] lg:h-[640px] rounded-2xl overflow-hidden border border-white/70 shadow-xl bg-black/10"
+                className="hidden lg:block w-full max-w-xs mx-auto lg:max-w-none h-[450px] lg:h-[640px] rounded-2xl overflow-hidden border border-white/70 shadow-xl bg-black/10"
             >
               <video
                 className="block w-full h-full object-cover"

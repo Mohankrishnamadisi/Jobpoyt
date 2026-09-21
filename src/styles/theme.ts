@@ -52,16 +52,37 @@ const createAppTheme = (themeMode: ThemeMode) => {
 
   const palette = paletteByMode[themeMode];
 
-  return createTheme({
+  const appTheme = createTheme({
     palette,
+    breakpoints: {
+      values: { xs: 0, sm: 600, md: 900, lg: 1200, xl: 1536 },
+    },
     typography: {
       fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
-      h1: { fontSize: '3.5rem', fontWeight: 800, lineHeight: 1.05, letterSpacing: '-0.03em' },
-      h2: { fontSize: '2.6rem', fontWeight: 800, lineHeight: 1.1 },
-      h3: { fontSize: '2rem', fontWeight: 700, lineHeight: 1.15 },
-      h4: { fontSize: '1.5rem', fontWeight: 700, lineHeight: 1.3 },
-      h5: { fontSize: '1.25rem', fontWeight: 700, lineHeight: 1.35 },
-      h6: { fontSize: '1.05rem', fontWeight: 700, lineHeight: 1.45 },
+      h1: {
+        fontSize: '3.5rem', fontWeight: 800, lineHeight: 1.05, letterSpacing: '-0.03em',
+        '@media (max-width:599.95px)': { fontSize: '2.1rem', lineHeight: 1.15, letterSpacing: '-0.02em' },
+      },
+      h2: {
+        fontSize: '2.6rem', fontWeight: 800, lineHeight: 1.1,
+        '@media (max-width:599.95px)': { fontSize: '1.7rem', lineHeight: 1.18 },
+      },
+      h3: {
+        fontSize: '2rem', fontWeight: 700, lineHeight: 1.15,
+        '@media (max-width:599.95px)': { fontSize: '1.4rem', lineHeight: 1.2 },
+      },
+      h4: {
+        fontSize: '1.5rem', fontWeight: 700, lineHeight: 1.3,
+        '@media (max-width:599.95px)': { fontSize: '1.2rem' },
+      },
+      h5: {
+        fontSize: '1.25rem', fontWeight: 700, lineHeight: 1.35,
+        '@media (max-width:599.95px)': { fontSize: '1.05rem' },
+      },
+      h6: {
+        fontSize: '1.05rem', fontWeight: 700, lineHeight: 1.45,
+        '@media (max-width:599.95px)': { fontSize: '0.95rem' },
+      },
       body1: { fontSize: '1rem', lineHeight: 1.7 },
       body2: { fontSize: '0.95rem', lineHeight: 1.65 },
       button: { textTransform: 'none', fontWeight: 700 },
@@ -98,6 +119,21 @@ const createAppTheme = (themeMode: ThemeMode) => {
         styleOverrides: {
           root: {
             minHeight: 72,
+            '@media (max-width:600px)': {
+              minHeight: 56,
+              paddingLeft: 12,
+              paddingRight: 12,
+            },
+          },
+        },
+      },
+      MuiContainer: {
+        styleOverrides: {
+          root: {
+            '@media (max-width:600px)': {
+              paddingLeft: 14,
+              paddingRight: 14,
+            },
           },
         },
       },
@@ -136,6 +172,10 @@ const createAppTheme = (themeMode: ThemeMode) => {
             padding: '12px 24px',
             boxShadow: 'none',
             transition: 'transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease',
+            '@media (max-width:600px)': {
+              padding: '9px 16px',
+              fontSize: '0.875rem',
+            },
           },
           containedPrimary: {
             background: palette.primary.main,
@@ -236,6 +276,8 @@ const createAppTheme = (themeMode: ThemeMode) => {
       },
     },
   });
+
+  return appTheme;
 };
 
 export const getTheme = createAppTheme;

@@ -126,15 +126,15 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
         sx={{
           display: 'flex',
           alignItems: 'flex-start',
-          gap: { xs: 1.5, sm: 2.5 },
-          p: { xs: 1.5, sm: 2.5 },
+          gap: { xs: 0.8, sm: 2.5 },
+          p: { xs: 0.9, sm: 2.5 },
           bgcolor: isDarkMode ? (isHovered ? '#172033' : '#111827') : (isHovered ? 'rgba(241, 248, 255, 0.98)' : undefined),
           background: isDarkMode
             ? (isHovered ? 'linear-gradient(180deg, #172033, #111827)' : 'linear-gradient(180deg, #111827, #0F172A)')
             : 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(241, 248, 255, 0.96))',
           border: '1px solid',
           borderColor: isHovered ? '#bfdbfe' : (isDarkMode ? '#334155' : '#e2e8f0'),
-          borderRadius: 2.25,
+          borderRadius: { xs: 1.5, sm: 2.25 },
           transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
           position: 'relative',
           cursor: 'pointer',
@@ -159,8 +159,8 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
                 job.featured && !showRemotePremium ? (
                   <Box
                     sx={{
-                      width: 24,
-                      height: 24,
+                      width: { xs: 16, sm: 24 },
+                      height: { xs: 16, sm: 24 },
                       bgcolor: '#FCD34D',
                       borderRadius: '50%',
                       display: 'flex',
@@ -169,7 +169,7 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
                       border: '2px solid white',
                     }}
                   >
-                    <BoltOutlinedIcon sx={{ fontSize: 14, color: '#92400E' }} />
+                    <BoltOutlinedIcon sx={{ fontSize: { xs: 10, sm: 14 }, color: '#92400E' }} />
                   </Box>
                 ) : null
               }
@@ -181,11 +181,11 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
                   onError: () => setLogoExtensionIndex((index) => index + 1),
                 }}
                 sx={{
-                  width: { xs: 48, sm: 56 },
-                  height: { xs: 48, sm: 56 },
+                  width: { xs: 32, sm: 56 },
+                  height: { xs: 32, sm: 56 },
                   bgcolor: showRemotePremium ? (isDarkMode ? '#1e3a8a' : '#dbeafe') : (isDarkMode ? '#334155' : '#d1d5db'),
                   color: showRemotePremium ? (isDarkMode ? '#bfdbfe' : '#2563eb') : undefined,
-                  fontSize: { xs: '1.1rem', sm: '1.3rem' },
+                  fontSize: { xs: '0.75rem', sm: '1.3rem' },
                   fontWeight: 700,
                   flexShrink: 0,
                   '& img': {
@@ -213,7 +213,7 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'flex-start',
-            gap: { xs: 0.5, sm: 0.75 },
+            gap: { xs: 0.25, sm: 0.75 },
           }}
         >
           {/* Job Title */}
@@ -221,7 +221,7 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
             variant="h6"
             sx={{
               fontWeight: 900,
-              fontSize: { xs: '1.05rem', sm: '1.2rem' },
+              fontSize: { xs: '0.78rem', sm: '1.2rem' },
               lineHeight: 1.25,
               color: isDarkMode ? '#FFFFFF' : '#0f172a',
               overflow: 'hidden',
@@ -241,7 +241,7 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
             sx={{
               color: isDarkMode ? '#60A5FA' : '#2563eb',
               fontWeight: 700,
-              fontSize: '0.95rem',
+              fontSize: { xs: '0.68rem', sm: '0.95rem' },
               display: 'flex',
               alignItems: 'center',
               gap: 0.6,
@@ -251,8 +251,8 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
           >
             <Box
               sx={{
-                width: 5,
-                height: 5,
+                width: { xs: 4, sm: 5 },
+                height: { xs: 4, sm: 5 },
                 borderRadius: '50%',
                 bgcolor: '#3b82f6',
               }}
@@ -265,14 +265,14 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: 1.5,
+              gap: { xs: 0.6, sm: 1.5 },
               flexWrap: 'wrap',
               mt: 0.25,
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: isDarkMode ? '#CBD5E1' : '#4b5563' }}>
-              <LocationOnOutlinedIcon sx={{ fontSize: 18, color: '#3b82f6' }} />
-              <Typography variant="caption" sx={{ fontWeight: 600, fontSize: '0.875rem', color: isDarkMode ? '#FFFFFF' : '#374151' }}>
+              <LocationOnOutlinedIcon sx={{ fontSize: { xs: 12, sm: 18 }, color: '#3b82f6' }} />
+              <Typography variant="caption" sx={{ fontWeight: 600, fontSize: { xs: '0.6rem', sm: '0.875rem' }, color: isDarkMode ? '#FFFFFF' : '#374151' }}>
                 {job.location}
               </Typography>
             </Box>
@@ -283,14 +283,14 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
                 label={workMode}
                 size="small"
                 sx={{
-                  height: 26,
-                  fontSize: '0.8rem',
+                  height: { xs: 16, sm: 26 },
+                  fontSize: { xs: '0.55rem', sm: '0.8rem' },
                   fontWeight: 700,
                   bgcolor: isDarkMode ? 'rgba(34, 197, 94, 0.16)' : '#d1fae5',
                   color: isDarkMode ? '#86EFAC' : '#065f46',
                   border: isDarkMode ? '1px solid rgba(74, 222, 128, 0.35)' : '1px solid #a7f3d0',
                   '& .MuiChip-icon': {
-                    fontSize: 16,
+                    fontSize: { xs: 10, sm: 16 },
                     marginLeft: '6px !important',
                     color: isDarkMode ? '#4ADE80' : '#059669',
                   },
@@ -305,7 +305,7 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
               variant="caption"
               sx={{
                 fontWeight: 800,
-                fontSize: '0.95rem',
+                fontSize: { xs: '0.65rem', sm: '0.95rem' },
                 color: '#059669',
                 mt: 0.25,
                 letterSpacing: '-0.2px',
@@ -321,7 +321,7 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
               variant="caption"
               sx={{
                 fontWeight: 700,
-                fontSize: '0.8rem',
+                fontSize: { xs: '0.58rem', sm: '0.8rem' },
                 color: isDarkMode ? '#CBD5E1' : '#374151',
                 ...(showRemotePremium ? { filter: 'blur(4px)', userSelect: 'none' } : {}),
               }}
@@ -331,36 +331,36 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
           ) : null}
 
           {/* Posted Time + Experience */}
-          <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap', mt: 0.5 }}>
+          <Box sx={{ display: 'flex', gap: { xs: 0.6, sm: 1.5 }, alignItems: 'center', flexWrap: 'wrap', mt: { xs: 0.15, sm: 0.5 } }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: '#6b7280' }}>
-              <TrendingUpOutlinedIcon sx={{ fontSize: 16, color: '#3b82f6' }} />
-              <Typography variant="caption" sx={{ fontSize: '0.8rem', fontWeight: 600, color: isDarkMode ? '#FFFFFF' : '#4b5563' }}>
+              <TrendingUpOutlinedIcon sx={{ fontSize: { xs: 11, sm: 16 }, color: '#3b82f6' }} />
+              <Typography variant="caption" sx={{ fontSize: { xs: '0.58rem', sm: '0.8rem' }, fontWeight: 600, color: isDarkMode ? '#FFFFFF' : '#4b5563' }}>
                 {job.experience || 'Not specified'} exp.
               </Typography>
             </Box>
 
             {jobType && jobType !== 'Type unavailable' && (
-              <Typography variant="caption" sx={{ fontSize: '0.8rem', color: isDarkMode ? '#FFFFFF' : '#4b5563', fontWeight: 600 }}>
+              <Typography variant="caption" sx={{ fontSize: { xs: '0.58rem', sm: '0.8rem' }, color: isDarkMode ? '#FFFFFF' : '#4b5563', fontWeight: 600 }}>
                 · {jobType}
               </Typography>
             )}
 
-            <Typography variant="caption" sx={{ color: isDarkMode ? '#CBD5E1' : '#6b7280', fontSize: '0.8rem', fontWeight: 500 }}>
+            <Typography variant="caption" sx={{ color: isDarkMode ? '#CBD5E1' : '#6b7280', fontSize: { xs: '0.58rem', sm: '0.8rem' }, fontWeight: 500 }}>
               · Added {postedDate}
             </Typography>
           </Box>
 
           {/* Skills Row */}
           {skills.length > 0 && (
-            <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', alignItems: 'center', mt: 0.25 }}>
+            <Box sx={{ display: 'flex', gap: { xs: 0.4, sm: 0.75 }, flexWrap: 'wrap', alignItems: 'center', mt: 0.25 }}>
               {skills.map((skill, idx) => (
                 <Chip
                   key={idx}
                   label={skill}
                   size="small"
                   sx={{
-                    height: 26,
-                    fontSize: '0.78rem',
+                    height: { xs: 16, sm: 26 },
+                    fontSize: { xs: '0.56rem', sm: '0.78rem' },
                     fontWeight: 700,
                     bgcolor: isDarkMode ? 'rgba(96, 165, 250, 0.16)' : '#dbeafe',
                     color: isDarkMode ? '#BFDBFE' : '#1e40af',
@@ -375,7 +375,7 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
                   sx={{
                     fontWeight: 700,
                     color: isDarkMode ? '#BFDBFE' : '#1e40af',
-                    fontSize: '0.78rem',
+                    fontSize: { xs: '0.56rem', sm: '0.78rem' },
                     px: 0.75,
                     py: 0.3,
                     borderRadius: 1,
@@ -432,6 +432,7 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
             justifyContent: 'flex-start',
             pointerEvents: 'auto',
             minWidth: { xs: 'auto', sm: 120 },
+            gap: { xs: 0.3, sm: 1 },
           }}
         >
           {/* Apply Button */}
@@ -443,9 +444,12 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
               textTransform: 'none',
               fontWeight: 700,
               borderRadius: 1,
-              fontSize: '0.95rem',
-              px: 2.5,
-              py: 0.75,
+              fontSize: { xs: '0.62rem', sm: '0.95rem' },
+              px: { xs: 1, sm: 2.5 },
+              py: { xs: 0.25, sm: 0.75 },
+              minWidth: { xs: 0, sm: 64 },
+              minHeight: { xs: 26, sm: 'auto' },
+              lineHeight: { xs: 1, sm: 'inherit' },
               bgcolor: applied ? '#16a34a' : '#3b82f6',
               color: '#ffffff',
               cursor: 'pointer',
@@ -473,7 +477,7 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
             onClick={handleViewDetailsClick}
             sx={{
               cursor: 'pointer',
-              fontSize: '0.9rem',
+              fontSize: { xs: '0.62rem', sm: '0.9rem' },
               fontWeight: 600,
               color: '#3b82f6',
               textDecoration: 'none',

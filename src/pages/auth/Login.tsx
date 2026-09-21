@@ -161,7 +161,7 @@ export const Login: React.FC = () => {
       <Box
         sx={{
           height: '100%',
-          minHeight: { xs: 'calc(100dvh - 80px)', sm: 'calc(100dvh - 80px)' },
+          minHeight: { xs: 'calc(100dvh - 145px)', sm: 'calc(100dvh - 80px)' },
           position: 'relative',
           display: 'flex',
           alignItems: 'center',

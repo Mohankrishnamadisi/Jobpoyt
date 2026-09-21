@@ -68,7 +68,7 @@ export const Signup: React.FC = () => {
 
   return (
     <Layout footer={false}>
-      <Box sx={{ height: { xs: 'calc(100dvh - 64px)', md: 'calc(100dvh - 72px)' }, minHeight: 0, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-start', pt: { xs: 3, md: 5 }, pb: 0, mb: { xs: -2, md: -4 } }}>
+      <Box sx={{ height: { xs: 'calc(100dvh - 64px)', md: 'calc(100dvh - 72px)' }, minHeight: 0, position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'flex-start', mt: { xs: -7, md: 0 }, pt: { xs: 1, md: 5 }, pb: 0, mb: { xs: -2, md: -4 } }}>
         <Box component="video" src={SIGNUP_VIDEO_URL} autoPlay muted loop playsInline aria-hidden="true" sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }} />
         <Box sx={{ position: 'absolute', inset: 0, zIndex: 1, background: 'linear-gradient(90deg, rgba(4,16,39,0.86), rgba(9,31,68,0.64) 52%, rgba(3,12,30,0.42))' }} />
         <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 2, height: '100%' }}>

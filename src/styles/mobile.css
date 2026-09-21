@@ -1,6 +1,174 @@
 /* Mobile-Specific Styles */
 
 @media (max-width: 600px) {
+  /* Compact the Jobs page "Smart Filters" panel on mobile */
+  .find-jobs-filters .filter-section-toggle {
+    min-height: 40px !important;
+    padding: 4px 10px !important;
+    border-radius: 8px !important;
+  }
+
+  .find-jobs-filters .filter-section-toggle .MuiTypography-subtitle1 {
+    font-size: 0.8rem !important;
+  }
+
+  .find-jobs-filters .filter-section-toggle .MuiChip-root {
+    min-width: 24px !important;
+    height: 19px !important;
+    font-size: 0.65rem !important;
+  }
+
+  .find-jobs-filters .filter-section-toggle .MuiIconButton-root {
+    padding: 4px !important;
+  }
+
+  .find-jobs-filters .filter-section-toggle .MuiIconButton-root svg {
+    font-size: 18px !important;
+  }
+
+  .find-jobs-filters .MuiOutlinedInput-root {
+    min-height: 40px !important;
+    height: auto !important;
+    font-size: 0.8rem !important;
+  }
+
+  .find-jobs-filters .MuiInputLabel-root,
+  .find-jobs-filters .MuiSelect-select {
+    font-size: 0.8rem !important;
+  }
+
+  .find-jobs-filters .MuiFormControlLabel-root {
+    min-height: 30px !important;
+  }
+
+  .find-jobs-filters .MuiFormControlLabel-label {
+    font-size: 0.8rem !important;
+  }
+
+  .find-jobs-filters .MuiCheckbox-root {
+    padding: 4px !important;
+  }
+
+  .find-jobs-filters .MuiCheckbox-root svg {
+    font-size: 18px !important;
+  }
+
+  /* Shrink the Job Details page content on mobile */
+  .job-details-page .MuiCardContent-root {
+    padding: 10px !important;
+  }
+
+  .job-details-page .MuiTypography-h3 {
+    font-size: 1.15rem !important;
+  }
+
+  .job-details-page .MuiTypography-h4 {
+    font-size: 1.15rem !important;
+  }
+
+  .job-details-page .MuiTypography-h5 {
+    font-size: 1rem !important;
+  }
+
+  .job-details-page .MuiTypography-h6 {
+    font-size: 0.88rem !important;
+  }
+
+  .job-details-page .MuiTypography-subtitle1,
+  .job-details-page .MuiTypography-subtitle2 {
+    font-size: 0.76rem !important;
+  }
+
+  .job-details-page .MuiTypography-body1 {
+    font-size: 0.78rem !important;
+  }
+
+  .job-details-page .MuiTypography-body2 {
+    font-size: 0.72rem !important;
+  }
+
+  .job-details-page .MuiTypography-caption {
+    font-size: 0.66rem !important;
+  }
+
+  .job-details-page .MuiChip-root {
+    height: 22px !important;
+    font-size: 0.62rem !important;
+  }
+
+  .job-details-page .MuiButton-root {
+    font-size: 0.75rem !important;
+    padding: 6px 12px !important;
+  }
+
+  .job-details-page .MuiTab-root {
+    font-size: 0.72rem !important;
+    min-height: 36px !important;
+    padding: 6px 10px !important;
+  }
+
+  .job-details-page svg.MuiSvgIcon-root {
+    font-size: 18px !important;
+  }
+
+  /* Shrink the candidate dashboard content (stats, quick actions, cards) on mobile */
+  .candidate-dashboard .MuiCardContent-root {
+    padding: 10px !important;
+  }
+
+  .candidate-dashboard .MuiTypography-h3,
+  .candidate-dashboard .MuiTypography-h4 {
+    font-size: 1.05rem !important;
+  }
+
+  .candidate-dashboard .MuiTypography-h5 {
+    font-size: 0.95rem !important;
+  }
+
+  .candidate-dashboard .MuiTypography-h6 {
+    font-size: 0.85rem !important;
+  }
+
+  .candidate-dashboard .MuiTypography-subtitle1,
+  .candidate-dashboard .MuiTypography-subtitle2 {
+    font-size: 0.74rem !important;
+  }
+
+  .candidate-dashboard .MuiTypography-body1 {
+    font-size: 0.76rem !important;
+  }
+
+  .candidate-dashboard .MuiTypography-body2 {
+    font-size: 0.7rem !important;
+  }
+
+  .candidate-dashboard .MuiTypography-caption {
+    font-size: 0.64rem !important;
+  }
+
+  .candidate-dashboard .MuiChip-root {
+    height: 20px !important;
+    font-size: 0.6rem !important;
+  }
+
+  .candidate-dashboard .MuiButton-root {
+    font-size: 0.68rem !important;
+    padding: 5px 10px !important;
+    min-height: 30px !important;
+  }
+
+  .candidate-dashboard .MuiIconButton-root {
+    padding: 5px !important;
+  }
+
+  .candidate-dashboard svg.MuiSvgIcon-root {
+    font-size: 16px !important;
+  }
+
+  .candidate-dashboard .dashboard-content .MuiCard-root {
+    border-radius: 12px !important;
+  }
+
   /* Ensure full width usage on mobile */
   body {
     margin: 0;

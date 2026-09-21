@@ -73,3 +73,25 @@
 .install-app-dark.install-app-type1:hover::after {
   background: linear-gradient(90deg, #0f766e, #2563eb);
 }
+
+@media (max-width: 600px) {
+  .install-app-button {
+    height: 26px;
+    width: 68px;
+  }
+
+  .install-app-type1::after,
+  .install-app-type1::before {
+    height: 26px;
+    width: 68px;
+    font-size: 0.6rem;
+  }
+
+  .install-app-type1:hover::after {
+    transform: translateY(0) scale(1.04);
+  }
+
+  .install-app-type1:hover::before {
+    transform: translateY(-26px) scale(0) rotate(120deg);
+  }
+}
