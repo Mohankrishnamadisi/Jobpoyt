@@ -229,7 +229,7 @@ export const Home: React.FC = () => {
           backgroundSize: 'cover',
           backgroundPosition: 'center center',
           backgroundRepeat: 'no-repeat',
-          py: { xs: 1.75, sm: 5, md: 6.5 },
+          py: { xs: 0.75, sm: 5, md: 6.5 },
         }}
         variants={containerVariants}
         initial="hidden"
@@ -257,7 +257,7 @@ export const Home: React.FC = () => {
               sx={{
                 maxWidth: { xs: '100%', md: 820 },
                 mx: 'auto',
-                fontSize: { xs: '1.18rem', sm: '2.1rem', md: '2.55rem' },
+                fontSize: { xs: '1.38rem', sm: '2.1rem', md: '2.55rem' },
                 fontWeight: 800,
                 mb: { xs: 2, md: 2.2 },
                 color: '#102A43',
@@ -517,14 +517,14 @@ export const Home: React.FC = () => {
           <MotionTypography
             variants={sectionItemVariants}
             variant="h4"
-            sx={{ fontWeight: 700, mb: 1, textAlign: 'center' }}
+            sx={{ fontWeight: 700, mb: { xs: 0.75, md: 1 }, fontSize: { xs: '1.1rem', md: '2.125rem' }, textAlign: 'center' }}
           >
             Browse by Category
           </MotionTypography>
           <MotionTypography
             variants={sectionItemVariants}
             variant="body1"
-            sx={{ color: 'text.secondary', mb: 4, textAlign: 'center' }}
+            sx={{ color: 'text.secondary', mb: { xs: 2, md: 4 }, fontSize: { xs: '0.75rem', md: '1rem' }, textAlign: 'center' }}
           >
             Explore opportunities in your field of expertise
           </MotionTypography>
@@ -605,7 +605,7 @@ export const Home: React.FC = () => {
           whileInView="visible"
           viewport={{ once: true }}
         >
-          <MotionTypography variants={sectionItemVariants} variant="h4" sx={{ fontWeight: 700, mb: 2, textAlign: 'center' }}>
+          <MotionTypography variants={sectionItemVariants} variant="h4" sx={{ fontWeight: 700, mb: { xs: 1.25, md: 2 }, fontSize: { xs: '1.1rem', md: '2.125rem' }, textAlign: 'center' }}>
             Jobs You May Be Interested In
           </MotionTypography>
           <MotionBox variants={sectionRevealVariants} initial="hidden" whileInView="visible" viewport={{ once: true }}>
@@ -681,7 +681,7 @@ export const Home: React.FC = () => {
             <Grid item xs={12} md={6}>
               <MotionBox variants={sectionItemVariants}>
               <Card sx={{ borderRadius: 3, p: 3, height: '100%', background: isDarkMode ? '#0B0F17' : 'linear-gradient(180deg, #EFF6FF 0%, #FFFFFF 100%)', boxShadow: isDarkMode ? '0 18px 38px rgba(0, 0, 0, 0.42)' : '0 18px 38px rgba(15, 23, 42, 0.08)' }}>
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: { xs: 1.25, md: 2 }, fontSize: { xs: '1rem', md: '1.5rem' } }}>
                   Top Companies Hiring Now
                 </Typography>
                 <Grid container spacing={2}>
@@ -716,7 +716,7 @@ export const Home: React.FC = () => {
             <Grid item xs={12} md={6}>
               <MotionBox variants={sectionItemVariants}>
               <Card sx={{ borderRadius: 3, p: 3, height: '100%', background: isDarkMode ? '#0B0F17' : 'linear-gradient(180deg, #EFF6FF 0%, #FFFFFF 100%)', boxShadow: isDarkMode ? '0 18px 38px rgba(0, 0, 0, 0.42)' : '0 18px 38px rgba(15, 23, 42, 0.08)' }}>
-                <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: { xs: 1.25, md: 2 }, fontSize: { xs: '1rem', md: '1.5rem' } }}>
                   Featured Companies Actively Hiring
                 </Typography>
                 <Grid container spacing={2}>
@@ -770,7 +770,7 @@ export const Home: React.FC = () => {
         >
           <MotionBox variants={sectionItemVariants}>
             <Paper sx={{ p: { xs: 3, md: 4 }, borderRadius: 3, background: isDarkMode ? '#0B0F17' : 'linear-gradient(180deg, #EFF8FF 0%, #FFFFFF 100%)', color: isDarkMode ? '#FFFFFF' : undefined, border: '1px solid', borderColor: 'divider', boxShadow: isDarkMode ? '0 20px 40px rgba(0, 0, 0, 0.42)' : '0 20px 40px rgba(15, 23, 42, 0.08)' }}>
-            <MotionTypography variants={sectionItemVariants} variant="h4" sx={{ fontWeight: 700, mb: 2, textAlign: 'center' }}>
+            <MotionTypography variants={sectionItemVariants} variant="h4" sx={{ fontWeight: 700, mb: { xs: 1.25, md: 2 }, fontSize: { xs: '1.1rem', md: '2.125rem' }, textAlign: 'center' }}>
               Interview Questions by Role
             </MotionTypography>
             <MotionTypography variants={sectionItemVariants} variant="body1" sx={{ color: 'text.secondary', mb: 3, textAlign: 'center' }}>

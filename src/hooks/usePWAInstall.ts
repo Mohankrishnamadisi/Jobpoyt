@@ -130,29 +130,11 @@ const detectBrowser = (ua: string): PwaBrowser => {
   return 'unknown';
 };
 
-const INSTALLED_FLAG_KEY = 'actro:pwa-installed:v1';
-
-const readInstalledFlag = (): boolean => {
-  try {
-    return window.localStorage.getItem(INSTALLED_FLAG_KEY) === 'true';
-  } catch {
-    return false;
-  }
-};
-
-const writeInstalledFlag = () => {
-  try {
-    window.localStorage.setItem(INSTALLED_FLAG_KEY, 'true');
-  } catch {
-    // no-op
-  }
-};
-
 const isStandaloneMode = (): boolean => {
   const displayStandalone = typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches;
   const iosStandalone = (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
   const androidAppReferrer = document.referrer.startsWith('android-app://');
-  return displayStandalone || iosStandalone || androidAppReferrer || readInstalledFlag();
+  return displayStandalone || iosStandalone || androidAppReferrer;
 };
 
 const getUnsupportedTip = (platform: PwaPlatform): string => {
@@ -191,7 +173,6 @@ export const usePWAInstall = () => {
     };
 
     const onAppInstalled = () => {
-      writeInstalledFlag();
       setIsInstalled(true);
       setIsStandalone(true);
       setDeferredPrompt(null);
@@ -204,7 +185,6 @@ export const usePWAInstall = () => {
       const standalone = isStandaloneMode();
       setIsStandalone(standalone);
       if (standalone) {
-        writeInstalledFlag();
         setIsInstalled(true);
       }
     };
@@ -232,16 +212,6 @@ export const usePWAInstall = () => {
     if (isIosSafari) return 'ios_instructions';
 
     if (deferredPrompt) return 'native_prompt';
-
-    const isDesktopSupported =
-      (env.platform === 'windows' || env.platform === 'macos' || env.platform === 'linux' || env.platform === 'chromeos')
-      && (env.browser === 'chrome' || env.browser === 'edge');
-
-    const isAndroidSupported = env.platform === 'android' && (env.browser === 'chrome' || env.browser === 'samsung_internet' || env.browser === 'edge');
-
-    if (isDesktopSupported || isAndroidSupported) {
-      return 'native_prompt';
-    }
 
     return 'unsupported';
   }, [deferredPrompt, env.browser, env.platform, isInstalled, isStandalone]);
@@ -360,7 +330,6 @@ export const usePWAInstall = () => {
       setDeferredPrompt(null);
 
       if (choice.outcome === 'accepted') {
-        writeInstalledFlag();
         setIsInstalled(true);
         setIsStandalone(true);
         pwaInstallAnalyticsService.track('install_accepted', {
