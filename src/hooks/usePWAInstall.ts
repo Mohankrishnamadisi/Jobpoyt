@@ -75,6 +75,7 @@ interface PromptInstallResult {
 }
 
 const PREF_KEY = 'actro:pwa-install-preferences:v1';
+const INSTALLED_KEY = 'jobpoyt:pwa-installed:v1';
 
 const defaultPrefs: PwaInstallPreferences = {
   hideBanner: false,
@@ -104,6 +105,14 @@ const writePrefs = (prefs: PwaInstallPreferences) => {
     window.localStorage.setItem(PREF_KEY, JSON.stringify(prefs));
   } catch {
     // no-op
+  }
+};
+
+const readInstalledState = (): boolean => {
+  try {
+    return window.localStorage.getItem(INSTALLED_KEY) === 'true';
+  } catch {
+    return false;
   }
 };
 
@@ -164,7 +173,9 @@ export const usePWAInstall = () => {
     () => window.__jobpoytDeferredInstallPrompt || null,
   );
   const [isStandalone, setIsStandalone] = useState<boolean>(isStandaloneMode());
-  const [isInstalled, setIsInstalled] = useState<boolean>(isStandaloneMode());
+  const [isInstalled, setIsInstalled] = useState<boolean>(
+    () => isStandaloneMode() || (readInstalledState() && !window.__jobpoytDeferredInstallPrompt),
+  );
   const [iosModalOpen, setIosModalOpen] = useState(false);
 
   const env = useMemo(() => {
@@ -177,6 +188,9 @@ export const usePWAInstall = () => {
   useEffect(() => {
     const onPromptCaptured = () => {
       if (window.__jobpoytDeferredInstallPrompt) {
+        setIsInstalled(false);
+        setIsStandalone(false);
+        window.localStorage.removeItem(INSTALLED_KEY);
         setDeferredPrompt(window.__jobpoytDeferredInstallPrompt);
       }
     };
@@ -185,6 +199,8 @@ export const usePWAInstall = () => {
       setIsInstalled(true);
       setIsStandalone(true);
       setDeferredPrompt(null);
+      window.__jobpoytDeferredInstallPrompt = undefined;
+      window.localStorage.setItem(INSTALLED_KEY, 'true');
       pwaInstallAnalyticsService.track('install_accepted', { source: 'appinstalled-event' });
       window.dispatchEvent(new CustomEvent('pwa:installed'));
     };
@@ -321,8 +337,8 @@ export const usePWAInstall = () => {
 
   const promptInstall = useCallback(async (): Promise<PromptInstallResult> => {
     if (isInstalled || isStandalone) {
-      await updateInstalledApp();
-      return { outcome: 'accepted' };
+      window.alert('JobPoyt is already installed on this device.');
+      return { outcome: 'already-installed' };
     }
 
     if (availability === 'ios_instructions') {
@@ -360,6 +376,7 @@ export const usePWAInstall = () => {
       if (choice.outcome === 'accepted') {
         setIsInstalled(true);
         setIsStandalone(true);
+        window.localStorage.setItem(INSTALLED_KEY, 'true');
         pwaInstallAnalyticsService.track('install_accepted', {
           platform: env.platform,
           browser: env.browser,

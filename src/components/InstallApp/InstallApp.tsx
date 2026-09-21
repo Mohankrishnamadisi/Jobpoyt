@@ -12,7 +12,6 @@ export const InstallApp: React.FC = () => {
   const isDarkMode = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const {
-    isInstalled,
     promptInstall,
     platform,
     iosModalOpen,
@@ -22,8 +21,6 @@ export const InstallApp: React.FC = () => {
   const handleInstall = async () => {
     await promptInstall();
   };
-
-  if (isInstalled) return null;
 
   if (isMobile) {
     return (
