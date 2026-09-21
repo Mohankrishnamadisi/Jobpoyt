@@ -52,6 +52,8 @@ export const MobileBottomNavigation: React.FC = () => {
         zIndex: 30,
         px: 1,
         pb: 'calc(env(safe-area-inset-bottom, 0px) + 8px)',
+        minHeight: 'calc(var(--jobpoyt-bottom-nav-height) + env(safe-area-inset-bottom, 0px))',
+        boxSizing: 'border-box',
         pt: 0.5,
         background: 'rgba(255,255,255,0.95)',
         borderTop: '1px solid',
@@ -74,9 +76,9 @@ export const MobileBottomNavigation: React.FC = () => {
           return (
             <Box key={label} sx={{ flex: 1 }}>
               <IconButton
-                fullWidth
                 onClick={() => (action ? action() : navigate(to!))}
                 sx={{
+                  width: '100%',
                   minHeight: 52,
                   borderRadius: 2,
                   color: active ? 'primary.main' : 'text.secondary',

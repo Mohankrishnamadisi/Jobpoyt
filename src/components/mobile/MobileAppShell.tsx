@@ -1,7 +1,6 @@
 import React from 'react';
 import { Box } from '@mui/material';
 import { MobileBottomNavigation } from './MobileBottomNavigation';
-import { MobileTopHeader } from './MobileTopHeader';
 
 interface MobileAppShellProps {
   children: React.ReactNode;
@@ -10,20 +9,20 @@ interface MobileAppShellProps {
 export const MobileAppShell: React.FC<MobileAppShellProps> = ({ children }) => (
   <Box
     sx={{
-      minHeight: '100vh',
+      minHeight: '100dvh',
       bgcolor: 'background.default',
       color: 'text.primary',
       position: 'relative',
-      pb: 'calc(76px + env(safe-area-inset-bottom, 0px))',
+      pb: 0,
     }}
   >
-    <MobileTopHeader />
-
     <Box
       component="main"
+      className="jobpoyt-mobile-shell"
       sx={{
         width: '100%',
-        minHeight: 'calc(100vh - 124px)',
+        minHeight: '100dvh',
+        minWidth: 0,
       }}
     >
       {children}

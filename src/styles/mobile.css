@@ -212,13 +212,6 @@
     overflow-x: hidden;
   }
 
-  /* Optimize navbar on mobile */
-  .MuiAppBar-root {
-    position: sticky;
-    top: 0;
-    z-index: 1100;
-  }
-
   /* Better drawer experience */
   .MuiDrawer-paper {
     max-width: 100vw;

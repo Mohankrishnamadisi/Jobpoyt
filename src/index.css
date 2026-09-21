@@ -11,6 +11,8 @@
 }
 
 :root {
+  --jobpoyt-header-height: 74px;
+  --jobpoyt-bottom-nav-height: 72px;
   --color-page: #f8fbff;
   --color-surface: #ffffff;
   --color-primary: #2563eb;
@@ -67,7 +69,15 @@ body {
 }
 
 #root {
-  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+}
+
+@media (max-width: 767.95px) {
+  :root {
+    --jobpoyt-header-height: calc(74px + env(safe-area-inset-top, 0px));
+    --jobpoyt-bottom-nav-height: 72px;
+  }
 }
 
 ::-webkit-scrollbar {

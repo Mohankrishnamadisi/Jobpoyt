@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Alert, Box, Button, Card, Container, IconButton, InputAdornment, Link, Snackbar, Stack, TextField, Typography } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -20,21 +20,6 @@ export const Signup: React.FC = () => {
   const [existingAccount, setExistingAccount] = useState(false);
   const [message, setMessage] = useState('');
   const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '', confirmPassword: '' });
-
-  useEffect(() => {
-    const mobileQuery = window.matchMedia('(max-width: 1023px)');
-    if (!mobileQuery.matches) return undefined;
-
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-    const previousBodyOverflow = document.body.style.overflow;
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.documentElement.style.overflow = previousHtmlOverflow;
-      document.body.style.overflow = previousBodyOverflow;
-    };
-  }, []);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;

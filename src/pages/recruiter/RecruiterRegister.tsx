@@ -545,21 +545,6 @@ export const RecruiterRegister: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  useEffect(() => {
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-    const previousBodyOverflow = document.body.style.overflow;
-
-    document.documentElement.classList.add('recruiter-register-scrollbar-hidden');
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.documentElement.classList.remove('recruiter-register-scrollbar-hidden');
-      document.documentElement.style.overflow = previousHtmlOverflow;
-      document.body.style.overflow = previousBodyOverflow;
-    };
-  }, []);
-
   const [formData, setFormData] = useState({
     companyName: '',
     gstNumber: '',

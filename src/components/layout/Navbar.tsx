@@ -336,6 +336,7 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
         top: 0,
         width: '100%',
         zIndex: 1200,
+        pt: { xs: 'env(safe-area-inset-top, 0px)', md: 0 },
         backdropFilter: 'blur(10px)',
       }}
     >

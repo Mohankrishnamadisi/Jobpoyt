@@ -18,7 +18,7 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({ children, footer = t
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        minHeight: '100vh',
+        minHeight: '100dvh',
         bgcolor: isDarkMode ? '#000000' : '#f6f8fb',
       }}
     >
@@ -28,9 +28,10 @@ export const MobileLayout: React.FC<MobileLayoutProps> = ({ children, footer = t
         sx={{
           flex: 1,
           width: '100%',
-          overflow: 'hidden',
+          minHeight: '100dvh',
           display: 'flex',
           flexDirection: 'column',
+          minWidth: 0,
         }}
       >
         {children}
