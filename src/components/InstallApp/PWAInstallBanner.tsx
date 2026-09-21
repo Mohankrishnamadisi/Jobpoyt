@@ -4,7 +4,6 @@ import {
   Button,
   Card,
   CardContent,
-  Chip,
   IconButton,
   Stack,
   Typography,
@@ -32,8 +31,6 @@ interface PWAInstallBannerProps {
 export const PWAInstallBanner: React.FC<PWAInstallBannerProps> = ({
   appName,
   description,
-  isUnsupported,
-  unsupportedTip,
   onInstallNow,
   onRemindLater,
   onHide,
@@ -176,25 +173,7 @@ export const PWAInstallBanner: React.FC<PWAInstallBannerProps> = ({
             Never Show
           </Button>
 
-          {isUnsupported ? (
-            <Chip
-              label={unsupportedTip || 'Unsupported Browser'}
-              size="small"
-              sx={{
-                bgcolor: 'rgba(251,191,36,0.14)',
-                color: isDarkMode ? '#FDE68A' : '#92400e',
-                fontWeight: 700,
-                border: '1px solid rgba(245,158,11,0.2)',
-              }}
-            />
-          ) : null}
         </Stack>
-
-        {isUnsupported ? (
-          <Typography variant="caption" sx={{ display: 'block', color: '#b45309', mt: 1, fontWeight: 600 }}>
-            {unsupportedTip || 'Your browser does not support app installation.'}
-          </Typography>
-        ) : null}
 
         <IconButton
           size="small"

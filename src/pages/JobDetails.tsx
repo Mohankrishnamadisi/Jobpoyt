@@ -511,7 +511,7 @@ export const JobDetails: React.FC = () => {
         type="article"
         structuredData={jobPostingSchema ? [jobPostingSchema, jobBreadcrumbSchema] : jobBreadcrumbSchema}
       />
-      <Container maxWidth="xl" className="job-details-page" sx={{ py: { xs: 2.5, md: 4 }, mt: { xs: -7, md: 0 } }}>
+      <Container maxWidth="xl" className="job-details-page" sx={{ py: { xs: 2.5, md: 4 } }}>
         <Card
           sx={{
             mb: 3,

@@ -413,7 +413,7 @@ export const Jobs: React.FC = () => {
   return (
     <Layout>
       <SEO title="Jobs in India, Abroad & Remote | JobPoyt" description="Search current jobs in India, abroad and remote roles on JobPoyt. Filter opportunities by role, location, experience, job type and work mode." canonical={`${siteConfig.url}/jobs`} />
-      <Container maxWidth="xl" className="find-jobs-page" sx={{ py: { xs: 1.5, md: 3 }, mt: { xs: -7, md: 0 }, backgroundColor: 'transparent' }}>
+      <Container maxWidth="xl" className="find-jobs-page" sx={{ py: { xs: 1.5, md: 3 }, backgroundColor: 'transparent' }}>
         <MotionPaper
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -445,15 +445,15 @@ export const Jobs: React.FC = () => {
                 sx={{
                   fontWeight: 800,
                   lineHeight: 1.08,
-                  fontSize: { xs: '1.15rem', sm: '2rem', md: '2.35rem' },
+                  fontSize: { xs: '1.3rem', sm: '2rem', md: '2.35rem' },
                   letterSpacing: '-0.035em',
                   maxWidth: 650,
                   mb: 0.6,
                 }}
               >
-                <Box component="span" sx={{ display: { xs: 'inline', md: 'block' }, color: '#fff', fontWeight: 400, fontSize: { xs: '1.05rem', sm: '2.4rem', md: '2.65rem' }, lineHeight: 1.1, letterSpacing: 0 }}>Find Your </Box>
-                <Box component="span" sx={{ color: '#00aef0', fontSize: { xs: '1.05rem', sm: '3.15rem', md: '3.45rem' } }}>Dream</Box>{' '}
-                <Box component="span" sx={{ color: '#f4c95d', fontSize: { xs: '1.05rem', sm: '3.15rem', md: '3.45rem' } }}>Job</Box>
+                <Box component="span" sx={{ display: { xs: 'inline', md: 'block' }, color: '#fff', fontWeight: 400, fontSize: { xs: '1.2rem', sm: '2.4rem', md: '2.65rem' }, lineHeight: 1.1, letterSpacing: 0 }}>Find Your </Box>
+                <Box component="span" sx={{ color: '#00aef0', fontSize: { xs: '1.2rem', sm: '3.15rem', md: '3.45rem' } }}>Dream</Box>{' '}
+                <Box component="span" sx={{ color: '#f4c95d', fontSize: { xs: '1.2rem', sm: '3.15rem', md: '3.45rem' } }}>Job</Box>
               </Typography>
               <Typography variant="body1" sx={{ color: 'rgba(255,255,255,0.82)', maxWidth: 'none', whiteSpace: { xs: 'normal', md: 'nowrap' }, fontSize: { xs: '0.72rem', md: '0.92rem' } }}>
                 Explore {(allJobsTotal || total).toLocaleString()}+ opportunities from top companies and take the next step in your career.

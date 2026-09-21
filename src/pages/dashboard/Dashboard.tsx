@@ -701,7 +701,7 @@ export const Dashboard: React.FC = () => {
 
   return (
     <Layout>
-      <Box className={footerVisible ? 'dashboard-page candidate-dashboard footer-visible' : 'dashboard-page candidate-dashboard'} sx={{ background: '#F5F7FA', minHeight: '100vh', px: { xs: 1.5, md: 2.5 }, py: { xs: 2, md: 3 }, mt: { xs: -7, md: 0 } }}>
+      <Box className={footerVisible ? 'dashboard-page candidate-dashboard footer-visible' : 'dashboard-page candidate-dashboard'} sx={{ background: '#F5F7FA', minHeight: '100vh', px: { xs: 1.5, md: 2.5 }, py: { xs: 2, md: 3 } }}>
         <Drawer anchor="left" open={mobileNavOpen} onClose={() => setMobileNavOpen(false)}>
           <Box sx={{ width: 280, height: '100%', background: '#fff' }}>{renderSidebar({ drawerMode: true })}</Box>
         </Drawer>

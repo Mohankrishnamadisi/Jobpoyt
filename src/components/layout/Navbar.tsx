@@ -697,7 +697,7 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                       borderRadius: { xs: 1.25, md: 999 },
                       background: 'linear-gradient(90deg, #0284c7, #2563eb)',
                       color: '#ffffff',
-                      boxShadow: '0 10px 20px rgba(37, 99, 235, 0.24)',
+                      boxShadow: { xs: 'none', md: '0 10px 20px rgba(37, 99, 235, 0.24)' },
                       '&:hover': {
                         background: 'linear-gradient(90deg, #0369a1, #1d4ed8)',
                         color: '#ffffff',
