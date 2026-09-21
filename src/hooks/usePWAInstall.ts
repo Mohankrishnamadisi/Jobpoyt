@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { pwaInstallAnalyticsService } from '@services/pwaInstallAnalytics';
 
+declare global {
+  interface Window {
+    __jobpoytDeferredInstallPrompt?: DeferredInstallPrompt;
+  }
+}
+
 export type PwaPlatform =
   | 'android'
   | 'ios'
@@ -154,7 +160,9 @@ export const usePWAInstall = () => {
   const trackedInstalledRef = useRef(false);
 
   const [preferences, setPreferences] = useState<PwaInstallPreferences>(() => readPrefs());
-  const [deferredPrompt, setDeferredPrompt] = useState<DeferredInstallPrompt | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<DeferredInstallPrompt | null>(
+    () => window.__jobpoytDeferredInstallPrompt || null,
+  );
   const [isStandalone, setIsStandalone] = useState<boolean>(isStandaloneMode());
   const [isInstalled, setIsInstalled] = useState<boolean>(isStandaloneMode());
   const [iosModalOpen, setIosModalOpen] = useState(false);
@@ -169,7 +177,15 @@ export const usePWAInstall = () => {
   useEffect(() => {
     const onBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
-      setDeferredPrompt(event as unknown as DeferredInstallPrompt);
+      const prompt = event as unknown as DeferredInstallPrompt;
+      window.__jobpoytDeferredInstallPrompt = prompt;
+      setDeferredPrompt(prompt);
+    };
+
+    const onStoredBeforeInstallPrompt = () => {
+      if (window.__jobpoytDeferredInstallPrompt) {
+        setDeferredPrompt(window.__jobpoytDeferredInstallPrompt);
+      }
     };
 
     const onAppInstalled = () => {
@@ -190,6 +206,7 @@ export const usePWAInstall = () => {
     };
 
     window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt as EventListener);
+    window.addEventListener('pwa:beforeinstallprompt', onStoredBeforeInstallPrompt);
     window.addEventListener('appinstalled', onAppInstalled as EventListener);
 
     if (media && typeof media.addEventListener === 'function') {
@@ -198,6 +215,7 @@ export const usePWAInstall = () => {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt as EventListener);
+      window.removeEventListener('pwa:beforeinstallprompt', onStoredBeforeInstallPrompt);
       window.removeEventListener('appinstalled', onAppInstalled as EventListener);
       if (media && typeof media.removeEventListener === 'function') {
         media.removeEventListener('change', onDisplayModeChanged);
@@ -346,6 +364,7 @@ export const usePWAInstall = () => {
       await deferredPrompt.prompt();
       const choice = await deferredPrompt.userChoice;
       setDeferredPrompt(null);
+      window.__jobpoytDeferredInstallPrompt = undefined;
 
       if (choice.outcome === 'accepted') {
         setIsInstalled(true);
