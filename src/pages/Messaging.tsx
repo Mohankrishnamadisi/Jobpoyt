@@ -32,6 +32,7 @@ const MessagingPageContent: React.FC<{
 
   return (
     <Dialog
+      className="messaging-page-dialog"
       open
       onClose={() => navigate(-1)}
       fullWidth
@@ -114,10 +115,10 @@ const MessagingPageContent: React.FC<{
         }}
       >
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-          <Box sx={{ display: 'flex', gap: 2, height: '100%', minHeight: 0 }}>
+          <Box className="messaging-dialog-layout" sx={{ display: 'flex', gap: 2, height: '100%', minHeight: 0 }}>
             <Box
               sx={{
-                width: selectedConversation ? (isSmall ? '100%' : 360) : 360,
+                width: 360,
                 flexShrink: 0,
                 bgcolor: 'rgba(255,255,255,0.72)',
                 border: '1px solid rgba(148, 163, 184, 0.18)',
@@ -147,7 +148,7 @@ const MessagingPageContent: React.FC<{
                 overflow: 'hidden',
               }}
             >
-              {selectedConversation ? (
+              {selectedConversation && !isSmall ? (
                 <MessageDetail
                   conversation={selectedConversation}
                   userId={userId}
@@ -185,6 +186,34 @@ const MessagingPageContent: React.FC<{
           </Box>
         </motion.div>
       </DialogContent>
+
+      {isSmall && selectedConversation && (
+        <Dialog
+          className="mobile-message-detail-dialog"
+          open
+          onClose={() => setSelectedConversation(null)}
+          maxWidth="xs"
+          fullWidth
+          PaperProps={{
+            sx: {
+              width: 'calc(100vw - 24px)',
+              maxWidth: '390px',
+              height: 'min(78dvh, 620px)',
+              maxHeight: 'calc(100dvh - 32px)',
+              borderRadius: 3,
+              overflow: 'hidden',
+              background: '#f8fafc',
+            },
+          }}
+        >
+          <MessageDetail
+            conversation={selectedConversation}
+            userId={userId}
+            userRole={userRole}
+            onBack={() => setSelectedConversation(null)}
+          />
+        </Dialog>
+      )}
     </Dialog>
   );
 };

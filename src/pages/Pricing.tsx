@@ -42,7 +42,7 @@ export const Pricing: React.FC = () => {
   return (
     <Layout>
       <SEO title="JobPoyt Pricing | Premium Job Search Features" description="Explore JobPoyt plans for enhanced job search, remote opportunities, personalized matching and career tools." canonical={`${siteConfig.url}/pricing`} />
-      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
+      <Container className="pricing-page" maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
         {/* Header Section */}
         <Box
           sx={{

@@ -165,6 +165,749 @@
     font-size: 16px !important;
   }
 
+  /* Compact the premium candidate dashboard without changing desktop sizing. */
+  .premium-candidate-dashboard {
+    padding: 12px 10px !important;
+  }
+
+  .premium-candidate-dashboard > .MuiCard-root,
+  .premium-candidate-dashboard .MuiCard-root {
+    border-radius: 14px !important;
+  }
+
+  .premium-candidate-dashboard .MuiCardContent-root {
+    padding: 12px !important;
+  }
+
+  .premium-candidate-dashboard > .MuiCard-root > .MuiCardContent-root {
+    padding: 14px !important;
+  }
+
+  .premium-candidate-dashboard .MuiTypography-h3 {
+    font-size: 1.45rem !important;
+    line-height: 1.1 !important;
+  }
+
+  .premium-candidate-dashboard .MuiTypography-h4 {
+    font-size: 1.35rem !important;
+  }
+
+  .premium-candidate-dashboard .MuiTypography-h5 {
+    font-size: 1rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .premium-candidate-dashboard .MuiTypography-h6 {
+    font-size: 0.86rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .premium-candidate-dashboard .MuiTypography-subtitle1,
+  .premium-candidate-dashboard .MuiTypography-subtitle2 {
+    font-size: 0.76rem !important;
+  }
+
+  .premium-candidate-dashboard .MuiTypography-body1 {
+    font-size: 0.78rem !important;
+    line-height: 1.4 !important;
+  }
+
+  .premium-candidate-dashboard .MuiTypography-body2 {
+    font-size: 0.7rem !important;
+    line-height: 1.4 !important;
+  }
+
+  .premium-candidate-dashboard .MuiTypography-caption {
+    font-size: 0.64rem !important;
+  }
+
+  .premium-candidate-dashboard .MuiChip-root {
+    height: 28px !important;
+    font-size: 0.68rem !important;
+  }
+
+  .premium-candidate-dashboard .MuiChip-icon {
+    font-size: 16px !important;
+  }
+
+  .premium-candidate-dashboard .MuiButton-root {
+    min-height: 34px !important;
+    min-width: 0 !important;
+    padding: 5px 10px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .premium-candidate-dashboard .MuiIconButton-root {
+    padding: 5px !important;
+  }
+
+  .premium-candidate-dashboard .sparkle-button {
+    padding: 0.68rem 1.2rem !important;
+    gap: 0.35rem !important;
+    font-size: 0.72rem !important;
+  }
+
+  .premium-candidate-dashboard .sparkle-button .sparkle-icon {
+    width: 1.25rem !important;
+  }
+
+  .premium-candidate-dashboard .space-btn {
+    font-size: 9px !important;
+    letter-spacing: 1px !important;
+    border-width: 3px !important;
+  }
+
+  .premium-candidate-dashboard .space-btn .MuiButton-root {
+    min-height: 34px !important;
+  }
+
+  .premium-candidate-dashboard .premium-hero-actions {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px !important;
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .premium-candidate-dashboard .premium-hero-actions > * {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .premium-candidate-dashboard .premium-action-edit {
+    order: 1;
+  }
+
+  .premium-candidate-dashboard .premium-action-matched {
+    order: 2;
+  }
+
+  .premium-candidate-dashboard .premium-action-remote {
+    order: 3;
+  }
+
+  .premium-candidate-dashboard .premium-hero-actions .sparkle-button,
+  .premium-candidate-dashboard .premium-hero-actions .space-btn,
+  .premium-candidate-dashboard .premium-hero-actions .space-btn .MuiButton-root {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+  }
+
+  .premium-candidate-dashboard .premium-hero-actions .sparkle-button {
+    justify-content: center;
+    transform: none !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 0.35rem !important;
+    font-size: 0.62rem !important;
+    border-radius: 10px !important;
+  }
+
+  .premium-candidate-dashboard .premium-hero-actions .sparkle-button::before,
+  .premium-candidate-dashboard .premium-hero-actions .sparkle-button::after,
+  .premium-candidate-dashboard .premium-hero-actions .sparkle-button .dots-border {
+    border-radius: 10px !important;
+  }
+
+  .premium-candidate-dashboard .premium-hero-actions .sparkle-button .sparkle-icon {
+    width: 1rem !important;
+    flex-shrink: 0;
+  }
+
+  .premium-candidate-dashboard .premium-hero-actions .sparkle-button .text-button {
+    font-size: 0.55rem !important;
+    white-space: nowrap;
+  }
+
+  .premium-candidate-dashboard .premium-hero-actions .space-btn .MuiButton-root {
+    height: 34px !important;
+    min-height: 34px !important;
+    padding-left: 0.25rem !important;
+    padding-right: 0.25rem !important;
+    font-size: 0.62rem !important;
+    white-space: nowrap;
+  }
+
+  .premium-candidate-dashboard .premium-hero-actions .space-btn,
+  .premium-candidate-dashboard .premium-hero-actions .space-btn::before,
+  .premium-candidate-dashboard .premium-hero-actions .space-btn .space-container-stars {
+    border-radius: 10px !important;
+  }
+
+  .premium-candidate-dashboard .premium-hero-stars-container {
+    opacity: 0.55;
+  }
+
+  .premium-candidate-dashboard > .MuiGrid-container {
+    gap: 0 !important;
+  }
+
+  .premium-candidate-dashboard > .MuiBox-root {
+    margin-bottom: 14px !important;
+    border-radius: 14px !important;
+  }
+
+  .premium-candidate-dashboard > .MuiBox-root .MuiButtonBase-root {
+    border-radius: 10px !important;
+  }
+
+  .premium-candidate-dashboard > .MuiBox-root .MuiButtonBase-root > .MuiBox-root {
+    gap: 0.35rem !important;
+    padding: 0.6rem 0.25rem !important;
+  }
+
+  .premium-candidate-dashboard > .MuiBox-root .MuiButtonBase-root svg {
+    font-size: 20px !important;
+  }
+
+  .premium-candidate-dashboard > .MuiBox-root .MuiButtonBase-root .MuiTypography-root {
+    font-size: 0.58rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .premium-candidate-dashboard .premium-section-tabs {
+    display: flex !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    padding: 6px !important;
+    margin-right: -2px;
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+
+  .premium-candidate-dashboard .premium-section-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .premium-candidate-dashboard .premium-section-tabs .MuiButtonBase-root {
+    flex: 0 0 76px !important;
+    width: 76px !important;
+    min-width: 76px !important;
+    min-height: 82px;
+    border-radius: 10px !important;
+  }
+
+  .premium-candidate-dashboard .premium-section-tabs .MuiButtonBase-root > .MuiBox-root {
+    min-height: 70px;
+    padding: 8px 4px !important;
+    gap: 5px !important;
+  }
+
+  .premium-candidate-dashboard .premium-section-tabs .MuiButtonBase-root svg {
+    font-size: 19px !important;
+    flex-shrink: 0;
+  }
+
+  .premium-candidate-dashboard .premium-section-tabs .MuiButtonBase-root .MuiTypography-root {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 0.58rem !important;
+    font-weight: 700;
+    line-height: 1.16 !important;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  /* Give the messaging experience the full mobile viewport and a denser inbox. */
+  .messaging-page-dialog .MuiDialog-paper {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    border: 0 !important;
+  }
+
+  .messaging-page-dialog .MuiDialogTitle-root {
+    flex-shrink: 0;
+    padding: 12px 14px 10px !important;
+  }
+
+  .messaging-page-dialog .MuiDialogTitle-root > .MuiBox-root:first-child {
+    gap: 9px;
+  }
+
+  .messaging-page-dialog .MuiDialogTitle-root > .MuiBox-root:first-child > .MuiBox-root:first-child {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+  }
+
+  .messaging-page-dialog .MuiDialogTitle-root .MuiTypography-h6 {
+    font-size: 1rem !important;
+  }
+
+  .messaging-page-dialog .MuiDialogTitle-root .MuiTypography-caption {
+    max-width: 220px;
+    font-size: 0.68rem !important;
+    line-height: 1.35;
+  }
+
+  .messaging-page-dialog .MuiDialogTitle-root > .MuiIconButton-root {
+    width: 34px;
+    height: 34px;
+    padding: 7px !important;
+  }
+
+  .messaging-page-dialog .MuiDialogContent-root {
+    min-height: 0;
+    padding: 10px !important;
+  }
+
+  .messaging-page-dialog .MuiDialogContent-root > .motion-div,
+  .messaging-page-dialog .MuiDialogContent-root > div {
+    height: 100%;
+  }
+
+  .messaging-page-dialog .MuiDialogContent-root > div > .MuiBox-root {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .messaging-page-dialog .MuiDialogContent-root > div > .MuiBox-root > .MuiBox-root {
+    width: 100% !important;
+    min-height: 0;
+    border-radius: 14px !important;
+  }
+
+  .messaging-page-dialog .MuiDialogContent-root .MuiTypography-subtitle1 {
+    font-size: 0.95rem !important;
+  }
+
+  .messaging-page-dialog .MuiDialogContent-root .MuiTypography-body2 {
+    font-size: 0.74rem !important;
+  }
+
+  .messaging-page-dialog .MuiDialogContent-root .MuiButton-root {
+    min-height: 32px !important;
+    padding: 5px 8px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .messaging-page-dialog .MuiDialogContent-root .MuiButton-startIcon {
+    margin-right: 3px;
+  }
+
+  .messaging-page-dialog .MuiDialogContent-root .MuiBox-root[style*='margin-bottom: 8px'] {
+    margin-bottom: 6px !important;
+  }
+
+  .messaging-page-dialog .message-inbox {
+    height: 100%;
+    overflow-y: auto;
+    background: rgba(255,255,255,0.86);
+  }
+
+  .messaging-page-dialog .message-inbox > .MuiBox-root:first-child {
+    padding: 12px 14px !important;
+  }
+
+  .messaging-page-dialog .message-inbox > .MuiBox-root:last-child {
+    padding: 8px !important;
+  }
+
+  .messaging-page-dialog .message-inbox > .MuiBox-root:last-child > div {
+    margin-bottom: 6px !important;
+  }
+
+  .messaging-page-dialog .message-inbox > .MuiBox-root:last-child > div > .MuiBox-root {
+    gap: 9px !important;
+    padding: 10px !important;
+    border-radius: 14px !important;
+  }
+
+  .messaging-page-dialog .message-inbox > .MuiBox-root:last-child > div > .MuiBox-root > .MuiBox-root:first-child {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 12px !important;
+  }
+
+  .messaging-page-dialog .message-inbox .MuiTypography-subtitle2 {
+    font-size: 0.8rem !important;
+  }
+
+  .messaging-page-dialog .message-inbox .MuiTypography-body2 {
+    font-size: 0.7rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .messaging-page-dialog .message-inbox .MuiTypography-caption {
+    font-size: 0.64rem !important;
+  }
+
+  .messaging-page-dialog .message-inbox .MuiChip-root {
+    height: 18px !important;
+    min-width: 18px !important;
+    font-size: 0.62rem !important;
+  }
+
+  .mobile-message-detail-dialog .MuiDialog-paper {
+    width: calc(100vw - 24px) !important;
+    max-width: 390px !important;
+    height: min(78dvh, 620px) !important;
+    max-height: calc(100dvh - 32px) !important;
+    margin: 16px auto !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  }
+
+  .mobile-message-detail-dialog .MuiDialogContent-root {
+    padding: 0 !important;
+    min-height: 0;
+  }
+
+  .mobile-message-detail-dialog .MuiDialogContent-root > .MuiBox-root {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .mobile-message-detail-dialog .MuiDialogContent-root .MuiTypography-subtitle2 {
+    font-size: 0.82rem !important;
+  }
+
+  .mobile-message-detail-dialog .MuiDialogContent-root .MuiTypography-body2 {
+    font-size: 0.72rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .mobile-message-detail-dialog .MuiDialogContent-root .MuiIconButton-root {
+    padding: 6px !important;
+  }
+
+  .mobile-message-detail-dialog .MuiDialogContent-root .MuiTextField-root {
+    font-size: 0.78rem;
+  }
+
+  .mobile-message-detail-dialog .MuiDialogContent-root .MuiButton-root {
+    min-height: 34px !important;
+    padding: 5px 10px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .mobile-message-detail-dialog .MuiDialogContent-root .MuiBox-root[style*='overflow-y: auto'] {
+    scrollbar-width: thin;
+  }
+
+  .mobile-message-detail-dialog .MuiDialogContent-root .MuiBox-root[style*='overflow-y: auto'] > * {
+    max-width: 88%;
+  }
+
+  .mobile-message-detail-dialog .MuiDialogContent-root .MuiBox-root[style*='overflow-y: auto'] > div > div {
+    padding: 8px 11px !important;
+  }
+
+  .messaging-page-dialog .messaging-dialog-layout > .MuiBox-root:last-child {
+    display: flex;
+    width: 100%;
+    min-height: 0;
+  }
+
+  .messaging-page-dialog .messaging-dialog-layout > .MuiBox-root:last-child:has(.MuiTypography-root) {
+    display: flex;
+  }
+
+  .mobile-message-detail-dialog .MuiDialog-paper > .MuiBox-root {
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0;
+  }
+
+  /* Keep the pricing journey compact and easy to scan on phones. */
+  .pricing-page {
+    padding: 12px 10px 24px !important;
+  }
+
+  .pricing-page > .MuiBox-root:first-child {
+    margin-bottom: 18px !important;
+    padding: 16px 13px !important;
+    border-radius: 12px !important;
+  }
+
+  .pricing-page > .MuiBox-root:first-child .MuiTypography-h3 {
+    font-size: 1.42rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .pricing-page > .MuiBox-root:first-child .MuiTypography-body1 {
+    font-size: 0.74rem !important;
+    line-height: 1.45 !important;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(2) {
+    margin-bottom: 22px !important;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(2) .MuiGrid-container {
+    row-gap: 12px;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(2) .MuiCard-root {
+    border-radius: 14px !important;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(2) .MuiCardContent-root {
+    padding: 14px !important;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(2) .MuiTypography-h6 {
+    font-size: 0.95rem !important;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(2) .MuiTypography-subtitle1 {
+    margin-bottom: 10px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(2) .MuiTypography-h3 {
+    font-size: 1.75rem !important;
+    line-height: 1 !important;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(2) .MuiTypography-body1,
+  .pricing-page > .MuiBox-root:nth-of-type(2) .MuiTypography-body2 {
+    font-size: 0.7rem !important;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(2) .MuiTypography-caption {
+    font-size: 0.64rem !important;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(2) .MuiTypography-subtitle2 {
+    font-size: 0.74rem !important;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(2) .MuiTypography-body2 {
+    line-height: 1.3 !important;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(2) .MuiBox-root[style*='position: absolute'] {
+    top: 8px !important;
+    right: 8px !important;
+    padding: 3px 7px !important;
+    font-size: 0.58rem !important;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(2) .MuiBox-root[style*='position: absolute'] svg {
+    font-size: 14px !important;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(2) .MuiButton-root {
+    min-height: 36px !important;
+    padding: 6px 10px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(3) {
+    padding: 18px 12px !important;
+    border-radius: 14px !important;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(3) .MuiTypography-h5 {
+    margin-bottom: 16px !important;
+    font-size: 1rem !important;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(3) .MuiTypography-subtitle1 {
+    font-size: 0.76rem !important;
+    margin-bottom: 4px !important;
+  }
+
+  .pricing-page > .MuiBox-root:nth-of-type(3) .MuiTypography-body2 {
+    font-size: 0.68rem !important;
+  }
+
+  /* Compact the desktop footer when it is used inside the mobile layout. */
+  .site-footer {
+    padding: 14px 10px calc(var(--jobpoyt-bottom-nav-height) + 18px) !important;
+     margin-bottom: calc(var(--jobpoyt-bottom-nav-height) + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .site-footer > .MuiContainer-root {
+    padding: 0 !important;
+  }
+
+  .site-footer .MuiPaper-root {
+    margin-bottom: 14px !important;
+    padding: 12px !important;
+    border-radius: 12px !important;
+  }
+
+  .site-footer .MuiTypography-h5 {
+    font-size: 0.9rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .site-footer .MuiTypography-h6 {
+    font-size: 1rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .site-footer .MuiTypography-body1,
+  .site-footer .MuiTypography-body2 {
+    font-size: 0.7rem !important;
+    line-height: 1.4 !important;
+  }
+
+  .site-footer .MuiTypography-caption {
+    font-size: 0.62rem !important;
+  }
+
+  .site-footer .MuiButton-root {
+    min-height: 34px !important;
+    min-width: 0 !important;
+    padding: 6px 12px !important;
+    border-radius: 9px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .site-footer .MuiButton-endIcon {
+    margin-left: 4px;
+  }
+
+  .site-footer .MuiGrid-container {
+    row-gap: 10px;
+  }
+
+  .site-footer .footer-social-parent {
+    gap: 5px;
+    margin-bottom: 4px;
+  }
+
+  .site-footer .footer-social-child {
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+  }
+
+  .site-footer .footer-social-button {
+    border-radius: 7px;
+    font-size: 15px;
+  }
+
+  .site-footer .MuiDivider-root {
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .site-footer .MuiStack-root {
+    gap: 8px !important;
+  }
+
+  /* Compact, calm support dialogs for mobile screens. */
+  .customer-care-dialog .MuiDialog-paper,
+  .customer-care-ticket-dialog .MuiDialog-paper {
+    width: calc(100vw - 24px) !important;
+    max-width: 390px !important;
+    max-height: calc(100dvh - 32px) !important;
+    border-radius: 16px !important;
+  }
+
+  .customer-care-dialog .MuiDialogTitle-root {
+    padding: 12px 14px 10px !important;
+  }
+
+  .customer-care-dialog .MuiDialogTitle-root .MuiTypography-h6,
+  .customer-care-ticket-dialog .MuiDialogTitle-root .MuiTypography-h6 {
+    font-size: 0.98rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .customer-care-dialog .MuiDialogTitle-root .MuiChip-root {
+    max-width: 150px;
+    height: 24px !important;
+    font-size: 0.62rem !important;
+  }
+
+  .customer-care-dialog .MuiDialogContent-root {
+    padding: 10px 12px !important;
+  }
+
+  .customer-care-dialog .MuiTabs-root {
+    margin-bottom: 12px !important;
+    padding: 3px !important;
+  }
+
+  .customer-care-dialog .MuiTab-root {
+    min-height: 34px !important;
+    padding: 5px 6px !important;
+    font-size: 0.67rem !important;
+    line-height: 1.1 !important;
+  }
+
+  .customer-care-dialog .MuiDialogContent-root > .MuiStack-root,
+  .customer-care-dialog .MuiDialogContent-root > .MuiBox-root > .MuiStack-root {
+    gap: 10px !important;
+    padding: 8px !important;
+    border-radius: 12px !important;
+  }
+
+  .customer-care-dialog .MuiInputBase-root,
+  .customer-care-ticket-dialog .MuiInputBase-root {
+    font-size: 0.78rem !important;
+  }
+
+  .customer-care-dialog .MuiInputLabel-root,
+  .customer-care-ticket-dialog .MuiInputLabel-root {
+    font-size: 0.76rem !important;
+  }
+
+  .customer-care-dialog .MuiOutlinedInput-input,
+  .customer-care-ticket-dialog .MuiOutlinedInput-input {
+    padding: 10px 12px !important;
+  }
+
+  .customer-care-dialog .MuiButton-root,
+  .customer-care-ticket-dialog .MuiButton-root {
+    min-height: 34px !important;
+    min-width: 0 !important;
+    padding: 6px 10px !important;
+    border-radius: 9px !important;
+    font-size: 0.72rem !important;
+  }
+
+  .customer-care-dialog .MuiAlert-root {
+    padding: 6px 10px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .customer-care-dialog .MuiListItem-root {
+    padding: 9px !important;
+    margin-bottom: 7px !important;
+    border-radius: 11px !important;
+  }
+
+  .customer-care-dialog .MuiListItemText-primary .MuiTypography-root {
+    font-size: 0.76rem !important;
+  }
+
+  .customer-care-dialog .MuiListItemText-secondary .MuiTypography-body2 {
+    font-size: 0.7rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .customer-care-dialog .MuiListItemText-secondary .MuiTypography-caption {
+    font-size: 0.62rem !important;
+  }
+
+  .customer-care-dialog .MuiChip-root {
+    height: 21px !important;
+    font-size: 0.6rem !important;
+  }
+
+  .customer-care-ticket-dialog .MuiDialogContent-root {
+    padding: 10px 14px !important;
+  }
+
+  .customer-care-ticket-dialog .MuiDialogActions-root {
+    padding: 8px 12px 12px !important;
+  }
+
   .candidate-dashboard .dashboard-content .MuiCard-root {
     border-radius: 12px !important;
   }
@@ -255,6 +998,74 @@
   .MuiDialog-paper {
     max-width: calc(100vw - 32px);
     margin: 0;
+    width: calc(100vw - 24px);
+    max-height: calc(100dvh - 32px);
+    border-radius: 14px !important;
+  }
+
+  .MuiDialogTitle-root {
+    padding: 14px 16px 8px !important;
+    font-size: 1rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .MuiDialogContent-root {
+    padding: 8px 16px 12px !important;
+  }
+
+  .MuiDialogActions-root {
+    padding: 8px 12px 12px !important;
+    gap: 4px;
+  }
+
+  .MuiDialog-paper .MuiButton-root {
+    min-width: 0 !important;
+    min-height: 36px !important;
+    padding: 6px 12px !important;
+    font-size: 0.78rem !important;
+  }
+
+  /* Keep SweetAlert confirmations compact and centered on narrow screens. */
+  .swal2-container {
+    padding: 12px !important;
+  }
+
+  .ac-sw-popup {
+    width: min(calc(100vw - 24px), 360px) !important;
+    max-width: calc(100vw - 24px) !important;
+    border-radius: 16px !important;
+    padding: 0.95rem 0.9rem 0.8rem !important;
+  }
+
+  .ac-sw-title {
+    font-size: 1.05rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .ac-sw-content {
+    font-size: 0.8rem !important;
+    line-height: 1.4 !important;
+  }
+
+  .ac-sw-icon {
+    width: 3.6em !important;
+    height: 3.6em !important;
+    margin: 0.35rem auto 0.55rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  .ac-sw-actions {
+    gap: 7px !important;
+    margin-top: 0.85rem !important;
+  }
+
+  .ac-sw-popup .swal2-styled {
+    min-height: 36px;
+    min-width: 76px;
+    margin: 0 !important;
+    padding: 0.5rem 0.8rem !important;
+    border-radius: 9px !important;
+    font-size: 0.78rem !important;
   }
 
   /* Better menu positioning on mobile */

@@ -3,14 +3,13 @@ import { Box, IconButton, Stack, Typography } from '@mui/material';
 import {
   Work as JobsIcon,
   Home as HomeIcon,
-  Download as InstallIcon,
+  MoreHoriz as MoreIcon,
   Person as ProfileIcon,
   School as LearnIcon,
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@constants/index';
 import { useAuthStore } from '@store/index';
-import usePWAInstall from '@hooks/usePWAInstall';
 
 interface NavItem {
   label: string;
@@ -23,14 +22,13 @@ export const MobileBottomNavigation: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { promptInstall } = usePWAInstall();
 
   const navItems: NavItem[] = [
     { label: 'Home', icon: HomeIcon, to: ROUTES.HOME },
     { label: 'Jobs', icon: JobsIcon, to: ROUTES.JOBS },
     { label: 'Learn', icon: LearnIcon, to: ROUTES.DASHBOARD_LEARNING },
     { label: 'Profile', icon: ProfileIcon, to: user ? ROUTES.DASHBOARD_PROFILE : ROUTES.LOGIN },
-    { label: 'Install', icon: InstallIcon, action: () => { void promptInstall(); } },
+    { label: 'More', icon: MoreIcon, action: () => undefined },
   ];
 
   const isActive = (item: NavItem) => {
@@ -76,7 +74,13 @@ export const MobileBottomNavigation: React.FC = () => {
           return (
             <Box key={label} sx={{ flex: 1 }}>
               <IconButton
-                onClick={() => (action ? action() : navigate(to!))}
+                onClick={(event) => {
+                  if (label === 'More') {
+                    window.dispatchEvent(new CustomEvent('jobpoyt:open-mobile-menu', { detail: event.currentTarget }));
+                    return;
+                  }
+                  action ? action() : navigate(to!);
+                }}
                 sx={{
                   width: '100%',
                   minHeight: 52,

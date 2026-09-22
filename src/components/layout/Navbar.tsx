@@ -21,7 +21,6 @@ import {
   Settings as SettingsIcon,
   ExitToApp as ExitToAppIcon,
   HeadsetMic as HeadsetMicIcon,
-  Menu as MenuIcon,
   LightMode as LightModeIcon,
   DarkMode as DarkModeIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon,
@@ -122,6 +121,18 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
   }, [user?.id]);
 
   useEffect(() => {
+    const handleMobileMenuRequest = (event: Event) => {
+      const target = (event as CustomEvent<HTMLElement>).detail;
+      if (target instanceof HTMLElement) {
+        setMobileAnchor(target);
+      }
+    };
+
+    window.addEventListener('jobpoyt:open-mobile-menu', handleMobileMenuRequest);
+    return () => window.removeEventListener('jobpoyt:open-mobile-menu', handleMobileMenuRequest);
+  }, []);
+
+  useEffect(() => {
     let mounted = true;
     const loadRecruiterAvatar = async () => {
       if (!user?.id || !isRecruiter) {
@@ -151,10 +162,6 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
 
   const handleMenuClose = () => {
     setAnchorEl(null);
-  };
-
-  const handleMobileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setMobileAnchor(event.currentTarget);
   };
 
   const handleMobileMenuClose = () => {
@@ -487,6 +494,7 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
               <IconButton
                 onClick={() => setThemeMode(isDarkMode ? 'light' : 'dark')}
                 sx={{
+                  display: { xs: 'none', sm: 'inline-flex' },
                   bgcolor: isDarkMode ? 'rgba(250, 204, 21, 0.2)' : 'rgba(15, 23, 42, 0.08)',
                   color: isDarkMode ? '#FACC15' : '#0F172A',
                   border: `1px solid ${isDarkMode ? 'rgba(250, 204, 21, 0.35)' : 'rgba(15,23,42,0.16)'}`,
@@ -949,30 +957,6 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                   onClose={() => setSupportOpen(false)}
                 />
               </Box>
-            )}
-            {location.pathname === ROUTES.HOME && (
-              <IconButton
-                onClick={handleMobileMenuOpen}
-                aria-label="Menu"
-                title="Menu"
-                sx={{
-                  display: { xs: 'inline-flex', md: 'none' },
-                  width: { xs: 'clamp(36px, 10vw, 38px)', md: 'auto' },
-                  height: { xs: 'clamp(36px, 10vw, 38px)', md: 'auto' },
-                  minWidth: { xs: 'clamp(36px, 10vw, 38px)', md: 'auto' },
-                  minHeight: { xs: 'clamp(36px, 10vw, 38px)', md: 'auto' },
-                  p: { xs: 0, md: 1 },
-                  borderRadius: { xs: 1.5, md: 2 },
-                  color: { xs: '#0F172A', md: isDarkMode ? '#E2E8F0' : '#0F172A' },
-                  bgcolor: { xs: '#FFFFFF', md: isDarkMode ? 'rgba(30, 41, 59, 0.65)' : 'rgba(248, 250, 252, 0.96)' },
-                  border: isDarkMode ? '1px solid rgba(100, 116, 139, 0.45)' : '1px solid rgba(148, 163, 184, 0.35)',
-                  '&:hover': {
-                    bgcolor: isDarkMode ? 'rgba(51, 65, 85, 0.78)' : 'rgba(241, 245, 249, 1)',
-                  },
-                }}
-              >
-                <MenuIcon sx={{ fontSize: { xs: 20, md: 24 } }} />
-              </IconButton>
             )}
           </Box>
         </Toolbar>

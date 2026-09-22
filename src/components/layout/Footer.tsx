@@ -39,6 +39,7 @@ export const Footer: React.FC = () => {
   return (
     <Box
       component="footer"
+      className="site-footer"
       sx={{
         position: 'relative',
         overflow: 'hidden',

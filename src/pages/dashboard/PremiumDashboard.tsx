@@ -22,6 +22,7 @@ import {
   Menu,
   MenuItem,
   Typography,
+  TextField,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import {
@@ -157,6 +158,8 @@ export const PremiumDashboard: React.FC = () => {
   const [resumeDownloadCount, setResumeDownloadCount] = useState<number>(0);
   const [profileViewCount, setProfileViewCount] = useState<number>(0);
   const [interactionModalOpen, setInteractionModalOpen] = useState(false);
+  const [quickNoteDialogOpen, setQuickNoteDialogOpen] = useState(false);
+  const [quickNote, setQuickNote] = useState('');
   const [interactionModalTitle, setInteractionModalTitle] = useState('');
   const [interactionType, setInteractionType] = useState<'downloads' | 'views'>('downloads');
   const [interactionLoading, setInteractionLoading] = useState(false);
@@ -168,6 +171,19 @@ export const PremiumDashboard: React.FC = () => {
   const [selectedRoleModel, setSelectedRoleModel] = useState('General');
   const [roleWeightMap, setRoleWeightMap] = useState<Record<string, DemandWeights>>({});
   const [weeklyTargets, setWeeklyTargets] = useState<WeeklyGoalTargets>({ applications: 6, interactions: 10, pipeline: 4 });
+
+  useEffect(() => {
+    if (!user?.id) return;
+    setQuickNote(window.localStorage.getItem(`jobpoyt-premium-note-${user.id}`) || '');
+  }, [user?.id]);
+
+  const saveQuickNote = () => {
+    if (user?.id) {
+      window.localStorage.setItem(`jobpoyt-premium-note-${user.id}`, quickNote.trim());
+    }
+    setQuickNoteDialogOpen(false);
+    toast.success('Note saved');
+  };
 
   useEffect(() => {
     if (!user?.id) return undefined;
@@ -662,6 +678,7 @@ export const PremiumDashboard: React.FC = () => {
   return (
     <Layout>
       <Box
+        className="premium-candidate-dashboard"
         sx={{
           px: { xs: 2, md: 4 },
           py: { xs: 3, md: 4 },
@@ -748,8 +765,8 @@ export const PremiumDashboard: React.FC = () => {
                   Hello {user?.name || 'Candidate'}, this space is built for high-intent job hunting with exclusive insights, remote pipelines, and premium tools.
                 </Typography>
 
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.2 }}>
-                  <button className="sparkle-button" style={{ transform: 'scale(0.85)' }} onClick={() => navigate('/dashboard/recommended-jobs?minMatch=50')}>
+                <Box className="premium-hero-actions" sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.2 }}>
+                  <button className="sparkle-button premium-action-matched" style={{ transform: 'scale(0.85)' }} onClick={() => navigate('/dashboard/recommended-jobs?minMatch=50')}>
                     <div className="dots-border"></div>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="sparkle-icon">
                       <path className="path" strokeLinejoin="round" strokeLinecap="round" stroke="currentColor" fill="currentColor" d="M14.187 8.096L15 5.25L15.813 8.096C16.0231 8.83114 16.4171 9.50062 16.9577 10.0413C17.4984 10.5819 18.1679 10.9759 18.903 11.186L21.75 12L18.904 12.813C18.1689 13.0231 17.4994 13.4171 16.9587 13.9577C16.4181 14.4984 16.0241 15.1679 15.814 15.903L15 18.75L14.187 15.904C13.9769 15.1689 13.5829 14.4994 13.0423 13.9587C12.5016 13.4181 11.8321 13.0241 11.097 12.814L8.25 12L11.096 11.187C11.8311 10.9769 12.5006 10.5829 13.0413 10.0423C13.5819 9.50162 13.9759 8.83214 14.186 8.097L14.187 8.096Z" />
@@ -758,7 +775,7 @@ export const PremiumDashboard: React.FC = () => {
                     </svg>
                     <span className="text-button">AI Matched Jobs</span>
                   </button>
-                  <Box className="space-btn" sx={{ position: 'relative', display: 'inline-block' }}>
+                  <Box className="space-btn premium-action-remote" sx={{ position: 'relative', display: 'inline-block' }}>
                     <div className="space-container-stars">
                       <div className="space-stars"></div>
                       <div className="space-glow">
@@ -770,7 +787,7 @@ export const PremiumDashboard: React.FC = () => {
                       Remote Hub
                     </Button>
                   </Box>
-                  <Box className="space-btn" sx={{ position: 'relative', display: 'inline-block' }}>
+                  <Box className="space-btn premium-action-edit" sx={{ position: 'relative', display: 'inline-block' }}>
                     <div className="space-container-stars">
                       <div className="space-stars"></div>
                       <div className="space-glow">
@@ -818,6 +835,13 @@ export const PremiumDashboard: React.FC = () => {
                           <NotificationsIcon sx={{ color: '#3B82F6' }} />
                         </Badge>
                       </IconButton>
+                      <IconButton
+                        onClick={() => setQuickNoteDialogOpen(true)}
+                        aria-label="Open quick note"
+                        sx={{ bgcolor: 'rgba(255,255,255,0.08)', '&:hover': { bgcolor: 'rgba(255,255,255,0.14)' } }}
+                      >
+                        <StickyNote2Icon sx={{ color: '#F59E0B' }} />
+                      </IconButton>
                     </Box>
                   </CardContent>
                 </Card>
@@ -856,6 +880,32 @@ export const PremiumDashboard: React.FC = () => {
             </Grid>
           </CardContent>
         </Card>
+
+        <Dialog
+          open={quickNoteDialogOpen}
+          onClose={() => setQuickNoteDialogOpen(false)}
+          maxWidth="xs"
+          fullWidth
+        >
+          <DialogTitle sx={{ fontWeight: 800 }}>Quick note</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              fullWidth
+              multiline
+              minRows={4}
+              maxRows={8}
+              value={quickNote}
+              onChange={(event) => setQuickNote(event.target.value)}
+              placeholder="Capture an application idea, follow-up, or career reminder..."
+              inputProps={{ maxLength: 500 }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setQuickNoteDialogOpen(false)}>Cancel</Button>
+            <Button variant="contained" onClick={saveQuickNote}>Save note</Button>
+          </DialogActions>
+        </Dialog>
 
         <Grid container spacing={2.2} sx={{ mb: 3 }}>
           {stats.map((stat, idx) => (
@@ -922,6 +972,7 @@ export const PremiumDashboard: React.FC = () => {
         </Dialog>
 
         <Box
+          className="premium-section-tabs"
           sx={{
             mb: 3,
             borderRadius: 3,

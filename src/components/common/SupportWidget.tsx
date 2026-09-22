@@ -241,6 +241,7 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({
       ) : null}
 
       <Dialog
+        className="customer-care-dialog"
         open={dialogOpen}
         onClose={closeDialog}
         fullWidth
@@ -511,6 +512,7 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({
       </Dialog>
 
       <Dialog
+        className="customer-care-ticket-dialog"
         open={ticketDetailOpen}
         onClose={closeTicketDetail}
         fullWidth

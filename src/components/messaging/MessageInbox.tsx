@@ -181,7 +181,7 @@ export const MessageInbox: React.FC<MessageInboxProps> = ({
   };
 
   return (
-    <Box>
+    <Box className="message-inbox">
       <Box
         sx={{
           px: 2,
