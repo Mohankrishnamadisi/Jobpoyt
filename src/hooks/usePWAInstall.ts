@@ -172,6 +172,7 @@ export const usePWAInstall = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<DeferredInstallPrompt | null>(
     () => window.__jobpoytDeferredInstallPrompt || null,
   );
+  const [installDismissed, setInstallDismissed] = useState(false);
   const [isStandalone, setIsStandalone] = useState<boolean>(isStandaloneMode());
   const [isInstalled, setIsInstalled] = useState<boolean>(
     () => isStandaloneMode() || (readInstalledState() && !window.__jobpoytDeferredInstallPrompt),
@@ -187,15 +188,18 @@ export const usePWAInstall = () => {
 
   useEffect(() => {
     const onPromptCaptured = () => {
-      if (window.__jobpoytDeferredInstallPrompt) {
+      const nextPrompt = window.__jobpoytDeferredInstallPrompt;
+      if (nextPrompt) {
+        setInstallDismissed(false);
         setIsInstalled(false);
         setIsStandalone(false);
         window.localStorage.removeItem(INSTALLED_KEY);
-        setDeferredPrompt(window.__jobpoytDeferredInstallPrompt);
+        setDeferredPrompt(nextPrompt);
       }
     };
 
     const onAppInstalled = () => {
+      setInstallDismissed(false);
       setIsInstalled(true);
       setIsStandalone(true);
       setDeferredPrompt(null);
@@ -236,10 +240,11 @@ export const usePWAInstall = () => {
     const isIosSafari = (env.platform === 'ios' || env.platform === 'ipados') && env.browser === 'safari';
     if (isIosSafari) return 'ios_instructions';
 
+    if (installDismissed && !deferredPrompt) return 'unsupported';
     if (deferredPrompt) return 'native_prompt';
 
     return 'unsupported';
-  }, [deferredPrompt, env.browser, env.platform, isInstalled, isStandalone]);
+  }, [deferredPrompt, env.browser, env.platform, installDismissed, isInstalled, isStandalone]);
 
   const shouldShowBanner = useMemo(() => {
     if (isInstalled || isStandalone) return false;
@@ -359,6 +364,7 @@ export const usePWAInstall = () => {
     }
 
     if (!deferredPrompt) {
+      setInstallDismissed(true);
       return { outcome: 'no-prompt' };
     }
 
@@ -370,10 +376,11 @@ export const usePWAInstall = () => {
       });
       await deferredPrompt.prompt();
       const choice = await deferredPrompt.userChoice;
-      setDeferredPrompt(null);
-      window.__jobpoytDeferredInstallPrompt = undefined;
 
       if (choice.outcome === 'accepted') {
+        setInstallDismissed(false);
+        setDeferredPrompt(null);
+        window.__jobpoytDeferredInstallPrompt = undefined;
         setIsInstalled(true);
         setIsStandalone(true);
         window.localStorage.setItem(INSTALLED_KEY, 'true');
@@ -384,12 +391,18 @@ export const usePWAInstall = () => {
         return { outcome: 'accepted' };
       }
 
+      setInstallDismissed(true);
+      setDeferredPrompt(null);
+      window.__jobpoytDeferredInstallPrompt = undefined;
       pwaInstallAnalyticsService.track('install_dismissed', {
         platform: env.platform,
         browser: env.browser,
       });
       return { outcome: 'dismissed' };
     } catch (error) {
+      setInstallDismissed(true);
+      setDeferredPrompt(null);
+      window.__jobpoytDeferredInstallPrompt = undefined;
       return { outcome: 'error', reason: error instanceof Error ? error.message : 'install prompt failed' };
     }
   }, [availability, deferredPrompt, env.browser, env.platform, isInstalled, isStandalone, openIosInstructions, updateInstalledApp]);
@@ -402,7 +415,7 @@ export const usePWAInstall = () => {
     isInstallAvailable: availability !== 'already_installed',
     availability,
     deferredPrompt,
-    canPromptNatively: availability === 'native_prompt' && Boolean(deferredPrompt),
+    canPromptNatively: availability === 'native_prompt' && Boolean(deferredPrompt) && !installDismissed,
     isIosGuidedInstall: availability === 'ios_instructions',
     isUnsupported: availability === 'unsupported',
     shouldShowBanner,
@@ -413,6 +426,7 @@ export const usePWAInstall = () => {
 
   return {
     ...state,
+    installDismissed,
     iosModalOpen,
     promptInstall,
     updateInstalledApp,

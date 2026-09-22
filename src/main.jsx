@@ -4,12 +4,16 @@ import 'antd/dist/reset.css'
 import './index.css'
 import App from './App.tsx'
 
-// Keep the browser's one-time install event available until the install UI mounts.
-window.addEventListener('beforeinstallprompt', (event) => {
+// Keep the browser's install event available without consuming it permanently.
+// The event is one-time per browser instance, so we must update the latest value
+// and allow a future beforeinstallprompt event to replace it when the browser fires again.
+const handleBeforeInstallPrompt = (event) => {
   event.preventDefault();
   window.__jobpoytDeferredInstallPrompt = event;
   window.dispatchEvent(new CustomEvent('pwa:beforeinstallprompt'));
-}, { once: true });
+};
+
+window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
 const registerServiceWorker = async () => {
   if (!('serviceWorker' in navigator)) return;
