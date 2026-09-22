@@ -233,7 +233,6 @@ export async function getCandidatesToEvaluate(jobId: string): Promise<CandidateP
  */
 export async function evaluateJobForMatches(jobId: string): Promise<void> {
   try {
-    console.log(`[jobMatchService] Starting evaluation for job ${jobId}`);
 
     // Fetch the job
     const { data: job, error: jobError } = await supabase
@@ -247,14 +246,11 @@ export async function evaluateJobForMatches(jobId: string): Promise<void> {
       return;
     }
 
-    console.log(`[jobMatchService] Job fetched: ${job.title}`);
 
     // Get candidates to evaluate
     const candidates = await getCandidatesToEvaluate(jobId);
-    console.log(`[jobMatchService] Found ${candidates.length} candidates to evaluate`);
 
     if (candidates.length === 0) {
-      console.log(`[jobMatchService] No candidates to evaluate`);
       return;
     }
 
@@ -310,9 +306,6 @@ export async function evaluateJobForMatches(jobId: string): Promise<void> {
           scheduledFor,
         });
 
-        console.log(
-          `[jobMatchService] Match found: ${candidate.id} (${isPremium ? 'premium' : 'normal'}, ${matchType})`
-        );
       }
     }
 
@@ -337,10 +330,7 @@ export async function evaluateJobForMatches(jobId: string): Promise<void> {
         throw insertError;
       }
 
-      console.log(`[jobMatchService] Inserted ${notificationsToInsert.length} job match notifications`);
     }
-
-    console.log(`[jobMatchService] Evaluation complete for job ${jobId}`);
   } catch (error) {
     console.error('Error evaluating job for matches:', error);
     throw error;

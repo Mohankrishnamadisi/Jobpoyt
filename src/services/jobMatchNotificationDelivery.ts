@@ -181,7 +181,6 @@ export async function deliverJobMatchNotification(payload: NotificationDeliveryP
       // Don't throw, notification was created successfully
     }
 
-    console.log(`[notificationDelivery] Delivered notification for match ${payload.jobMatchNotificationId}`);
   } catch (error) {
     console.error('Error delivering job match notification:', error);
     throw error;
@@ -204,7 +203,6 @@ export async function deliverPremiumNotifications(): Promise<number> {
         match_type,
         matched_skills,
         matched_titles,
-        match_score,
         notification_tier,
         jobs!job_match_notifications_job_id (title, company_name),
         profiles!job_match_notifications_candidate_id (user_id)
@@ -243,7 +241,6 @@ export async function deliverPremiumNotifications(): Promise<number> {
       }
     }
 
-    console.log(`[notificationDelivery] Delivered ${delivered} premium notifications`);
     return delivered;
   } catch (error) {
     console.error('Error in deliverPremiumNotifications:', error);
@@ -310,7 +307,6 @@ export async function deliverScheduledNotifications(): Promise<number> {
       }
     }
 
-    console.log(`[notificationDelivery] Delivered ${delivered} scheduled notifications`);
     return delivered;
   } catch (error) {
     console.error('Error in deliverScheduledNotifications:', error);
@@ -326,7 +322,6 @@ export async function deliverScheduledNotifications(): Promise<number> {
  */
 export async function runNotificationDeliveryProcess(): Promise<{ premium: number; scheduled: number }> {
   try {
-    console.log('[notificationDelivery] Starting notification delivery process');
 
     // Deliver premium notifications immediately
     const premiumDelivered = await deliverPremiumNotifications();
@@ -334,9 +329,6 @@ export async function runNotificationDeliveryProcess(): Promise<{ premium: numbe
     // Deliver scheduled notifications that are due
     const scheduledDelivered = await deliverScheduledNotifications();
 
-    console.log(
-      `[notificationDelivery] Process complete: ${premiumDelivered} premium + ${scheduledDelivered} scheduled`
-    );
 
     return { premium: premiumDelivered, scheduled: scheduledDelivered };
   } catch (error) {

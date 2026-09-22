@@ -78,10 +78,6 @@ export const Login: React.FC = () => {
           navigate(`${ROUTES.VERIFY_EMAIL}?email=${encodeURIComponent(response.user.email || formData.email)}`);
           return;
         }
-        // Log auth user
-        // eslint-disable-next-line no-console
-        console.log('Auth user (login):', response.user);
-
         // Try to load profile from our profiles table to get authoritative role
         let profile: any = null;
         try {
@@ -90,9 +86,6 @@ export const Login: React.FC = () => {
           // eslint-disable-next-line no-console
           console.warn('Failed to load profile after login', err);
         }
-        // eslint-disable-next-line no-console
-        console.log('Loaded profile after login:', profile);
-
         const roleFromProfile = profile?.role;
         const roleFromAuth = response.user.user_metadata?.role;
         const finalRole = roleFromProfile || roleFromAuth || 'job_seeker';

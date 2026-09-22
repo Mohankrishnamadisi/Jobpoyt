@@ -495,8 +495,6 @@ const AppContent: React.FC = () => {
       try {
         try {
           const session = await authService.getSession();
-          // eslint-disable-next-line no-console
-          console.log('Auth session on init:', session);
           if (session?.user) {
             let profile: any = null;
             try {
@@ -513,9 +511,6 @@ const AppContent: React.FC = () => {
               // eslint-disable-next-line no-console
               console.warn('Failed to load or create profile on initAuth', err);
             }
-            // eslint-disable-next-line no-console
-            console.log('Profile on init:', profile);
-
             const finalRole = profile?.role || session.user.user_metadata?.role || USER_ROLES.JOB_SEEKER;
 
             setUser({
@@ -543,8 +538,6 @@ const AppContent: React.FC = () => {
     try {
       subscription = authService.onAuthStateChange(async (session) => {
         const s = session as { user?: { id: string; email?: string; user_metadata?: Record<string, string>; created_at?: string; updated_at?: string } } | null;
-        // eslint-disable-next-line no-console
-        console.log('Auth state change:', s);
         if (s?.user) {
           let profile: any = null;
           try {
@@ -554,9 +547,6 @@ const AppContent: React.FC = () => {
             // eslint-disable-next-line no-console
             console.warn('Failed to load profile onAuthStateChange', err);
           }
-          // eslint-disable-next-line no-console
-          console.log('Profile on auth change:', profile);
-
           const finalRole = profile?.role || (s.user.user_metadata?.role as 'job_seeker' | 'recruiter' | 'admin') || USER_ROLES.JOB_SEEKER;
 
           setUser({

@@ -231,10 +231,6 @@ export const recruiterService = {
       company_name_original: profileData.company_name || profileData.companyName || null,
     };
 
-    // Log payload for debugging to verify what is being sent to Supabase
-    // eslint-disable-next-line no-console
-    console.info('createRecruiterProfile payload:', JSON.parse(JSON.stringify(payload)));
-
     const { data, error } = await supabase
       .from('recruiters')
       .insert([{ ...payload }])
@@ -630,13 +626,11 @@ export const jobService = {
     Object.entries(jobData).forEach(([key, value]) => {
       // Skip camelCase properties - they are not database columns
       if (camelCasePropertiesToRemove.has(key)) {
-        console.log(`[createJob] Removing camelCase property: ${key}`);
         return;
       }
 
       // Skip read-only fields
       if (readOnlyFields.has(key)) {
-        console.log(`[createJob] Skipping read-only field: ${key}`);
         return;
       }
 
@@ -665,9 +659,6 @@ export const jobService = {
       createPayload.salary_max = parseInt(createPayload.salary_max as string, 10);
     }
 
-    console.log('CREATE PAYLOAD', JSON.stringify(createPayload, null, 2));
-    console.log('[createJob] Payload keys:', Object.keys(createPayload));
-
     const { data, error } = await supabase
       .from('jobs')
       .insert([createPayload])
@@ -685,8 +676,6 @@ export const jobService = {
         // 3. Create job_match_notifications for matches
         // 4. Deliver premium notifications immediately
         // 5. Schedule normal notifications for 4-hour delay
-        console.log(`[createJob] Triggering Edge Function for job match evaluation: ${createdJob.id}`);
-        
         // Call the Edge Function asynchronously (non-blocking)
         // This ensures the recruiter's job creation completes immediately
         // Using supabase.functions.invoke() ensures proper routing and auth context
@@ -695,7 +684,6 @@ export const jobService = {
             body: { jobId: createdJob.id },
           })
           .then((data) => {
-            console.log(`[createJob] Job match processing complete:`, data);
           })
           .catch((error) => {
             console.error('Error triggering job match Edge Function:', error);
@@ -737,13 +725,11 @@ export const jobService = {
     Object.entries(updates).forEach(([key, value]) => {
       // Skip camelCase properties - they are not database columns
       if (camelCasePropertiesToRemove.has(key)) {
-        console.log(`[updateJob] Removing camelCase property: ${key}`);
         return;
       }
 
       // Skip read-only fields
       if (readOnlyFields.has(key)) {
-        console.log(`[updateJob] Skipping read-only field: ${key}`);
         return;
       }
 
@@ -755,9 +741,6 @@ export const jobService = {
 
     // Add current timestamp for updated_at
     updatePayload.updated_at = new Date().toISOString();
-
-    console.log('UPDATE PAYLOAD', JSON.stringify(updatePayload, null, 2));
-    console.log('[updateJob] Final payload keys:', Object.keys(updatePayload));
 
     const { data, error } = await supabase
       .from('jobs')
@@ -897,8 +880,6 @@ export const applicationService = {
       const status = String(sub?.status || '').toLowerCase();
       // Check if candidate has active premium subscription (new or legacy plans)
       isPriority = status === 'active' && isCandidatePremium(plan) && isSubscriptionActive(sub?.end_date);
-      console.log('Subscription for candidate', userId, { plan, status, sub });
-      console.log('Priority Application flag for candidate', userId, isPriority);
     } catch (err) {
       // ignore subscription lookup errors and treat as non-priority
       console.error('Failed to lookup subscription for priority apply:', err);
@@ -916,7 +897,6 @@ export const applicationService = {
       status: 'applied',
       priority_application: isPriority,
     };
-    console.log('Inserting job application payload', applicationPayload);
 
     const { data, error } = await supabase
       .from('job_applications')
@@ -1520,10 +1500,6 @@ export const chatService = {
 
         const recruiterId = senderId;
         const candidateId = receiverId;
-        console.log('No conversation found. Creating new conversation', {
-          recruiterId,
-          candidateId,
-        });
 
         const { data, error } = await supabase
           .from('conversations')
@@ -1548,17 +1524,14 @@ export const chatService = {
         } else {
           if (!data?.id) throw new Error('Conversation creation did not return an id');
           conversation = { id: data.id, recruiter_id: recruiterId, candidate_id: candidateId };
-          console.log('Conversation created', data.id);
         }
       } else {
-        console.log('Conversation found', conversation.id);
       }
 
       if (!conversation?.id) {
         throw new Error('Unable to resolve conversation id');
       }
 
-      console.log('Inserting message with conversation_id', conversation.id);
       const { data, error } = await supabase
         .from('messages')
         .insert([

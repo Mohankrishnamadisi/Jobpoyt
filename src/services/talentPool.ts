@@ -62,33 +62,8 @@ export async function createPool(
   const authName = authUser?.user_metadata?.name ?? null;
   const actualRecruiterId = authUserId || recruiterId;
 
-  // eslint-disable-next-line no-console
-  console.info(
-    'TalentPool.createPool auth user id:',
-    authUserId,
-    'recruiter_id param:',
-    recruiterId,
-    'effective recruiter_id:',
-    actualRecruiterId
-  );
   if (!authUserId) {
-    // eslint-disable-next-line no-console
-    console.warn(
-      'TalentPool.createPool no active auth session; cannot verify recruiter identity for recruiterId param:',
-      recruiterId
-    );
     throw new Error('No active authenticated user session available to create a talent pool.');
-  }
-
-  if (authUserId && recruiterId !== authUserId) {
-    // eslint-disable-next-line no-console
-    console.warn(
-      'TalentPool.createPool recruiter_id mismatch. recruiterId param:',
-      recruiterId,
-      'auth.uid():',
-      authUserId,
-      'using auth uid as recruiter_id'
-    );
   }
 
   try {
@@ -97,14 +72,6 @@ export async function createPool(
       email: authEmail || undefined,
     } as Record<string, unknown>);
   } catch (profileError) {
-    // eslint-disable-next-line no-console
-    console.error('TalentPool.createPool recruiter profile auto-create failed', {
-      actualRecruiterId,
-      authUserId,
-      authEmail,
-      authName,
-      profileError,
-    });
     throw profileError;
   }
 
@@ -119,13 +86,6 @@ export async function createPool(
     .single();
 
   if (error) {
-    // eslint-disable-next-line no-console
-    console.error('TalentPool.createPool insert failed', {
-      recruiterId,
-      authUserId,
-      payload,
-      error,
-    });
     throw error;
   }
 

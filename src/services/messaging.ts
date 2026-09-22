@@ -88,11 +88,6 @@ export const messagingService = {
 
         const recruiterId = canonicalSenderId;
         const candidateId = canonicalReceiverId;
-        console.log('No conversation found. Creating new conversation', {
-          recruiterId,
-          candidateId,
-        });
-
         const { data, error } = await supabase
           .from('conversations')
           .insert([
@@ -115,10 +110,8 @@ export const messagingService = {
           }
         } else {
           conversation = data;
-          console.log('Conversation created', conversation.id);
         }
       } else {
-        console.log('Conversation found', conversation.id);
       }
 
       if (!conversation?.id) {
@@ -130,7 +123,6 @@ export const messagingService = {
         throw new Error('This conversation is blocked and cannot receive new messages');
       }
 
-      console.log('Inserting message with conversation_id', conversation.id);
       const { data, error } = await supabase
         .from('messages')
         .insert([

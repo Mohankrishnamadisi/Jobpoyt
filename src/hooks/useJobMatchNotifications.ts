@@ -63,7 +63,6 @@ export function useJobMatchNotifications(userId: string | undefined) {
         (payload: any) => {
           const newNotification = payload.new;
           if (newNotification.type === 'job_match') {
-            console.log('[useJobMatchNotifications] New notification received:', newNotification.id);
             setNotifications((prev) => [newNotification, ...prev]);
           }
         }
@@ -87,9 +86,7 @@ export function useJobMatchNotifications(userId: string | undefined) {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log('[useJobMatchNotifications] Subscribed to realtime updates');
         } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-          console.log('[useJobMatchNotifications] Realtime subscription closed');
         }
       });
 

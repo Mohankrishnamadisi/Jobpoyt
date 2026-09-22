@@ -67,8 +67,6 @@ export const learningVideosService = {
     const session = sessionData.session;
 
     if (import.meta.env.DEV) {
-      console.log('[Learning] session exists:', Boolean(session?.access_token));
-      console.log('[Learning] searchKey:', searchKey);
     }
 
     if (sessionError) {
@@ -97,9 +95,6 @@ export const learningVideosService = {
     }
 
     if (import.meta.env.DEV) {
-      console.log('[Learning] function HTTP status:', status);
-      if (error) console.error('[Learning] function error:', error.message);
-      if (responseBody) console.log('[Learning] function response body:', responseBody);
     }
 
     if (error) {

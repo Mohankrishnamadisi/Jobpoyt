@@ -12,9 +12,6 @@ interface ProtectedRouteProps {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
   const { user } = useAuthStore();
 
-  // eslint-disable-next-line no-console
-  console.log('ProtectedRoute user:', user, 'requiredRole:', requiredRole);
-
   if (!user) {
     return <Navigate to={ROUTES.LOGIN} replace />;
   }
