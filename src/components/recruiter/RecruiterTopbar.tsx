@@ -117,40 +117,42 @@ export const RecruiterTopbar: React.FC<RecruiterTopbarProps> = ({
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.1, minWidth: 0 }}>
-            <MotionBox
-              component="button"
-              type="button"
-              onClick={() => navigate('/')}
-              aria-label="Go to home"
-              animate={{ rotate: [0, 8, -8, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              sx={{
-                width: 38,
-                height: 38,
-                flexShrink: 0,
-                borderRadius: 1.8,
-                display: 'grid',
-                placeItems: 'center',
-                border: '1px solid rgba(91,140,255,0.28)',
-                overflow: 'hidden',
-                p: 0,
-                cursor: 'pointer',
-                bgcolor: '#FFFFFF',
-                '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 12px 24px rgba(91,140,255,0.22)' },
-                background: 'linear-gradient(135deg, #5B8CFF 0%, #8B5CF6 100%)',
-                boxShadow: '0 10px 24px rgba(91,140,255,0.26)',
-              }}
-            >
-              <Avatar src={recruiterLogo} alt={`${companyName} logo`} sx={{ width: '100%', height: '100%', bgcolor: 'transparent', color: '#FFFFFF', fontWeight: 900, fontSize: 14 }}>
-                {companyName.charAt(0).toUpperCase()}
-              </Avatar>
-            </MotionBox>
+            {!isMobile && (
+              <MotionBox
+                component="button"
+                type="button"
+                onClick={() => navigate('/')}
+                aria-label="Go to home"
+                animate={{ rotate: [0, 8, -8, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                sx={{
+                  width: 38,
+                  height: 38,
+                  flexShrink: 0,
+                  borderRadius: 1.8,
+                  display: 'grid',
+                  placeItems: 'center',
+                  border: '1px solid rgba(91,140,255,0.28)',
+                  overflow: 'hidden',
+                  p: 0,
+                  cursor: 'pointer',
+                  bgcolor: '#FFFFFF',
+                  '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 12px 24px rgba(91,140,255,0.22)' },
+                  background: 'linear-gradient(135deg, #5B8CFF 0%, #8B5CF6 100%)',
+                  boxShadow: '0 10px 24px rgba(91,140,255,0.26)',
+                }}
+              >
+                <Avatar src={recruiterLogo} alt={`${companyName} logo`} sx={{ width: '100%', height: '100%', bgcolor: 'transparent', color: '#FFFFFF', fontWeight: 900, fontSize: 14 }}>
+                  {companyName.charAt(0).toUpperCase()}
+                </Avatar>
+              </MotionBox>
+            )}
             <Typography
               variant="h6"
               sx={{
                 fontWeight: 800,
                 color: themeColors.text.primary,
-                fontSize: '1rem',
+                fontSize: isMobile ? '0.9rem' : '1rem',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',

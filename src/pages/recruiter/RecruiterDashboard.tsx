@@ -150,9 +150,19 @@ export const RecruiterDashboard: React.FC = () => {
   }, [user?.id]);
 
   useEffect(() => {
-    const requestedTab = (location.state as { tab?: DashboardTab } | null)?.tab;
+    const state = (location.state as { tab?: DashboardTab; openPostJob?: boolean } | null) || null;
+    const requestedTab = state?.tab;
+    const shouldOpenPostJob = Boolean(state?.openPostJob);
+
     if (requestedTab) {
       setCurrentTab(requestedTab);
+    }
+
+    if (shouldOpenPostJob) {
+      setJobPostingFormOpen(true);
+    }
+
+    if (requestedTab || shouldOpenPostJob) {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.pathname, location.state, navigate]);

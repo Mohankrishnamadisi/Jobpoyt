@@ -6,6 +6,7 @@ import {
   MoreHoriz as MoreIcon,
   Person as ProfileIcon,
   School as LearnIcon,
+  Dashboard as DashboardIcon,
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@constants/index';
@@ -23,13 +24,20 @@ export const MobileBottomNavigation: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
-  const navItems: NavItem[] = [
-    { label: 'Home', icon: HomeIcon, to: ROUTES.HOME },
-    { label: 'Jobs', icon: JobsIcon, to: ROUTES.JOBS },
-    { label: 'Learn', icon: LearnIcon, to: ROUTES.DASHBOARD_LEARNING },
-    { label: 'Profile', icon: ProfileIcon, to: user ? ROUTES.DASHBOARD_PROFILE : ROUTES.LOGIN },
-    { label: 'More', icon: MoreIcon, action: () => undefined },
-  ];
+  const navItems: NavItem[] = user?.role === 'recruiter'
+    ? [
+        { label: 'Home', icon: HomeIcon, to: ROUTES.HOME },
+        { label: 'Dashboard', icon: DashboardIcon, to: ROUTES.RECRUITER_DASHBOARD },
+        { label: 'Post a Job', icon: JobsIcon, action: () => navigate(ROUTES.RECRUITER_DASHBOARD, { state: { openPostJob: true } }) },
+        { label: 'My Profile', icon: ProfileIcon, action: () => navigate(ROUTES.RECRUITER_DASHBOARD, { state: { tab: 'company-profile' } }) },
+      ]
+    : [
+        { label: 'Home', icon: HomeIcon, to: ROUTES.HOME },
+        { label: 'Jobs', icon: JobsIcon, to: ROUTES.JOBS },
+        { label: 'Learn', icon: LearnIcon, to: ROUTES.DASHBOARD_LEARNING },
+        { label: 'Profile', icon: ProfileIcon, to: user ? ROUTES.DASHBOARD_PROFILE : ROUTES.LOGIN },
+        { label: 'Dashboard', icon: DashboardIcon, to: user ? ROUTES.DASHBOARD : ROUTES.LOGIN },
+      ];
 
   const isActive = (item: NavItem) => {
     if (item.to === ROUTES.HOME) {
