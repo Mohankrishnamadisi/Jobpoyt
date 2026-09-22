@@ -1286,6 +1286,7 @@ export const RecruiterDashboard: React.FC = () => {
 
       {/* Job Posting Dialog */}
       <Dialog
+        className="recruiter-job-dialog"
         open={jobPostingFormOpen}
         onClose={() => setJobPostingFormOpen(false)}
         maxWidth="md"

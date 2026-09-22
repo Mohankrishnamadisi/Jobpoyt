@@ -81,6 +81,7 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
+  const mobileCompact = isMobile;
 
   const menuSections = [
     { label: 'Workspace', items: [
@@ -154,6 +155,7 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
         borderRight: '1px solid rgba(125, 146, 180, 0.24)',
         boxShadow: 'inset -1px 0 0 rgba(255,255,255,0.08), 18px 0 40px rgba(15, 23, 42, 0.18)',
         position: 'relative',
+        width: mobileCompact ? 240 : '100%',
         '&::before': {
           content: '""',
           position: 'absolute',
@@ -163,7 +165,7 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
         },
       }}
     >
-      <Box sx={{ px: 2.5, py: 1.75, borderBottom: '1px solid rgba(255,255,255,0.09)', position: 'relative', zIndex: 1 }}>
+      <Box sx={{ px: mobileCompact ? 1.8 : 2.5, py: mobileCompact ? 1.2 : 1.75, borderBottom: '1px solid rgba(255,255,255,0.09)', position: 'relative', zIndex: 1 }}>
         <Box
           component="button"
           type="button"
@@ -174,7 +176,7 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
             display: 'flex',
             alignItems: 'center',
             width: '100%',
-            minHeight: 38,
+            minHeight: mobileCompact ? 30 : 38,
             p: 0,
             border: 0,
             background: 'transparent',
@@ -192,7 +194,7 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
               width: 'auto',
               maxWidth: '100%',
               height: 'auto',
-              maxHeight: 38,
+              maxHeight: mobileCompact ? 28 : 38,
               objectFit: 'contain',
               objectPosition: 'left center',
               transition: 'transform 0.2s ease, filter 0.2s ease',
@@ -201,30 +203,30 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
         </Box>
         <Typography
           variant="caption"
-          sx={{ display: 'block', mt: 1, color: 'rgba(191,219,254,0.72)', fontSize: '0.68rem', letterSpacing: 0.9, textTransform: 'uppercase' }}
+          sx={{ display: 'block', mt: mobileCompact ? 0.75 : 1, color: 'rgba(191,219,254,0.72)', fontSize: mobileCompact ? '0.58rem' : '0.68rem', letterSpacing: 0.9, textTransform: 'uppercase' }}
         >
           Recruiter Dashboard
         </Typography>
       </Box>
 
-      <List sx={{ flex: 1, minHeight: 0, py: 1.5, overflowY: 'auto', position: 'relative', zIndex: 1, '&::-webkit-scrollbar': { width: 5 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(148,163,184,0.34)', borderRadius: 99 } }}>
+      <List sx={{ flex: 1, minHeight: 0, py: mobileCompact ? 0.75 : 1.5, overflowY: 'auto', position: 'relative', zIndex: 1, '&::-webkit-scrollbar': { width: 5 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(148,163,184,0.34)', borderRadius: 99 } }}>
         {menuSections.map((section, sectionIndex) => (
-          <Box key={section.label} sx={{ mb: 1.5 }}>
-            <Typography sx={{ px: 2.5, pt: sectionIndex ? 1 : 0.35, pb: 0.7, color: 'rgba(191,219,254,0.52)', fontSize: 10, fontWeight: 800, letterSpacing: 1.1, textTransform: 'uppercase' }}>{section.label}</Typography>
+          <Box key={section.label} sx={{ mb: mobileCompact ? 0.8 : 1.5 }}>
+            <Typography sx={{ px: mobileCompact ? 1.8 : 2.5, pt: sectionIndex ? 0.7 : 0.2, pb: mobileCompact ? 0.35 : 0.7, color: 'rgba(191,219,254,0.52)', fontSize: mobileCompact ? 9 : 10, fontWeight: 800, letterSpacing: mobileCompact ? 0.9 : 1.1, textTransform: 'uppercase' }}>{section.label}</Typography>
             {section.items.map((item, itemIndex) => {
               const Icon = item.icon;
               const isActive = currentTab === item.id && !item.external;
               const isReadOnlyItem = readOnly && item.id !== 'overview' && item.id !== 'my-details';
               return (
                 <motion.div key={item.id} initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.22, delay: Math.min(0.3, sectionIndex * 0.04 + itemIndex * 0.018) }}>
-                  <ListItem disablePadding sx={{ mb: 0.1 }}>
+                  <ListItem disablePadding sx={{ mb: mobileCompact ? 0.05 : 0.1 }}>
                     <ListItemButton
                       onClick={() => handleMenuClick(item.id)}
                       disabled={isReadOnlyItem}
                       sx={{
-                        mx: 1.1,
-                        minHeight: 46,
-                        px: 1.25,
+                        mx: mobileCompact ? 0.8 : 1.1,
+                        minHeight: mobileCompact ? 38 : 46,
+                        px: mobileCompact ? 0.8 : 1.25,
                         borderRadius: 2.2,
                         background: isActive ? 'linear-gradient(90deg, rgba(91,140,255,0.22), rgba(139,92,246,0.12))' : 'transparent',
                         color: isActive ? '#FFFFFF' : 'rgba(226,232,240,0.76)',
@@ -243,21 +245,22 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
                     >
                       <ListItemIcon
                         sx={{
-                          minWidth: 36,
+                          minWidth: mobileCompact ? 28 : 36,
                           color: isActive ? '#7DD3FC' : 'rgba(191,219,254,0.72)',
                         }}
                       >
-                        <Icon sx={{ fontSize: '1.2rem' }} />
+                        <Icon sx={{ fontSize: mobileCompact ? '1rem' : '1.2rem' }} />
                       </ListItemIcon>
                       <ListItemText
                         primary={item.label}
                         secondary={item.id === 'billing-subscription' ? `${planName}` : undefined}
                         primaryTypographyProps={{
-                          fontSize: '0.82rem',
+                          fontSize: mobileCompact ? '0.74rem' : '0.82rem',
                           fontWeight: isActive ? 800 : 600,
+                          lineHeight: 1.2,
                         }}
                         secondaryTypographyProps={{
-                          fontSize: '0.72rem',
+                          fontSize: mobileCompact ? '0.62rem' : '0.72rem',
                           color: isActive ? '#BEE3FF' : 'rgba(191,219,254,0.54)',
                           sx: { mt: 0.1, lineHeight: 1.2 },
                         }}
@@ -271,9 +274,9 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
         ))}
       </List>
 
-      <Box sx={{ mx: 1.5, mb: 1.5, p: 1.4, borderRadius: 2.2, bgcolor: 'rgba(91,140,255,0.12)', border: '1px solid rgba(125, 211, 252, 0.22)', boxShadow: '0 12px 28px rgba(91,140,255,0.12)', position: 'relative', zIndex: 1 }}>
-        <Typography sx={{ color: '#99F6E4', fontSize: 10, fontWeight: 800, letterSpacing: 0.8, textTransform: 'uppercase' }}>{planName} workspace</Typography>
-        <Typography sx={{ color: 'rgba(226,232,240,0.72)', fontSize: 11, mt: 0.35 }}>{credits.toLocaleString()} credits available</Typography>
+      <Box sx={{ mx: mobileCompact ? 0.9 : 1.5, mb: mobileCompact ? 0.9 : 1.5, p: mobileCompact ? 1.1 : 1.4, borderRadius: 2.2, bgcolor: 'rgba(91,140,255,0.12)', border: '1px solid rgba(125, 211, 252, 0.22)', boxShadow: '0 12px 28px rgba(91,140,255,0.12)', position: 'relative', zIndex: 1 }}>
+        <Typography sx={{ color: '#99F6E4', fontSize: mobileCompact ? 9 : 10, fontWeight: 800, letterSpacing: 0.8, textTransform: 'uppercase' }}>{planName} workspace</Typography>
+        <Typography sx={{ color: 'rgba(226,232,240,0.72)', fontSize: mobileCompact ? 10 : 11, mt: 0.35 }}>{credits.toLocaleString()} credits available</Typography>
       </Box>
     </MotionBox>
   );
@@ -282,9 +285,17 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
     return (
       <>
         <Box sx={{ display: 'flex', alignItems: 'center', p: 1, mb: 2 }}>
-          <IconButton onClick={() => setMobileOpen(true)} edge="start">
+          <Box
+            component="button"
+            type="button"
+            className="recruiter-menu-trigger"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open recruiter navigation menu"
+            title="Open recruiter navigation menu"
+          >
             <MenuIcon />
-          </IconButton>
+            <Typography component="span">Menu</Typography>
+          </Box>
         </Box>
         <Drawer
           anchor="left"
@@ -292,7 +303,7 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
           onClose={() => setMobileOpen(false)}
           sx={{
             '& .MuiDrawer-paper': {
-              width: 280,
+              width: 240,
               boxSizing: 'border-box',
             },
           }}
@@ -302,15 +313,16 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              p: 2,
+              px: 1.5,
+              py: 1.25,
               borderBottom: `1px solid ${themeColors.border}`,
             }}
           >
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.05rem' }}>
               Menu
             </Typography>
-            <IconButton onClick={() => setMobileOpen(false)}>
-              <CloseIcon />
+            <IconButton onClick={() => setMobileOpen(false)} sx={{ width: 30, height: 30 }}>
+              <CloseIcon sx={{ fontSize: 18 }} />
             </IconButton>
           </Box>
           {sidebarContent}

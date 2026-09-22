@@ -46,6 +46,7 @@ export const RecruiterLayout: React.FC<RecruiterLayoutProps> = ({
 
   return (
     <Box
+      className="recruiter-dashboard-shell"
       sx={{
         position: 'relative',
         display: 'flex',
@@ -134,7 +135,7 @@ export const RecruiterLayout: React.FC<RecruiterLayoutProps> = ({
         />
 
         {isMobile && (
-          <Box sx={{ px: 2, py: 1 }}>
+          <Box className="recruiter-mobile-nav" sx={{ px: 2, py: 1 }}>
             <RecruiterSidebar
               onTabChange={onTabChange}
               currentTab={currentTab}

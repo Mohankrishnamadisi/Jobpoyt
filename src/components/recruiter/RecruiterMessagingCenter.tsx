@@ -2033,7 +2033,11 @@ export const RecruiterMessagingCenter: React.FC<RecruiterMessagingCenterProps> =
                     transition: 'all 0.18s ease',
                     '&:hover': { bgcolor: selected ? '#F2F4FF' : '#F1F7FF', borderColor: selected ? '#809AFF' : '#B8D0EC', transform: 'translateY(-1px)', boxShadow: '0 8px 18px rgba(15,39,75,0.08)' },
                   }}
-                  onClick={() => { setSelectedConversationId(row.id); setDraftTarget(null); }}
+                  onClick={() => {
+                    setSelectedConversationId(row.id);
+                    setDraftTarget(null);
+                    if (isMobile) setChatWindowOpen(true);
+                  }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25 }}>
                     <Checkbox
@@ -2104,7 +2108,7 @@ export const RecruiterMessagingCenter: React.FC<RecruiterMessagingCenterProps> =
           {selectedConversation || draftTarget ? (
             <>
               {/* Chat header */}
-              <Box sx={{ px: { xs: 1.25, md: 1.75 }, py: 1.25, borderBottom: '1px solid #dbe7f3', background: 'linear-gradient(100deg, #F8FBFF 0%, #EEF5FF 100%)', overflow: 'visible', '& .MuiButton-root:hover': { transform: 'none' }, '& .MuiButton-root': { fontSize: '0.58rem !important', lineHeight: 1, minHeight: 26 }, '& .MuiSelect-select': { fontSize: '0.58rem !important', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }}>
+              <Box className="recruiter-conversation-header" sx={{ px: { xs: 1.25, md: 1.75 }, py: 1.25, borderBottom: '1px solid #dbe7f3', background: 'linear-gradient(100deg, #F8FBFF 0%, #EEF5FF 100%)', overflow: 'visible', '& .MuiButton-root:hover': { transform: 'none' }, '& .MuiButton-root': { fontSize: '0.58rem !important', lineHeight: 1, minHeight: 26 }, '& .MuiSelect-select': { fontSize: '0.58rem !important', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }}>
 
                 {/* Row 1: Avatar + name */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -2124,7 +2128,7 @@ export const RecruiterMessagingCenter: React.FC<RecruiterMessagingCenterProps> =
                 </Box>
 
                 {/* Row 2: Primary action buttons — all same height, no wrap */}
-                <Box sx={{ display: 'flex', gap: 0.4, mb: 0.85, flexWrap: 'nowrap', alignItems: 'center', overflow: 'visible', minWidth: 0, position: 'relative', zIndex: 2 }}>
+                <Box className="recruiter-primary-actions" sx={{ display: 'flex', gap: 0.4, mb: 0.85, flexWrap: 'nowrap', alignItems: 'center', overflow: 'visible', minWidth: 0, position: 'relative', zIndex: 2 }}>
                   <Button
                     size="small"
                     variant={selectedConversation?.isBlocked || selectedConversation?.meta.blocked ? 'contained' : 'outlined'}
@@ -2171,7 +2175,7 @@ export const RecruiterMessagingCenter: React.FC<RecruiterMessagingCenterProps> =
                 </Box>
 
                 {/* Row 3: Quick action buttons */}
-                <Box sx={{ display: 'flex', gap: 0.4, flexWrap: 'nowrap', alignItems: 'center', overflow: 'visible', minWidth: 0, position: 'relative', zIndex: 1 }}>
+                <Box className="recruiter-quick-actions" sx={{ display: 'flex', gap: 0.4, flexWrap: 'nowrap', alignItems: 'center', overflow: 'visible', minWidth: 0, position: 'relative', zIndex: 1 }}>
                   <Button size="small" onClick={sendResumeRequest}
                     sx={{ borderRadius: 1.25, textTransform: 'none', fontSize: '0.58rem', whiteSpace: 'nowrap', flexShrink: 1, minWidth: 0, height: 26, color: '#28508A', border: '1px solid #C9D8EA', px: 0.6 }}>
                     Request Resume
@@ -2451,6 +2455,7 @@ export const RecruiterMessagingCenter: React.FC<RecruiterMessagingCenterProps> =
       {viewTab === 'analytics' && renderAnalytics()}
 
       <Dialog
+        className="recruiter-chat-window-dialog"
         open={chatWindowOpen}
         onClose={() => setChatWindowOpen(false)}
         fullWidth

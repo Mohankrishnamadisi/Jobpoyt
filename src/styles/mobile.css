@@ -908,6 +908,334 @@
     padding: 8px 12px 12px !important;
   }
 
+  /* Shared compact system for every recruiter dashboard screen. */
+  .recruiter-dashboard-shell {
+    min-height: 100dvh !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: linear-gradient(180deg, #F6F9FF 0%, #EEF4FC 100%) !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-topbar .MuiToolbar-root {
+    min-height: 52px !important;
+    padding: 6px 10px !important;
+    gap: 6px !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-topbar .MuiTypography-h6 {
+    max-width: 150px;
+    font-size: 0.78rem !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-topbar .MuiIconButton-root {
+    width: 32px !important;
+    height: 32px !important;
+    padding: 5px !important;
+    border-radius: 9px !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-topbar .MuiSvgIcon-root {
+    font-size: 18px !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-mobile-nav {
+    padding: 4px 8px !important;
+    margin: 0 !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-mobile-nav > .MuiBox-root:first-child {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-mobile-nav .MuiIconButton-root {
+    width: 34px !important;
+    height: 34px !important;
+    padding: 6px !important;
+    border-radius: 9px !important;
+    background: #FFFFFF;
+    color: #16325C;
+    box-shadow: 0 3px 12px rgba(15, 39, 75, 0.1);
+  }
+
+  .recruiter-dashboard-shell .recruiter-mobile-nav .recruiter-menu-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 11px 0 8px;
+    border: 1px solid #C9D8EA;
+    border-radius: 10px;
+    background: #FFFFFF;
+    color: #16325C;
+    box-shadow: 0 3px 12px rgba(15, 39, 75, 0.1);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .recruiter-dashboard-shell .recruiter-mobile-nav .recruiter-menu-trigger:hover {
+    border-color: #5B8CFF;
+    background: #F2F6FF;
+  }
+
+  .recruiter-dashboard-shell .recruiter-mobile-nav .recruiter-menu-trigger svg {
+    font-size: 20px;
+    color: #28508A;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace {
+    padding: 10px 10px calc(var(--jobpoyt-bottom-nav-height) + env(safe-area-inset-bottom, 0px) + 24px) !important;
+    margin-bottom: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace > * {
+    max-width: 100%;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiCard-root,
+  .recruiter-dashboard-shell .recruiter-workspace .MuiPaper-root {
+    border-radius: 10px !important;
+    box-shadow: 0 5px 16px rgba(15, 39, 75, 0.06) !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiCardContent-root {
+    padding: 10px !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiTypography-h1 {
+    font-size: 1.25rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiTypography-h2 {
+    font-size: 1.15rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiTypography-h3 {
+    font-size: 1.05rem !important;
+    line-height: 1.22 !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiTypography-h4 {
+    font-size: 0.98rem !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiTypography-h5,
+  .recruiter-dashboard-shell .recruiter-workspace .MuiTypography-h6 {
+    font-size: 0.84rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiTypography-body1 {
+    font-size: 0.76rem !important;
+    line-height: 1.4 !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiTypography-body2 {
+    font-size: 0.68rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiTypography-caption {
+    font-size: 0.6rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiButton-root {
+    min-height: 32px !important;
+    min-width: 0 !important;
+    padding: 5px 9px !important;
+    border-radius: 8px !important;
+    font-size: 0.68rem !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiButton-sizeSmall {
+    min-height: 28px !important;
+    padding: 4px 8px !important;
+    font-size: 0.64rem !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiIconButton-root {
+    width: 30px !important;
+    height: 30px !important;
+    padding: 5px !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiChip-root {
+    height: 22px !important;
+    border-radius: 7px !important;
+    font-size: 0.6rem !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiTabs-root {
+    min-height: 36px !important;
+    overflow-x: auto;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiTab-root {
+    min-height: 34px !important;
+    padding: 5px 8px !important;
+    font-size: 0.64rem !important;
+    white-space: nowrap;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiTableCell-root {
+    padding: 6px 5px !important;
+    font-size: 0.64rem !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiTextField-root .MuiInputBase-root,
+  .recruiter-dashboard-shell .recruiter-workspace .MuiFormControl-root .MuiInputBase-root {
+    min-height: 36px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-workspace .MuiInputLabel-root {
+    font-size: 0.68rem !important;
+  }
+
+  .recruiter-job-dialog .MuiDialog-paper {
+    width: calc(100vw - 24px) !important;
+    max-width: 390px !important;
+    max-height: calc(100dvh - 32px) !important;
+    border-radius: 14px !important;
+  }
+
+  .recruiter-job-dialog .MuiDialogTitle-root,
+  .recruiter-job-dialog .MuiDialogContent-root,
+  .recruiter-job-dialog .MuiDialogActions-root {
+    padding: 10px 12px !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-conversation-header {
+    padding: 8px 9px !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-conversation-header .recruiter-primary-actions,
+  .recruiter-dashboard-shell .recruiter-conversation-header .recruiter-quick-actions {
+    width: calc(100vw - 44px);
+    max-width: 100%;
+    margin-right: -2px;
+    padding-bottom: 3px;
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+
+  .recruiter-dashboard-shell .recruiter-conversation-header .recruiter-primary-actions::-webkit-scrollbar,
+  .recruiter-dashboard-shell .recruiter-conversation-header .recruiter-quick-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .recruiter-dashboard-shell .recruiter-conversation-header .recruiter-primary-actions > .MuiButton-root,
+  .recruiter-dashboard-shell .recruiter-conversation-header .recruiter-primary-actions > .MuiFormControl-root {
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
+    width: auto !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    padding: 5px 8px !important;
+    font-size: 0.64rem !important;
+    border-radius: 8px !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-conversation-header .recruiter-primary-actions > .MuiFormControl-root {
+    width: 102px !important;
+    min-width: 102px !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-conversation-header .recruiter-quick-actions > .MuiButton-root,
+  .recruiter-dashboard-shell .recruiter-conversation-header .recruiter-quick-actions > .MuiFormControl-root {
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
+    width: auto !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    padding: 5px 8px !important;
+    font-size: 0.63rem !important;
+    border-radius: 8px !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-conversation-header .recruiter-quick-actions > .MuiFormControl-root {
+    width: 116px !important;
+    min-width: 116px !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-conversation-header .MuiButton-startIcon {
+    margin-right: 3px !important;
+  }
+
+  .recruiter-dashboard-shell .recruiter-conversation-header .MuiSelect-select {
+    padding: 6px 8px !important;
+    font-size: 0.63rem !important;
+  }
+
+  .recruiter-chat-window-dialog .MuiDialog-paper {
+    width: calc(100vw - 24px) !important;
+    max-width: 390px !important;
+    height: min(82dvh, 680px) !important;
+    max-height: calc(100dvh - 28px) !important;
+    margin: 14px auto !important;
+    border-radius: 14px !important;
+    overflow: hidden !important;
+  }
+
+  .recruiter-chat-window-dialog .MuiDialogTitle-root {
+    padding: 10px 12px !important;
+  }
+
+  .recruiter-chat-window-dialog .MuiDialogTitle-root .MuiTypography-h6 {
+    font-size: 0.9rem !important;
+  }
+
+  .recruiter-chat-window-dialog .MuiDialogTitle-root .MuiTypography-body2 {
+    font-size: 0.68rem !important;
+  }
+
+  .recruiter-chat-window-dialog .MuiDialogTitle-root .MuiButton-root {
+    min-height: 30px !important;
+    padding: 4px 8px !important;
+    font-size: 0.65rem !important;
+  }
+
+  .recruiter-chat-window-dialog .MuiDialogContent-root {
+    min-height: 0;
+  }
+
+  .recruiter-chat-window-dialog .MuiDialogContent-root > .MuiBox-root {
+    height: 100% !important;
+  }
+
+  .recruiter-chat-window-dialog .MuiDialogContent-root .MuiTypography-body2 {
+    font-size: 0.7rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .recruiter-chat-window-dialog .MuiDialogContent-root .MuiTypography-caption {
+    font-size: 0.6rem !important;
+  }
+
+  .recruiter-chat-window-dialog .MuiDialogContent-root .MuiButton-root {
+    min-height: 30px !important;
+    padding: 4px 8px !important;
+    font-size: 0.64rem !important;
+    border-radius: 7px !important;
+  }
+
+  .recruiter-chat-window-dialog .MuiDialogContent-root .MuiTextField-root .MuiInputBase-root {
+    font-size: 0.72rem !important;
+  }
+
+  .recruiter-chat-window-dialog .MuiDialogContent-root .MuiOutlinedInput-input {
+    padding: 8px 10px !important;
+  }
+
   .candidate-dashboard .dashboard-content .MuiCard-root {
     border-radius: 12px !important;
   }

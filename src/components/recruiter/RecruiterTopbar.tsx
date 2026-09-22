@@ -95,6 +95,7 @@ export const RecruiterTopbar: React.FC<RecruiterTopbarProps> = ({
   return (
     <>
       <AppBar
+        className="recruiter-topbar"
         position="sticky"
         elevation={0}
         sx={{
