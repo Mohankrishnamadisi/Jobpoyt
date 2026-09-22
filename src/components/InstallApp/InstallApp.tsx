@@ -30,10 +30,10 @@ export const InstallApp: React.FC = () => {
           aria-label="Install App"
           title="Install App"
           sx={{
-            width: 'clamp(40px, 11vw, 44px)',
-            height: 'clamp(40px, 11vw, 44px)',
-            minWidth: 'clamp(40px, 11vw, 44px)',
-            minHeight: 'clamp(40px, 11vw, 44px)',
+            width: 'clamp(36px, 10vw, 38px)',
+            height: 'clamp(36px, 10vw, 38px)',
+            minWidth: 'clamp(36px, 10vw, 38px)',
+            minHeight: 'clamp(36px, 10vw, 38px)',
             p: 0,
             borderRadius: 1.5,
             color: '#1d4ed8',
@@ -41,7 +41,7 @@ export const InstallApp: React.FC = () => {
             border: '1px solid rgba(29, 78, 216, 0.28)',
           }}
         >
-          <DownloadIcon sx={{ fontSize: 22 }} />
+          <DownloadIcon sx={{ fontSize: 19 }} />
         </IconButton>
         <Suspense fallback={null}>
           <PWAInstallModal

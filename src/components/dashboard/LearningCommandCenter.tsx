@@ -109,10 +109,10 @@ interface FilterSectionProps<T extends string> {
 
 const FilterSection = <T extends string>({ label, icon, value, options, onChange }: FilterSectionProps<T>) => (
   <Box>
-    <Stack direction="row" alignItems="center" spacing={0.8} sx={{ mb: 0.9 }}>
+    <Stack direction="row" alignItems="center" spacing={{ xs: 0.55, sm: 0.8 }} sx={{ mb: { xs: 0.55, sm: 0.9 } }}>
       <Box sx={{ display: 'flex', color: '#64748B' }}>{icon}</Box>
       <Typography
-        sx={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: 0.7, textTransform: 'uppercase', color: '#475569' }}
+        sx={{ fontSize: { xs: '0.62rem', sm: '0.7rem' }, fontWeight: 800, letterSpacing: { xs: 0.5, sm: 0.7 }, textTransform: 'uppercase', color: '#475569' }}
       >
         {label}
       </Typography>
@@ -128,17 +128,17 @@ const FilterSection = <T extends string>({ label, icon, value, options, onChange
       sx={{
         display: 'flex',
         flexWrap: 'wrap',
-        gap: 0.7,
+        gap: { xs: 0.45, sm: 0.7 },
         '& .MuiToggleButtonGroup-grouped': {
           flex: '1 1 auto',
           m: 0,
-          px: 1.4,
-          py: 0.55,
+          px: { xs: 0.85, sm: 1.4 },
+          py: { xs: 0.35, sm: 0.55 },
           border: '1px solid rgba(148, 163, 184, 0.38) !important',
           borderRadius: '999px !important',
           textTransform: 'none',
           fontWeight: 700,
-          fontSize: '0.78rem',
+          fontSize: { xs: '0.68rem', sm: '0.78rem' },
           color: '#475569',
           transition: 'all 0.18s ease',
           '&:hover': { borderColor: 'rgba(37, 99, 235, 0.6) !important', bgcolor: 'rgba(37, 99, 235, 0.06)' },
@@ -502,6 +502,25 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                     </IconButton>
                   </Tooltip>
                 )}
+                <Tooltip title="Filters">
+                  <IconButton
+                    onClick={handleOpenFilters}
+                    aria-label="Filters"
+                    title="Filters"
+                    size="small"
+                    sx={{
+                      display: { xs: 'inline-flex', sm: 'none' },
+                      ml: 0.25,
+                      color: '#2563EB',
+                      bgcolor: 'rgba(219, 234, 254, 0.82)',
+                      '&:hover': { bgcolor: 'rgba(191, 219, 254, 0.95)' },
+                    }}
+                  >
+                    <Badge badgeContent={activeFiltersCount} color="primary" invisible={!activeFiltersCount}>
+                      <SlidersHorizontal size={17} />
+                    </Badge>
+                  </IconButton>
+                </Tooltip>
                 <Button
                   variant="contained"
                   onClick={handleSearch}
@@ -547,7 +566,8 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                   variant="outlined"
                   onClick={handleOpenFilters}
                   sx={{
-                    flex: { xs: 1, sm: '0 0 auto' },
+                    display: { xs: 'none', sm: 'inline-flex' },
+                    flex: '0 0 auto',
                     minHeight: { xs: 42, sm: 46 },
                     px: 1.5,
                     borderRadius: '11px',
@@ -817,7 +837,7 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
         slotProps={{
           paper: {
             sx: {
-              mt: 1.2,
+              mt: { xs: 0.6, sm: 1.2 },
               width: { xs: 'calc(100vw - 32px)', sm: 440 },
               maxWidth: '100%',
               borderRadius: 3,
@@ -830,19 +850,19 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
       >
         <Box
           sx={{
-            px: 2,
-            py: 1.6,
+            px: { xs: 1.2, sm: 2 },
+            py: { xs: 1, sm: 1.6 },
             display: 'flex',
             alignItems: 'center',
-            gap: 1.2,
+            gap: { xs: 0.8, sm: 1.2 },
             color: '#fff',
             background: 'linear-gradient(135deg, #1E3A8A 0%, #2563EB 45%, #6366F1 100%)',
           }}
         >
           <Box
             sx={{
-              width: 34,
-              height: 34,
+              width: { xs: 28, sm: 34 },
+              height: { xs: 28, sm: 34 },
               borderRadius: 1.8,
               display: 'grid',
               placeItems: 'center',
@@ -854,8 +874,8 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
           </Box>
 
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 800, fontSize: '0.98rem', lineHeight: 1.2 }}>Refine results</Typography>
-            <Typography sx={{ fontSize: '0.74rem', opacity: 0.85 }}>
+            <Typography sx={{ fontWeight: 800, fontSize: { xs: '0.85rem', sm: '0.98rem' }, lineHeight: 1.2 }}>Refine results</Typography>
+            <Typography sx={{ fontSize: { xs: '0.64rem', sm: '0.74rem' }, opacity: 0.85 }}>
               {activeFiltersCount ? `${activeFiltersCount} filter${activeFiltersCount > 1 ? 's' : ''} applied` : 'No filters applied'}
             </Typography>
           </Box>
@@ -872,17 +892,17 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
           </Tooltip>
         </Box>
 
-        <Stack spacing={2.2} sx={{ p: 2.2, bgcolor: 'background.paper' }}>
+        <Stack spacing={{ xs: 1.35, sm: 2.2 }} sx={{ p: { xs: 1.2, sm: 2.2 }, bgcolor: 'background.paper' }}>
           <Box>
-            <Stack direction="row" alignItems="center" spacing={0.8} sx={{ mb: 0.9 }}>
+            <Stack direction="row" alignItems="center" spacing={{ xs: 0.55, sm: 0.8 }} sx={{ mb: { xs: 0.55, sm: 0.9 } }}>
               <Box sx={{ display: 'flex', color: '#64748B' }}>
                 <Compass size={14} />
               </Box>
               <Typography
                 sx={{
-                  fontSize: '0.7rem',
+                  fontSize: { xs: '0.62rem', sm: '0.7rem' },
                   fontWeight: 800,
-                  letterSpacing: 0.7,
+                  letterSpacing: { xs: 0.5, sm: 0.7 },
                   textTransform: 'uppercase',
                   color: '#475569',
                 }}
@@ -897,11 +917,11 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
                 onChange={(e) => setTopicFilter(e.target.value)}
                 sx={{
                   borderRadius: 2,
-                  fontSize: '0.85rem',
+                  fontSize: { xs: '0.74rem', sm: '0.85rem' },
                   fontWeight: 600,
                   '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(148, 163, 184, 0.38)' },
                 }}
-                MenuProps={{ slotProps: { paper: { sx: { borderRadius: 2, maxHeight: 300 } } } }}
+                MenuProps={{ slotProps: { paper: { sx: { borderRadius: 2, maxHeight: { xs: 220, sm: 300 } } } } }}
               >
                 <MenuItem value="all">All topics</MenuItem>
                 {topicOptions.map((option) => (
@@ -958,8 +978,8 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
           direction="row"
           alignItems="center"
           justifyContent="space-between"
-          spacing={1.5}
-          sx={{ px: 2.2, py: 1.5, bgcolor: 'rgba(248, 250, 252, 0.9)' }}
+          spacing={{ xs: 0.8, sm: 1.5 }}
+          sx={{ px: { xs: 1.2, sm: 2.2 }, py: { xs: 0.9, sm: 1.5 }, bgcolor: 'rgba(248, 250, 252, 0.9)' }}
         >
           <Button
             variant="text"
@@ -967,7 +987,7 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
             onClick={handleResetFilters}
             disabled={!activeFiltersCount}
             startIcon={<RotateCcw size={14} />}
-            sx={{ textTransform: 'none', fontWeight: 700, color: '#64748B' }}
+            sx={{ textTransform: 'none', fontWeight: 700, color: '#64748B', fontSize: { xs: '0.72rem', sm: '0.875rem' } }}
           >
             Reset
           </Button>
@@ -977,8 +997,10 @@ export const LearningCommandCenter: React.FC<LearningCommandCenterProps> = ({
             sx={{
               textTransform: 'none',
               fontWeight: 800,
-              px: 2.6,
+              px: { xs: 1.5, sm: 2.6 },
+              py: { xs: 0.65, sm: 1 },
               borderRadius: 2,
+              fontSize: { xs: '0.72rem', sm: '0.875rem' },
               boxShadow: '0 8px 18px rgba(37, 99, 235, 0.3)',
             }}
           >

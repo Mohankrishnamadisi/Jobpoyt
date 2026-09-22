@@ -136,8 +136,9 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(request).then((response) => {
       if (response && response.ok) {
+        const responseForCache = response.clone();
         const cache = caches.open(getCacheName());
-        cache.then((store) => store.put(request, response.clone()));
+        cache.then((store) => store.put(request, responseForCache)).catch(() => undefined);
       }
       return response;
     }).catch(() => caches.match(request))

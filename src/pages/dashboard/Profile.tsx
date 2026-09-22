@@ -210,39 +210,41 @@ const SectionCard: React.FC<{
 const CompletionRing: React.FC<{ completion: number; src?: string; name: string }> = ({
   completion, src, name,
 }) => (
-  <Box sx={{ position: 'relative', width: 148, height: 148 }}>
-    <CircularProgress variant="determinate" value={100} size={148} thickness={3.5}
-      sx={{ color: 'rgba(255,255,255,0.3)', position: 'absolute', top: 0, left: 0 }} />
-    <CircularProgress
-      variant="determinate" value={completion} size={148} thickness={3.5}
-      sx={{
-        color: completion === 100 ? '#5eead4' : '#fbbf24',
-        position: 'absolute', top: 0, left: 0,
-        filter: completion === 100 ? 'drop-shadow(0 0 6px #5eead4)' : 'drop-shadow(0 0 6px #fbbf24)',
-      }}
-    />
-    <Avatar
-      src={src}
-      sx={{
-        width: 122, height: 122, position: 'absolute', top: 13, left: 13,
-        bgcolor: '#0b6070', fontSize: '2.8rem', fontWeight: 800,
-        boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-        border: '3px solid rgba(255,255,255,0.9)',
-      }}
-    >
-      {name.charAt(0).toUpperCase()}
-    </Avatar>
-    <Box
-      sx={{
-        position: 'absolute', bottom: -10, left: '50%', transform: 'translateX(-50%)',
-        bgcolor: completion === 100 ? '#14b8a6' : '#fbbf24',
-        borderRadius: 10, px: 1.25, py: 0.4, whiteSpace: 'nowrap',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
-      }}
-    >
-      <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: '0.7rem', letterSpacing: '0.02em' }}>
-        {completion}%
-      </Typography>
+  <Box sx={{ position: 'relative', width: { xs: 86, md: 148 }, height: { xs: 86, md: 148 } }}>
+    <Box sx={{ position: 'absolute', inset: 0, transform: { xs: 'scale(0.58)', md: 'none' }, transformOrigin: 'top left' }}>
+      <CircularProgress variant="determinate" value={100} size={148} thickness={3.5}
+        sx={{ color: 'rgba(255,255,255,0.3)', position: 'absolute', top: 0, left: 0 }} />
+      <CircularProgress
+        variant="determinate" value={completion} size={148} thickness={3.5}
+        sx={{
+          color: completion === 100 ? '#5eead4' : '#fbbf24',
+          position: 'absolute', top: 0, left: 0,
+          filter: completion === 100 ? 'drop-shadow(0 0 6px #5eead4)' : 'drop-shadow(0 0 6px #fbbf24)',
+        }}
+      />
+      <Avatar
+        src={src}
+        sx={{
+          width: 122, height: 122, position: 'absolute', top: 13, left: 13,
+          bgcolor: '#0b6070', fontSize: '2.8rem', fontWeight: 800,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+          border: '3px solid rgba(255,255,255,0.9)',
+        }}
+      >
+        {name.charAt(0).toUpperCase()}
+      </Avatar>
+      <Box
+        sx={{
+          position: 'absolute', bottom: -10, left: '50%', transform: 'translateX(-50%)',
+          bgcolor: completion === 100 ? '#14b8a6' : '#fbbf24',
+          borderRadius: 10, px: 1.25, py: 0.4, whiteSpace: 'nowrap',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+        }}
+      >
+        <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: '0.7rem', letterSpacing: '0.02em' }}>
+          {completion}%
+        </Typography>
+      </Box>
     </Box>
   </Box>
 );
@@ -631,7 +633,7 @@ export const ProfilePage: React.FC = () => {
   return (
     <Layout>
       <Box
-        className={isDarkMode ? 'profile-dark-mode' : undefined}
+        className={`candidate-profile-page${isDarkMode ? ' profile-dark-mode' : ''}`}
         sx={{
           bgcolor: isDarkMode ? '#07111f' : '#eef3f5',
           minHeight: '100vh',
@@ -647,6 +649,35 @@ export const ProfilePage: React.FC = () => {
           '&.profile-dark-mode .MuiFormHelperText-root': { color: '#CBD5E1' },
           '& .MuiTypography-body2': { lineHeight: 1.65 },
           '& .MuiTypography-caption': { letterSpacing: '0.01em' },
+          '@media (max-width: 599.95px)': {
+            px: 0,
+            py: 1,
+            '& .MuiContainer-root': { px: 1.25 },
+            '& .MuiCard-root': { borderRadius: 2, mb: 1.5 },
+            '& .MuiCardContent-root': { p: 1.5 },
+            '& .MuiTypography-h6': { fontSize: '0.94rem' },
+            '& .MuiTypography-subtitle1': { fontSize: '0.88rem' },
+            '& .MuiTypography-subtitle2': { fontSize: '0.78rem' },
+            '& .MuiTypography-body1': { fontSize: '0.82rem' },
+            '& .MuiTypography-body2': { fontSize: '0.78rem', lineHeight: 1.45 },
+            '& .MuiTypography-caption': { fontSize: '0.68rem' },
+            '& .MuiButton-root': { minHeight: 34, px: 1.25, py: 0.55, fontSize: '0.76rem' },
+            '& .MuiIconButton-root': { p: 0.65 },
+            '& .MuiChip-root': { height: 25, fontSize: '0.7rem' },
+            '& .MuiTableCell-root': { px: 0.5, py: 0.7, fontSize: '0.68rem' },
+            '& .hero-detail-row': {
+              display: 'grid',
+              gridTemplateColumns: '14px minmax(0, 1fr) auto',
+              alignItems: 'start',
+              gap: 0.4,
+              minWidth: 0,
+              '& .MuiTypography-root': {
+                minWidth: 0,
+                lineHeight: 1.3,
+                overflowWrap: 'anywhere',
+              },
+            },
+          },
         }}
       >
         <Container maxWidth="xl">
@@ -667,11 +698,11 @@ export const ProfilePage: React.FC = () => {
               },
             }}
           >
-            <Box sx={{ bgcolor: 'transparent', px: { xs: 2.5, md: 4 }, pt: { xs: 3, md: 4 }, pb: 3, borderRadius: '16px 16px 0 0', position: 'relative', zIndex: 1 }}>
-              <Grid container spacing={2} alignItems="flex-start">
+            <Box sx={{ bgcolor: 'transparent', px: { xs: 1.5, md: 4 }, pt: { xs: 1.75, md: 4 }, pb: { xs: 1.75, md: 3 }, borderRadius: '16px 16px 0 0', position: 'relative', zIndex: 1 }}>
+              <Grid container spacing={{ xs: 1, md: 2 }} alignItems="flex-start">
 
                 {/* Avatar with ring */}
-                <Grid item xs={12} sm="auto">
+                <Grid item xs="auto" sm="auto">
                   <Box sx={{ position: 'relative', display: 'inline-block' }}>
                     <CompletionRing
                       completion={completion}
@@ -689,95 +720,95 @@ export const ProfilePage: React.FC = () => {
                           right: 6,
                           bgcolor: '#1a73e8',
                           color: '#fff',
-                          width: 32,
-                          height: 32,
+                          width: { xs: 27, md: 32 },
+                          height: { xs: 27, md: 32 },
                           boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
                           '&:hover': { bgcolor: '#1558b0' },
                         }}
                       >
-                        <CameraAltIcon sx={{ fontSize: 16 }} />
+                        <CameraAltIcon sx={{ fontSize: { xs: 14, md: 16 } }} />
                       </IconButton>
                     </label>
                   </Box>
                 </Grid>
 
                 {/* Name + info */}
-                <Grid item xs>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.25 }}>
-                    <Typography variant="h5" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: { xs: '1.55rem', md: '1.8rem' }, letterSpacing: '-0.03em' }}>
+                <Grid item xs sx={{ minWidth: 0, pl: { xs: 2, md: 0 } }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.35, md: 1 }, mb: 0.25, minWidth: 0 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 800, color: '#FFFFFF', fontSize: { xs: '1.18rem', md: '1.8rem' }, lineHeight: 1.1, letterSpacing: '-0.03em', overflowWrap: 'anywhere' }}>
                       {formData.fullName || 'Your Name'}
                     </Typography>
-                    <IconButton size="small" onClick={() => setHeaderDialog(true)} sx={{ color: 'rgba(255,255,255,0.72)', '&:hover': { color: '#fff', bgcolor: 'rgba(255,255,255,0.12)' } }}>
-                      <EditIcon fontSize="small" />
+                    <IconButton size="small" onClick={() => setHeaderDialog(true)} sx={{ color: 'rgba(255,255,255,0.72)', p: { xs: 0.35, md: 1 }, '&:hover': { color: '#fff', bgcolor: 'rgba(255,255,255,0.12)' } }}>
+                      <EditIcon sx={{ fontSize: { xs: 16, md: 20 } }} />
                     </IconButton>
                   </Box>
 
                   {/* Designation on its own line, company on next — matching Naukri layout */}
                   {formData.currentDesignation && (
-                    <Typography variant="body1" sx={{ fontWeight: 700, color: '#b9f3ef', lineHeight: 1.3 }}>
+                    <Typography variant="body1" sx={{ fontWeight: 700, color: '#b9f3ef', lineHeight: 1.25, fontSize: { xs: '0.76rem', md: '1rem' }, overflowWrap: 'anywhere' }}>
                       {formData.currentDesignation}
                     </Typography>
                   )}
                   {formData.currentCompany && (
-                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.72)', mb: 1.5 }}>
+                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.72)', mb: { xs: 0.75, md: 1.5 }, fontSize: { xs: '0.7rem', md: '0.875rem' }, overflowWrap: 'anywhere' }}>
                       at {formData.currentCompany}
                     </Typography>
                   )}
                   {!formData.currentDesignation && !formData.currentCompany && (
                     <Typography
                       variant="body2"
-                      sx={{ color: '#9cf1eb', cursor: 'pointer', mb: 1.5, fontWeight: 700 }}
+                      sx={{ color: '#9cf1eb', cursor: 'pointer', mb: { xs: 0.75, md: 1.5 }, fontWeight: 700, fontSize: { xs: '0.7rem', md: '0.875rem' } }}
                       onClick={() => setHeaderDialog(true)}
                     >
                       + Add designation &amp; company
                     </Typography>
                   )}
 
-                  <Grid container spacing={1.5} sx={{ mt: 0 }}>
-                    <Grid item xs={12} sm={6}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.9 }}>
+                  <Grid container spacing={{ xs: 0.55, md: 1.5 }} sx={{ mt: 0 }}>
+                    <Grid item xs={6} sm={6}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 0.55, md: 0.9 }, minWidth: 0 }}>
                         {formData.city && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                            <LocationIcon sx={{ fontSize: 16, color: '#9cf1eb', flexShrink: 0 }} />
-                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)' }}>
+                          <Box className="hero-detail-row" sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                            <LocationIcon sx={{ fontSize: { xs: 13, md: 16 }, color: '#9cf1eb', flexShrink: 0 }} />
+                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)', overflowWrap: 'anywhere', minWidth: 0 }}>
                               {[formData.city, formData.state].filter(Boolean).join(', ')}{formData.country ? `, ${formData.country}` : ''}
                             </Typography>
                           </Box>
                         )}
                         {experienceLabel !== 'Not specified' && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                            <WorkIcon sx={{ fontSize: 16, color: '#9cf1eb', flexShrink: 0 }} />
-                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)' }}>{experienceLabel}</Typography>
+                          <Box className="hero-detail-row" sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                            <WorkIcon sx={{ fontSize: { xs: 13, md: 16 }, color: '#9cf1eb', flexShrink: 0 }} />
+                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)', overflowWrap: 'anywhere' }}>{experienceLabel}</Typography>
                           </Box>
                         )}
                         {formData.currentCTC && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                            <CurrencyRupeeIcon sx={{ fontSize: 16, color: '#9cf1eb', flexShrink: 0 }} />
-                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)' }}>{formData.currentCTC}</Typography>
+                          <Box className="hero-detail-row" sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                            <CurrencyRupeeIcon sx={{ fontSize: { xs: 13, md: 16 }, color: '#9cf1eb', flexShrink: 0 }} />
+                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)', overflowWrap: 'anywhere' }}>{formData.currentCTC}</Typography>
                           </Box>
                         )}
                       </Box>
                     </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.9 }}>
+                    <Grid item xs={6} sm={6}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 0.55, md: 0.9 }, minWidth: 0 }}>
                         {formData.phone && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                            <PhoneIcon sx={{ fontSize: 16, color: '#9cf1eb', flexShrink: 0 }} />
-                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)' }}>{formData.phone}</Typography>
-                            <CheckCircleIcon sx={{ fontSize: 14, color: '#43a047' }} />
+                          <Box className="hero-detail-row" sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                            <PhoneIcon sx={{ fontSize: { xs: 13, md: 16 }, color: '#9cf1eb', flexShrink: 0 }} />
+                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)', overflowWrap: 'anywhere' }}>{formData.phone}</Typography>
+                            <CheckCircleIcon sx={{ fontSize: { xs: 12, md: 14 }, color: '#43a047', flexShrink: 0 }} />
                           </Box>
                         )}
                         {formData.email && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                            <EmailIcon sx={{ fontSize: 16, color: '#9cf1eb', flexShrink: 0 }} />
-                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)' }}>{formData.email}</Typography>
-                            <CheckCircleIcon sx={{ fontSize: 14, color: '#43a047' }} />
+                          <Box className="hero-detail-row" sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                            <EmailIcon sx={{ fontSize: { xs: 13, md: 16 }, color: '#9cf1eb', flexShrink: 0 }} />
+                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)', overflowWrap: 'anywhere', minWidth: 0 }}>{formData.email}</Typography>
+                            <CheckCircleIcon sx={{ fontSize: { xs: 12, md: 14 }, color: '#43a047', flexShrink: 0 }} />
                           </Box>
                         )}
                         {formData.noticePeriod && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                            <ScheduleIcon sx={{ fontSize: 16, color: '#9cf1eb', flexShrink: 0 }} />
-                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)' }}>{formData.noticePeriod} notice period</Typography>
+                          <Box className="hero-detail-row" sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                            <ScheduleIcon sx={{ fontSize: { xs: 13, md: 16 }, color: '#9cf1eb', flexShrink: 0 }} />
+                            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.78)', overflowWrap: 'anywhere' }}>{formData.noticePeriod} notice period</Typography>
                           </Box>
                         )}
                       </Box>
@@ -786,7 +817,7 @@ export const ProfilePage: React.FC = () => {
                 </Grid>
 
                 {/* Top-right meta */}
-                <Grid item xs={12} sm="auto" sx={{ textAlign: { sm: 'right' } }}>
+                <Grid item xs={12} sm="auto" sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
                   <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem' }}>
                     Profile last updated · Today
                   </Typography>
@@ -852,18 +883,18 @@ export const ProfilePage: React.FC = () => {
                   overflow: 'hidden',
                 }}
               >
-                <Box sx={{ background: 'linear-gradient(135deg, #08243a 0%, #087f82 100%)', px: 2.5, py: 2.25 }}>
-                  <Typography variant="overline" sx={{ fontWeight: 800, color: '#9cf1eb', fontSize: '0.68rem', letterSpacing: '0.12em' }}>
+                <Box sx={{ background: 'linear-gradient(135deg, #08243a 0%, #087f82 100%)', px: { xs: 1.75, md: 2.5 }, py: { xs: 1.5, md: 2.25 } }}>
+                  <Typography variant="overline" sx={{ fontWeight: 800, color: '#9cf1eb', fontSize: { xs: '0.6rem', md: '0.68rem' }, lineHeight: 1.2, letterSpacing: '0.12em' }}>
                     Profile checklist
                   </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#fff', fontSize: '1rem', mt: -0.25 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#fff', fontSize: { xs: '0.92rem', md: '1rem' }, lineHeight: 1.25, mt: 0.25 }}>
                     Keep your profile moving
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                    <Box sx={{ flex: 1, height: 4, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.2)' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, md: 1 }, mt: { xs: 1, md: 0.5 } }}>
+                    <Box sx={{ flex: 1, height: { xs: 5, md: 4 }, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.2)', overflow: 'hidden' }}>
                       <Box sx={{ width: `${completion}%`, height: '100%', borderRadius: 2, bgcolor: completion === 100 ? '#5eead4' : '#fbbf24', transition: 'width 0.4s ease' }} />
                     </Box>
-                    <Typography variant="caption" sx={{ color: '#fff', fontWeight: 700, fontSize: '0.7rem', flexShrink: 0 }}>{completion}%</Typography>
+                    <Typography variant="caption" sx={{ color: '#08243a', bgcolor: completion === 100 ? '#b8fff3' : '#ffe08a', fontWeight: 800, fontSize: { xs: '0.64rem', md: '0.7rem' }, lineHeight: 1, px: 0.75, py: 0.45, borderRadius: 99, flexShrink: 0 }}>{completion}%</Typography>
                   </Box>
                 </Box>
                 <CardContent sx={{ p: 0 }}>
@@ -889,7 +920,7 @@ export const ProfilePage: React.FC = () => {
                           document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }}
                         sx={{
-                          px: 2.5, py: 1,
+                          px: { xs: 1.75, md: 2.5 }, py: { xs: 0.7, md: 1 }, minHeight: { xs: 39, md: 48 },
                           borderBottom: `1px solid ${isDarkMode ? '#263244' : '#f8fafc'}`,
                           '&:hover': { bgcolor: isDarkMode ? '#172033' : '#e8f7f6', color: '#087f82' },
                           transition: 'all 0.15s',
@@ -898,11 +929,11 @@ export const ProfilePage: React.FC = () => {
                       >
                         <ListItemText
                           primary={label}
-                          primaryTypographyProps={{ variant: 'body2', color: isDarkMode ? '#FFFFFF' : '#475569', fontSize: '0.83rem' }}
+                          primaryTypographyProps={{ variant: 'body2', color: isDarkMode ? '#FFFFFF' : '#475569', fontSize: { xs: '0.76rem', md: '0.83rem' }, fontWeight: { xs: 600, md: 400 } }}
                         />
                         {badge && (
                           <Typography variant="caption"
-                            sx={{ color: '#087f82', fontWeight: 800, bgcolor: isDarkMode ? '#1E293B' : '#e8f7f6', px: 1, py: 0.25, borderRadius: 1, fontSize: '0.7rem' }}>
+                            sx={{ color: '#087f82', fontWeight: 800, bgcolor: isDarkMode ? '#1E293B' : '#e8f7f6', px: { xs: 0.75, md: 1 }, py: 0.25, borderRadius: 1, fontSize: { xs: '0.62rem', md: '0.7rem' } }}>
                             {badge}
                           </Typography>
                         )}

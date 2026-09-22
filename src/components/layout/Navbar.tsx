@@ -593,11 +593,11 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                     color: '#1d4ed8',
                     px: { xs: 0, md: 1.5 },
                     py: { xs: 0, md: 0.72 },
-                    width: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
-                    height: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
-                    minHeight: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
+                    width: { xs: 'clamp(36px, 10vw, 38px)', md: 'auto' },
+                    height: { xs: 'clamp(36px, 10vw, 38px)', md: 'auto' },
+                    minHeight: { xs: 'clamp(36px, 10vw, 38px)', md: 'auto' },
                     lineHeight: { xs: 1, md: 'inherit' },
-                    minWidth: { xs: 'clamp(40px, 11vw, 44px)', md: 132 },
+                    minWidth: { xs: 'clamp(36px, 10vw, 38px)', md: 132 },
                     fontSize: { xs: '0.62rem', md: '0.86rem' },
                     fontWeight: 700,
                     textTransform: 'none',
@@ -611,7 +611,7 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                   }}
                 >
                   <Box component="span" sx={{ display: { xs: 'inline-flex', sm: 'none' } }}>
-                    <WorkIcon sx={{ fontSize: 21 }} />
+                    <WorkIcon sx={{ fontSize: 19 }} />
                   </Box>
                   <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Hire Talent</Box>
                 </Button>
@@ -656,11 +656,11 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                     textTransform: 'none',
                     px: { xs: 0, md: 1.6 },
                     py: { xs: 0, md: 0.74 },
-                    width: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
-                    height: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
-                    minHeight: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
+                    width: { xs: 'clamp(36px, 10vw, 38px)', md: 'auto' },
+                    height: { xs: 'clamp(36px, 10vw, 38px)', md: 'auto' },
+                    minHeight: { xs: 'clamp(36px, 10vw, 38px)', md: 'auto' },
                     lineHeight: { xs: 1, md: 'inherit' },
-                    minWidth: { xs: 'clamp(40px, 11vw, 44px)', md: 64 },
+                    minWidth: { xs: 'clamp(36px, 10vw, 38px)', md: 64 },
                     fontSize: { xs: '0.62rem', md: '0.9rem' },
                     fontWeight: 700,
                     borderRadius: { xs: 1.5, md: 999 },
@@ -677,8 +677,8 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                 >
                   <Box component="span" sx={{ display: { xs: 'inline-flex', md: 'none' } }}>
                     <Box sx={{ display: 'inline-flex', alignItems: 'center', height: 22 }}>
-                      <PersonIcon sx={{ fontSize: 20 }} />
-                      <ArrowForwardIcon sx={{ fontSize: 14, ml: -0.45 }} />
+                      <PersonIcon sx={{ fontSize: 18 }} />
+                      <ArrowForwardIcon sx={{ fontSize: 13, ml: -0.45 }} />
                     </Box>
                   </Box>
                   <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>Login</Box>
@@ -697,11 +697,11 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                       textTransform: 'none',
                       px: { xs: 0, md: 2 },
                       py: { xs: 0, md: 0.82 },
-                      width: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
-                      height: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
-                      minHeight: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
+                      width: { xs: 'clamp(36px, 10vw, 38px)', md: 'auto' },
+                      height: { xs: 'clamp(36px, 10vw, 38px)', md: 'auto' },
+                      minHeight: { xs: 'clamp(36px, 10vw, 38px)', md: 'auto' },
                       lineHeight: { xs: 1, md: 'inherit' },
-                      minWidth: { xs: 'clamp(40px, 11vw, 44px)', md: 64 },
+                      minWidth: { xs: 'clamp(36px, 10vw, 38px)', md: 64 },
                       fontSize: { xs: '0.62rem', md: '0.9rem' },
                       fontWeight: 700,
                       borderRadius: { xs: 1.5, md: 999 },
@@ -715,7 +715,7 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                     }}
                   >
                     <Box component="span" sx={{ display: { xs: 'inline-flex', md: 'none' } }}>
-                      <SignupIcon sx={{ fontSize: 21 }} />
+                      <SignupIcon sx={{ fontSize: 19 }} />
                     </Box>
                     <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>Register</Box>
                   </Button>
@@ -957,10 +957,10 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                 title="Menu"
                 sx={{
                   display: { xs: 'inline-flex', md: 'none' },
-                  width: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
-                  height: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
-                  minWidth: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
-                  minHeight: { xs: 'clamp(40px, 11vw, 44px)', md: 'auto' },
+                  width: { xs: 'clamp(36px, 10vw, 38px)', md: 'auto' },
+                  height: { xs: 'clamp(36px, 10vw, 38px)', md: 'auto' },
+                  minWidth: { xs: 'clamp(36px, 10vw, 38px)', md: 'auto' },
+                  minHeight: { xs: 'clamp(36px, 10vw, 38px)', md: 'auto' },
                   p: { xs: 0, md: 1 },
                   borderRadius: { xs: 1.5, md: 2 },
                   color: { xs: '#0F172A', md: isDarkMode ? '#E2E8F0' : '#0F172A' },
@@ -971,7 +971,7 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
                   },
                 }}
               >
-                <MenuIcon sx={{ fontSize: { xs: 22, md: 24 } }} />
+                <MenuIcon sx={{ fontSize: { xs: 20, md: 24 } }} />
               </IconButton>
             )}
           </Box>
