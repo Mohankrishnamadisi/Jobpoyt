@@ -11,24 +11,66 @@ import {
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '@constants/index';
 import { useAuthStore } from '@store/index';
+import { recruiterService } from '@services/api';
 
 interface NavItem {
   label: string;
   icon: typeof HomeIcon;
   to?: string;
   action?: () => void;
+  disabled?: boolean;
 }
 
 export const MobileBottomNavigation: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const [recruiterProfileCompletion, setRecruiterProfileCompletion] = React.useState(0);
+
+  React.useEffect(() => {
+    if (user?.role !== 'recruiter' || !user.id) {
+      setRecruiterProfileCompletion(0);
+      return;
+    }
+
+    let active = true;
+    recruiterService.getRecruiterProfile(user.id).then((profile) => {
+      if (!active) return;
+      const fields = [
+        profile?.company_name,
+        profile?.company_email,
+        profile?.company_phone,
+        profile?.company_website,
+        profile?.company_address || profile?.location,
+        profile?.industry,
+        profile?.description,
+        profile?.gst_number,
+        profile?.hr_name,
+        profile?.hr_email,
+        profile?.hr_phone,
+      ];
+      setRecruiterProfileCompletion(
+        Math.round((fields.filter((field) => String(field || '').trim().length > 0).length / fields.length) * 100)
+      );
+    }).catch(() => {
+      if (active) setRecruiterProfileCompletion(0);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [location.pathname, user?.id, user?.role]);
 
   const navItems: NavItem[] = user?.role === 'recruiter'
     ? [
         { label: 'Home', icon: HomeIcon, to: ROUTES.HOME },
         { label: 'Dashboard', icon: DashboardIcon, to: ROUTES.RECRUITER_DASHBOARD },
-        { label: 'Post a Job', icon: JobsIcon, action: () => navigate(ROUTES.RECRUITER_DASHBOARD, { state: { openPostJob: true } }) },
+        {
+          label: 'Post a Job',
+          icon: JobsIcon,
+          disabled: recruiterProfileCompletion < 80,
+          action: () => navigate(ROUTES.RECRUITER_DASHBOARD, { state: { openPostJob: true } }),
+        },
         { label: 'My Profile', icon: ProfileIcon, action: () => navigate(ROUTES.RECRUITER_DASHBOARD, { state: { tab: 'company-profile' } }) },
       ]
     : [
@@ -76,7 +118,7 @@ export const MobileBottomNavigation: React.FC = () => {
         spacing={0.5}
         sx={{ width: '100%' }}
       >
-        {navItems.map(({ label, icon: Icon, to, action }) => {
+        {navItems.map(({ label, icon: Icon, to, action, disabled }) => {
           const active = isActive({ label, icon: Icon, to });
 
           return (
@@ -87,18 +129,20 @@ export const MobileBottomNavigation: React.FC = () => {
                     window.dispatchEvent(new CustomEvent('jobpoyt:open-mobile-menu', { detail: event.currentTarget }));
                     return;
                   }
+                  if (disabled) return;
                   action ? action() : navigate(to!);
                 }}
+                disabled={disabled}
                 sx={{
                   width: '100%',
                   minHeight: 52,
                   borderRadius: 2,
-                  color: active ? 'primary.main' : 'text.secondary',
+                  color: disabled ? 'text.disabled' : active ? 'primary.main' : 'text.secondary',
                   bgcolor: active ? 'rgba(37, 99, 235, 0.08)' : 'transparent',
                   px: 0.5,
                   py: 0.75,
                   '&:hover': {
-                    bgcolor: active ? 'rgba(37, 99, 235, 0.12)' : 'rgba(15, 23, 42, 0.04)',
+                    bgcolor: disabled ? 'transparent' : active ? 'rgba(37, 99, 235, 0.12)' : 'rgba(15, 23, 42, 0.04)',
                   },
                 }}
               >

@@ -64,6 +64,9 @@ interface RecruiterSidebarProps {
   credits?: number;
   planName?: string;
   readOnly?: boolean;
+  mobileOpen?: boolean;
+  onMobileOpenChange?: (open: boolean) => void;
+  hideMobileTrigger?: boolean;
 }
 
 const MotionBox = motion(Box);
@@ -76,11 +79,19 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
   credits = 0,
   planName = 'Free',
   readOnly = false,
+  mobileOpen: controlledMobileOpen,
+  onMobileOpenChange,
+  hideMobileTrigger = false,
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [internalMobileOpen, setInternalMobileOpen] = useState(false);
+  const mobileOpen = controlledMobileOpen ?? internalMobileOpen;
+  const setMobileOpen = (open: boolean) => {
+    onMobileOpenChange?.(open);
+    if (controlledMobileOpen === undefined) setInternalMobileOpen(open);
+  };
   const mobileCompact = isMobile;
 
   const menuSections = [
@@ -284,19 +295,21 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
   if (isMobile) {
     return (
       <>
-        <Box sx={{ display: 'flex', alignItems: 'center', p: 1, mb: 2 }}>
-          <Box
-            component="button"
-            type="button"
-            className="recruiter-menu-trigger"
-            onClick={() => setMobileOpen(true)}
-            aria-label="Open recruiter navigation menu"
-            title="Open recruiter navigation menu"
-          >
-            <MenuIcon />
-            <Typography component="span">Menu</Typography>
+        {!hideMobileTrigger && (
+          <Box sx={{ display: 'flex', alignItems: 'center', p: 1, mb: 2 }}>
+            <Box
+              component="button"
+              type="button"
+              className="recruiter-menu-trigger"
+              onClick={() => setMobileOpen(true)}
+              aria-label="Open recruiter navigation menu"
+              title="Open recruiter navigation menu"
+            >
+              <MenuIcon />
+              <Typography component="span">Menu</Typography>
+            </Box>
           </Box>
-        </Box>
+        )}
         <Drawer
           anchor="left"
           open={mobileOpen}

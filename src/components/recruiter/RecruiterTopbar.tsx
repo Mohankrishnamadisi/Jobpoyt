@@ -23,6 +23,7 @@ import {
   Logout as LogoutIcon,
   CreditScore as CreditScoreIcon,
   Home as HomeIcon,
+  Menu as MenuIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { themeColors } from '@styles/recruiterTheme';
@@ -43,6 +44,7 @@ interface RecruiterTopbarProps {
   onProfileClick?: () => void;
   onSettingsClick?: () => void;
   onCustomerCareClick?: () => void;
+  onMobileMenuClick?: () => void;
 }
 
 const MotionBox = motion(Box);
@@ -59,6 +61,7 @@ export const RecruiterTopbar: React.FC<RecruiterTopbarProps> = ({
   onProfileClick,
   onSettingsClick,
   onCustomerCareClick,
+  onMobileMenuClick,
 }) => {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
@@ -116,7 +119,29 @@ export const RecruiterTopbar: React.FC<RecruiterTopbarProps> = ({
             minHeight: 'auto',
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.1, minWidth: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, md: 1.1 }, minWidth: 0 }}>
+            {isMobile && (
+              <IconButton
+                onClick={onMobileMenuClick}
+                aria-label="Open recruiter navigation menu"
+                sx={{
+                  minWidth: 58,
+                  height: 34,
+                  flexShrink: 0,
+                  gap: 0.35,
+                  px: 0.75,
+                  color: themeColors.text.secondary,
+                  border: '1px solid rgba(148,163,184,0.18)',
+                  bgcolor: '#FFFFFF',
+                  boxShadow: '0 6px 16px rgba(15, 23, 42, 0.04)',
+                }}
+              >
+                <MenuIcon sx={{ fontSize: '1.15rem' }} />
+                <Typography component="span" sx={{ fontSize: 11, fontWeight: 700, lineHeight: 1 }}>
+                  Menu
+                </Typography>
+              </IconButton>
+            )}
             {!isMobile && (
               <MotionBox
                 component="button"
@@ -158,12 +183,11 @@ export const RecruiterTopbar: React.FC<RecruiterTopbarProps> = ({
                 whiteSpace: 'nowrap',
               }}
             >
-              {companyName} - {' '}
-              Dashboard
+              {companyName}
             </Typography>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, md: 1.5 } }}>
             {!isMobile && (
               <Chip
                 label={planName}
@@ -180,26 +204,31 @@ export const RecruiterTopbar: React.FC<RecruiterTopbarProps> = ({
               />
             )}
 
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <IconButton
-                onClick={() => navigate('/')}
-                aria-label="Go to home"
-                sx={{
-                  color: themeColors.text.secondary,
-                  border: '1px solid rgba(148,163,184,0.18)',
-                  bgcolor: '#FFFFFF',
-                  boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
-                  '&:hover': { color: '#4F8CFF', bgcolor: 'rgba(91,140,255,0.06)' },
-                }}
-              >
-                <HomeIcon sx={{ fontSize: '1.25rem' }} />
-              </IconButton>
-            </motion.div>
+            {!isMobile && (
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <IconButton
+                  onClick={() => navigate('/')}
+                  aria-label="Go to home"
+                  sx={{
+                    color: themeColors.text.secondary,
+                    border: '1px solid rgba(148,163,184,0.18)',
+                    bgcolor: '#FFFFFF',
+                    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
+                    '&:hover': { color: '#4F8CFF', bgcolor: 'rgba(91,140,255,0.06)' },
+                  }}
+                >
+                  <HomeIcon sx={{ fontSize: '1.25rem' }} />
+                </IconButton>
+              </motion.div>
+            )}
 
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <IconButton
                 onClick={onNotificationsClick}
                 sx={{
+                  width: { xs: 36, md: 'auto' },
+                  height: { xs: 36, md: 'auto' },
+                  p: { xs: 0, md: 1 },
                   color: themeColors.text.secondary,
                   border: '1px solid rgba(148,163,184,0.18)',
                   bgcolor: '#FFFFFF',
@@ -217,6 +246,9 @@ export const RecruiterTopbar: React.FC<RecruiterTopbarProps> = ({
               <IconButton
                 onClick={onMessagesClick}
                 sx={{
+                  width: { xs: 36, md: 'auto' },
+                  height: { xs: 36, md: 'auto' },
+                  p: { xs: 0, md: 1 },
                   color: themeColors.text.secondary,
                   border: '1px solid rgba(148,163,184,0.18)',
                   bgcolor: '#FFFFFF',
@@ -249,14 +281,16 @@ export const RecruiterTopbar: React.FC<RecruiterTopbarProps> = ({
                 onClick={handleMenuOpen}
                 sx={{
                   p: 0,
-                  ml: 1,
+                  width: { xs: 36, md: 'auto' },
+                  height: { xs: 36, md: 'auto' },
+                  ml: { xs: 0, md: 1 },
                 }}
               >
                 <Avatar
                   src={recruiterLogo || user?.avatar}
                   sx={{
-                    width: 38,
-                    height: 38,
+                    width: { xs: 34, md: 38 },
+                    height: { xs: 34, md: 38 },
                     background: 'linear-gradient(135deg, #5B8CFF 0%, #8B5CF6 100%)',
                     fontWeight: 800,
                     fontSize: '0.875rem',

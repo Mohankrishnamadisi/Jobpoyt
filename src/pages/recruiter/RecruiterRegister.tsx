@@ -1088,38 +1088,53 @@ export const RecruiterRegister: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-            onClick={() => setVerifyDialogOpen(false)}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 z-10"
+              className="bg-gradient-to-b from-white to-slate-50 rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-[calc(100vw-1.5rem)] sm:max-w-md max-h-[calc(100vh-1.5rem)] overflow-y-auto p-4 sm:p-7 z-10 border border-white/80"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-11 h-11 rounded-full bg-green-100 flex items-center justify-center text-green-600 shadow-sm">
-                  <Check size={20} />
+              <div className="flex items-center gap-3 mb-4 sm:gap-3.5 sm:mb-5">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-100 to-green-50 flex items-center justify-center text-green-600 shadow-sm ring-1 ring-emerald-200/70">
+                  <Check size={20} className="sm:hidden" strokeWidth={2.5} />
+                  <Check size={22} className="hidden sm:block" strokeWidth={2.5} />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Verify Your Email</h2>
-                  <p className="text-xs text-green-600 font-semibold mt-0.5">Registration successful</p>
+                  <h2 className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900">Verify Your Email</h2>
+                  <p className="text-xs sm:text-sm text-emerald-600 font-bold mt-0.5">Registration successful</p>
                 </div>
               </div>
-              <p className="text-gray-600 text-sm leading-6 mb-6">
-                A confirmation email has been sent to <span className="font-semibold">{formData.hrEmail}</span>.
-                Please verify your email before logging in.
-              </p>
-              <div className="flex flex-col gap-3">
+              <div className="rounded-xl sm:rounded-2xl border border-emerald-200/80 bg-gradient-to-r from-emerald-50 via-white to-cyan-50 px-3 py-2.5 sm:px-4 sm:py-3.5 mb-3 shadow-[0_5px_18px_rgba(16,185,129,0.08)]">
+                <p className="text-xs sm:text-sm font-extrabold text-emerald-900">Please confirm your email address</p>
+                <p className="mt-1 text-xs sm:text-sm leading-5 text-slate-600">
+                  We sent a confirmation link to <span className="font-bold text-slate-900 break-all">{formData.hrEmail}</span>.
+                  {' '}Open the link to verify your email before logging in.
+                </p>
+              </div>
+              <div className="flex items-start gap-2 sm:gap-3 rounded-xl sm:rounded-2xl border border-amber-200/80 bg-gradient-to-r from-amber-50 to-orange-50 px-3 py-2.5 sm:px-4 sm:py-3.5 mb-4 sm:mb-5 text-amber-950 shadow-[0_4px_14px_rgba(245,158,11,0.08)]">
+                <div className="mt-0.5 flex h-7 w-7 sm:h-9 sm:w-9 flex-shrink-0 items-center justify-center rounded-full bg-white text-amber-600 shadow-sm ring-1 ring-amber-200/80">
+                  <AlertCircle size={16} className="sm:hidden" />
+                  <AlertCircle size={18} className="hidden sm:block" />
+                </div>
+                <div>
+                  <p className="text-sm sm:text-base font-extrabold leading-5 sm:leading-6">Can't find the email?</p>
+                  <p className="mt-1 text-xs sm:text-sm font-semibold leading-5 sm:leading-6 text-amber-800">
+                    If it isn't in your Inbox, please check your Spam or Junk folder.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2.5 sm:gap-3">
                 <motion.button
                   onClick={() => window.open('https://mail.google.com', '_blank')}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md shadow-blue-200"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 sm:py-3 px-4 rounded-xl transition-all shadow-md shadow-blue-200"
                 >
                   Open Email
                 </motion.button>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                   <motion.button
                     onClick={async () => {
                       try {

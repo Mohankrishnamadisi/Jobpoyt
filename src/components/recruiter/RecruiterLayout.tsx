@@ -43,6 +43,7 @@ export const RecruiterLayout: React.FC<RecruiterLayoutProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [supportOpen, setSupportOpen] = React.useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   return (
     <Box
@@ -132,20 +133,22 @@ export const RecruiterLayout: React.FC<RecruiterLayoutProps> = ({
           onProfileClick={onProfileClick}
           onSettingsClick={onSettingsClick || onProfileClick}
           onCustomerCareClick={() => setSupportOpen(true)}
+          onMobileMenuClick={() => setMobileMenuOpen(true)}
         />
 
         {isMobile && (
-          <Box className="recruiter-mobile-nav" sx={{ px: 2, py: 1 }}>
-            <RecruiterSidebar
-              onTabChange={onTabChange}
-              currentTab={currentTab}
-              companyName={companyName}
-              companyLogo={companyLogo}
-              credits={credits}
-              planName={planName}
-              readOnly={readOnly}
-            />
-          </Box>
+          <RecruiterSidebar
+            onTabChange={onTabChange}
+            currentTab={currentTab}
+            companyName={companyName}
+            companyLogo={companyLogo}
+            credits={credits}
+            planName={planName}
+            readOnly={readOnly}
+            mobileOpen={mobileMenuOpen}
+            onMobileOpenChange={setMobileMenuOpen}
+            hideMobileTrigger
+          />
         )}
 
         <MotionBox
