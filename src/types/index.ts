@@ -196,6 +196,7 @@ export interface Job {
   education?: string;
   currency?: string;
   application_deadline?: string;
+  is_premium_locked?: boolean;
   [key: string]: unknown;
 }
 

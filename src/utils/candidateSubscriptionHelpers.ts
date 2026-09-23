@@ -8,12 +8,9 @@
 /**
  * Check if a candidate subscription plan qualifies for premium entitlements
  * 
- * Returns true for:
- * - premium_monthly (new)
- * - premium_3_month (new)
- * - premium (legacy - during migration)
- * - pro (legacy - during migration)
- * - enterprise (for completeness)
+ * Returns true for the plans accepted by the subscriptions table:
+ * - premium
+ * - pro
  * 
  * Returns false for:
  * - free
@@ -25,17 +22,7 @@ export function isCandidatePremium(plan: string | null | undefined): boolean {
   
   const normalizedPlan = String(plan).toLowerCase().trim();
   
-  // New premium plans
-  if (['premium_monthly', 'premium_3_month'].includes(normalizedPlan)) {
-    return true;
-  }
-  
-  // Legacy premium plans (for backward compatibility during migration)
-  if (['premium', 'pro', 'enterprise'].includes(normalizedPlan)) {
-    return true;
-  }
-  
-  return false;
+  return ['premium', 'pro'].includes(normalizedPlan);
 }
 
 /**
@@ -52,14 +39,14 @@ export function getCandidateEntitlement(plan: string | null | undefined): 'free'
  * Check if a plan is the monthly paid plan
  */
 export function isPremiumMonthlyPlan(plan: string | null | undefined): boolean {
-  return String(plan).toLowerCase().trim() === 'premium_monthly';
+  return String(plan).toLowerCase().trim() === 'premium';
 }
 
 /**
  * Check if a plan is the 3-month paid plan
  */
 export function isPremium3MonthPlan(plan: string | null | undefined): boolean {
-  return String(plan).toLowerCase().trim() === 'premium_3_month';
+  return String(plan).toLowerCase().trim() === 'pro';
 }
 
 /**
@@ -68,7 +55,7 @@ export function isPremium3MonthPlan(plan: string | null | undefined): boolean {
 export function isNewPremiumPlan(plan: string | null | undefined): boolean {
   if (!plan) return false;
   const normalized = String(plan).toLowerCase().trim();
-  return normalized === 'premium_monthly' || normalized === 'premium_3_month';
+  return normalized === 'premium' || normalized === 'pro';
 }
 
 /**
@@ -77,7 +64,7 @@ export function isNewPremiumPlan(plan: string | null | undefined): boolean {
 export function isLegacyPremiumPlan(plan: string | null | undefined): boolean {
   if (!plan) return false;
   const normalized = String(plan).toLowerCase().trim();
-  return ['premium', 'pro', 'enterprise'].includes(normalized);
+  return normalized === 'premium' || normalized === 'pro';
 }
 
 /**

@@ -236,8 +236,8 @@ export async function evaluateJobForMatches(jobId: string): Promise<void> {
 
     // Fetch the job
     const { data: job, error: jobError } = await supabase
-      .from('jobs')
-      .select('id, title, skills, company_name, created_at')
+      .from('job_listings')
+      .select('id, title, skills, created_at')
       .eq('id', jobId)
       .single();
 

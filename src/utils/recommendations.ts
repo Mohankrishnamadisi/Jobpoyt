@@ -122,8 +122,8 @@ export async function getRecommendedCandidates(
 
 export async function getTopCandidates(limit = 10): Promise<RecommendedCandidate[]> {
   const { data: jobs, error: jobsError } = await supabase
-    .from('jobs')
-    .select('*')
+    .from('job_listings')
+    .select('id, title, location, job_type, work_mode, experience, category, education, skills, created_at, featured, status')
     .eq('status', 'published')
     .order('created_at', { ascending: false })
     .limit(5);

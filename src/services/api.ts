@@ -24,6 +24,14 @@ const normalizeJob = (job: Record<string, any>): Job => ({
   updatedAt: job.updatedAt ?? job.updated_at,
 } as Job);
 
+const PUBLIC_JOB_SELECT = [
+  'id', 'title', 'company_name', 'location', 'job_type', 'work_mode', 'experience',
+  'category', 'education', 'skills', 'created_at', 'updated_at', 'featured', 'status',
+  'positions_available', 'salary_min', 'salary_max', 'currency', 'description',
+  'application_deadline', 'application_link', 'screening_questions', 'posted_by',
+  'is_premium_locked',
+].join(', ');
+
 const parseNumericExperienceYears = (value: unknown): number | null => {
   const text = String(value ?? '').trim();
   if (!/^\d+$/.test(text)) return null;
@@ -339,7 +347,8 @@ export const recruiterService = {
 // Job operations
 export const jobService = {
   async getJobs(filters?: Record<string, unknown>, page = 1, limit = 20) {
-    let query = supabase.from('jobs').select('*', { count: 'planned' }).eq('status', 'published');
+    const safeLimit = Math.min(Math.max(Number(limit) || 1, 1), 50);
+    let query = supabase.from('job_listings').select(PUBLIC_JOB_SELECT, { count: 'planned' });
 
     const keywordInput = filters?.keyword ? String(filters.keyword).trim() : '';
     const companyInput = filters?.company ? String(filters.company).trim() : '';
@@ -432,8 +441,8 @@ export const jobService = {
       let data: Record<string, any>[] = [];
       let count: number | null = null;
 
-      const pageStart = (page - 1) * limit;
-      const windowSize = Math.max(limit * 8, 120);
+      const pageStart = Math.max(page - 1, 0) * safeLimit;
+      const windowSize = Math.min(Math.max(safeLimit * 8, 120), 100);
       const response = await query
         .order('created_at', { ascending: false })
         .range(pageStart, pageStart + windowSize - 1);
@@ -458,7 +467,7 @@ export const jobService = {
         : normalizedJobs;
 
       const diversified = diversifyJobsByCompany(baseMatches);
-      const pageJobs = diversified.slice(0, limit);
+      const pageJobs = diversified.slice(0, safeLimit);
 
       return {
         data: pageJobs,
@@ -466,7 +475,9 @@ export const jobService = {
       };
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    const pageStart = Math.max(page - 1, 0) * safeLimit;
+    const { data, error } = await query.order('created_at', { ascending: false })
+      .range(pageStart, Math.min(pageStart + 99, pageStart + safeLimit * 8 - 1));
 
     if (error) throw error;
 
@@ -498,40 +509,39 @@ export const jobService = {
 
     const diversified = diversifyJobsByCompany(rankedJobs);
 
-    const startIndex = (page - 1) * limit;
-    const paginatedJobs = diversified.slice(startIndex, startIndex + limit);
+    const startIndex = Math.max(page - 1, 0) * safeLimit;
+    const paginatedJobs = diversified.slice(startIndex, startIndex + safeLimit);
 
     return { data: paginatedJobs, total: diversified.length };
   },
 
   async getJobById(id: string) {
-    const { data, error } = await supabase
-      .from('jobs')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.rpc('get_job_details', { requested_job_id: id });
     if (error) throw error;
-    return normalizeJob(data);
+    if (!data) throw new Error('Job not found');
+    return normalizeJob(data as Record<string, any>);
   },
 
   async getFeaturedJobs(limit = 6) {
+    const safeLimit = Math.min(Math.max(Number(limit) || 1, 1), 50);
     const { data, error } = await supabase
-      .from('jobs')
-      .select('*')
+      .from('job_listings')
+      .select(PUBLIC_JOB_SELECT)
       .eq('featured', true)
       .eq('status', 'published')
-      .limit(limit);
+      .limit(safeLimit);
     if (error) throw error;
     return (data || []).map(normalizeJob);
   },
 
   async getLatestJobs(limit = 10) {
+    const safeLimit = Math.min(Math.max(Number(limit) || 1, 1), 50);
     const { data, error } = await supabase
-      .from('jobs')
-      .select('*')
+      .from('job_listings')
+      .select(PUBLIC_JOB_SELECT)
       .eq('status', 'published')
       .order('created_at', { ascending: false })
-      .limit(limit);
+      .limit(safeLimit);
     if (error) throw error;
     return (data || []).map(normalizeJob);
   },
@@ -757,13 +767,11 @@ export const jobService = {
   },
 
   async getRecruiterJobs(recruiterId: string) {
-    const { data, error } = await supabase
-      .from('jobs')
-      .select('*')
-      .eq('posted_by', recruiterId)
-      .order('created_at', { ascending: false });
+    const { data, error } = await supabase.rpc('get_recruiter_jobs', {
+      requested_recruiter_id: recruiterId,
+    });
     if (error) throw error;
-    return (data || []).map(normalizeJob);
+    return (data || []).map((job) => normalizeJob(job as Record<string, any>));
   },
 
   async getJobsBySkills(skills: string[], page = 1, limit = 10) {
@@ -779,12 +787,12 @@ export const jobService = {
       })
       .join(',');
 
-    const pageStart = (page - 1) * limit;
-    const windowSize = Math.max(limit * 20, 500);
+    const safeLimit = Math.min(Math.max(Number(limit) || 1, 1), 50);
+    const pageStart = Math.max(page - 1, 0) * safeLimit;
+    const windowSize = Math.min(Math.max(safeLimit * 20, 100), 100);
     const { data, error, count } = await supabase
-      .from('jobs')
-      .select('*', { count: 'exact' })
-      .eq('status', 'published')
+      .from('job_listings')
+      .select(PUBLIC_JOB_SELECT, { count: 'exact' })
       .or(skillQueries)
       .order('created_at', { ascending: false })
       .range(pageStart, pageStart + windowSize - 1);
@@ -793,8 +801,8 @@ export const jobService = {
 
     const normalizedJobs = (data || []).map(normalizeJob);
     const diversified = diversifyJobsByCompany(normalizedJobs);
-    const startIndex = (page - 1) * limit;
-    const pageJobs = diversified.slice(startIndex, startIndex + limit);
+    const startIndex = Math.max(page - 1, 0) * safeLimit;
+    const pageJobs = diversified.slice(startIndex, startIndex + safeLimit);
 
     return { data: pageJobs, total: count || diversified.length || 0 };
   },
@@ -802,7 +810,7 @@ export const jobService = {
   async getCategories() {
     try {
       const { data, error } = await supabase
-        .from('jobs')
+        .from('job_listings')
         .select('category')
         .eq('status', 'published')
         .not('category', 'is', null);
@@ -947,7 +955,7 @@ export const applicationService = {
   async getUserApplications(userId: string) {
     const { data, error } = await supabase
       .from('job_applications')
-      .select('*, jobs(*)')
+      .select('*, jobs(id, title, location, job_type, work_mode, experience, category, skills, created_at, featured, status)')
       .eq('user_id', userId)
       .order('priority_application', { ascending: false })
       .order('applied_at', { ascending: false });
@@ -969,7 +977,7 @@ export const applicationService = {
   async getApplicationDetails(applicationId: string, jobId?: string) {
     let query = supabase
       .from('job_applications')
-      .select('*, profiles(*), jobs(*)')
+      .select('*, profiles(*), jobs(id, title, location, job_type, work_mode, experience, category, skills, created_at, featured, status)')
       .eq('id', applicationId);
 
     if (jobId) {
@@ -1016,7 +1024,7 @@ export const applicationService = {
     }
 
     const { data, error } = await query
-      .select('id, status, user_id, job_id, profiles(*), jobs(*)')
+      .select('id, status, user_id, job_id, profiles(*), jobs(id, title, location, job_type, work_mode, experience, category, skills, created_at, featured, status)')
       .maybeSingle();
 
     if (error) {
@@ -1307,7 +1315,7 @@ export const savedService = {
   async getUserSavedJobs(userId: string) {
     const { data, error } = await supabase
       .from('saved_jobs')
-      .select('*, jobs(*)')
+      .select('*, jobs(id, title, location, job_type, work_mode, experience, category, skills, created_at, featured, status)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     if (error) throw error;

@@ -249,8 +249,8 @@ export function useJobForNotification(jobId: string | undefined) {
     const fetchJob = async () => {
       try {
         const { data, error } = await supabase
-          .from('jobs')
-          .select('id, title, company_name, location, job_type, work_mode, salary_min, salary_max, description')
+          .from('job_listings')
+          .select('id, title, location, job_type, work_mode, experience, category, education, skills, created_at, featured, status')
           .eq('id', jobId)
           .single();
 

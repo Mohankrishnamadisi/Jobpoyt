@@ -49,7 +49,7 @@ export const adminService = {
   },
 
   async getJobs(limit = 200) {
-    const { data, error } = await supabase.from('jobs').select('*').limit(limit).order('created_at', { ascending: false });
+    const { data, error } = await supabase.rpc('get_admin_jobs', { requested_limit: limit });
     if (error) throw error;
     return data || [];
   },
@@ -75,7 +75,7 @@ export const adminService = {
   async getApplications(limit = 200) {
     const { data, error } = await supabase
       .from('job_applications')
-      .select('*, jobs(*), profiles(*)')
+      .select('*, jobs(id, title, location, job_type, work_mode, experience, category, skills, created_at, featured, status), profiles(*)')
       .limit(limit)
       .order('applied_at', { ascending: false });
     if (error) throw error;

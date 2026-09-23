@@ -183,8 +183,8 @@ export const JobDetails: React.FC = () => {
   const jobTypeLabel = job.jobType || job.job_type || 'Job';
   const workModeLabel = job.workMode || job.work_mode || 'Onsite';
   const requiresSubscription = workModeLabel === 'Remote';
-  const hasAccess = !requiresSubscription || !!subscription;
-  const showRemotePremium = workModeLabel === 'Remote' && !subscription;
+  const showRemotePremium = requiresSubscription && (job.is_premium_locked === true || !subscription);
+  const hasAccess = !requiresSubscription || !showRemotePremium;
   const isRecruiterOwner = Boolean(user?.id && job.posted_by === user.id);
   const postedOn = formatDate(job.createdAt || job.created_at || new Date().toISOString());
   const companyName = String(job.company_name || '').trim();
@@ -335,23 +335,7 @@ export const JobDetails: React.FC = () => {
       return;
     }
 
-    const externalApplyUrl =
-      job.applicationLink || job.application_link || job.applicationUrl || job.application_url;
-
-    if (externalApplyUrl) {
-      window.open(externalApplyUrl as string, '_blank', 'noopener,noreferrer');
-      if (!hasApplied) {
-        try {
-          await applicationService.markExternalApplication(job.id, user.id);
-          setHasApplied(true);
-        } catch (error) {
-          console.error('Failed to record external application:', error);
-        }
-      }
-      return;
-    }
-
-    if (requiresSubscription && !subscription) {
+    if (requiresSubscription && showRemotePremium) {
       Swal.fire({
         icon: 'warning',
         title: 'Premium access required',
@@ -365,6 +349,22 @@ export const JobDetails: React.FC = () => {
           navigate(ROUTES.PRICING);
         }
       });
+      return;
+    }
+
+    const externalApplyUrl =
+      job.applicationLink || job.application_link || job.applicationUrl || job.application_url;
+
+    if (externalApplyUrl) {
+      window.open(externalApplyUrl as string, '_blank', 'noopener,noreferrer');
+      if (!hasApplied) {
+        try {
+          await applicationService.markExternalApplication(job.id, user.id);
+          setHasApplied(true);
+        } catch (error) {
+          console.error('Failed to record external application:', error);
+        }
+      }
       return;
     }
 
@@ -398,7 +398,7 @@ export const JobDetails: React.FC = () => {
       return;
     }
 
-    if (requiresSubscription && !subscription) {
+    if (requiresSubscription && showRemotePremium) {
       Swal.fire({
         icon: 'warning',
         title: 'Premium access required',
