@@ -36,6 +36,13 @@ const companyLogoAliases: Record<string, string> = {
   'jp morgan chase': 'JP-Morgan-Chase-Emblem.png',
   jpmorgan: 'JP-Morgan-Chase-Emblem.png',
   'jpmorgan chase': 'JP-Morgan-Chase-Emblem.png',
+  persistent: 'persistent.png',
+  'persistent systems': 'persistent.png',
+  nttdata: 'Nttdata.jpg',
+  'ntt data': 'Nttdata.jpg',
+  mphasis: 'Mphasis.jpg',
+  ltimindtree: 'ltimindtree.png',
+  'lti mindtree': 'ltimindtree.png',
   oracle: 'oracle.png',
   sap: 'sap.jpg',
   genomines: 'GENOMINES.png',
@@ -69,6 +76,9 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
   const companyName = String(job.company_name || '').trim();
   const [logoExtensionIndex, setLogoExtensionIndex] = React.useState(0);
   const normalizedCompanyName = companyName.toLowerCase().replace(/\s+/g, ' ');
+  React.useEffect(() => {
+    setLogoExtensionIndex(0);
+  }, [normalizedCompanyName]);
   const logoAliasKey = Object.keys(companyLogoAliases).find(
     (alias) => normalizedCompanyName === alias || normalizedCompanyName.startsWith(`${alias} `),
   );
