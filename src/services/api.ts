@@ -346,9 +346,17 @@ export const recruiterService = {
 
 // Job operations
 export const jobService = {
-  async getJobs(filters?: Record<string, unknown>, page = 1, limit = 20) {
+  async getJobs(
+    filters?: Record<string, unknown>,
+    page = 1,
+    limit = 20,
+    options: { includeTotal?: boolean; signal?: AbortSignal } = {},
+  ) {
+    const includeTotal = options.includeTotal !== false;
     const safeLimit = Math.min(Math.max(Number(limit) || 1, 1), 50);
-    let query = supabase.from('job_listings').select(PUBLIC_JOB_SELECT, { count: 'exact' });
+    let query = supabase
+      .from('job_listings')
+      .select(PUBLIC_JOB_SELECT, includeTotal ? { count: 'exact' } : undefined);
 
     const keywordInput = filters?.keyword ? String(filters.keyword).trim() : '';
     const companyInput = filters?.company ? String(filters.company).trim() : '';
@@ -443,8 +451,8 @@ export const jobService = {
 
       const pageStart = Math.max(page - 1, 0) * safeLimit;
       const windowSize = Math.min(Math.max(safeLimit * 8, safeLimit), 100);
-      const response = await query
-        .order('created_at', { ascending: false })
+      const orderedQuery = query.order('created_at', { ascending: false });
+      const response = await (options.signal ? orderedQuery.abortSignal(options.signal) : orderedQuery)
         .range(pageStart, pageStart + windowSize - 1);
 
       if (response.error) throw response.error;
@@ -476,8 +484,10 @@ export const jobService = {
     }
 
     const pageStart = Math.max(page - 1, 0) * safeLimit;
-    const { data, error } = await query.order('created_at', { ascending: false })
+    const orderedQuery = query.order('created_at', { ascending: false });
+    const response = await (options.signal ? orderedQuery.abortSignal(options.signal) : orderedQuery)
       .range(pageStart, Math.min(pageStart + 99, pageStart + safeLimit * 8 - 1));
+    const { data, error } = response;
 
     if (error) throw error;
 

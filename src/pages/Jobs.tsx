@@ -70,6 +70,9 @@ export const Jobs: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const latestRequestRef = useRef(0);
+  const activeRequestRef = useRef<AbortController | null>(null);
+  const isFetchingRef = useRef(false);
+  const jobsRef = useRef<Job[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [allJobsTotal, setAllJobsTotal] = useState(0);
@@ -211,10 +214,18 @@ export const Jobs: React.FC = () => {
     setPage(1);
   }, [searchParams]);
 
-  const fetchJobs = useCallback(async () => {
+  const fetchJobs = useCallback(async (isBackgroundRefresh = false) => {
+    if (isBackgroundRefresh && isFetchingRef.current) return;
+
+    activeRequestRef.current?.abort();
     const requestId = ++latestRequestRef.current;
-    setLoading(true);
-    setError(null);
+    const controller = new AbortController();
+    activeRequestRef.current = controller;
+    isFetchingRef.current = true;
+    if (!isBackgroundRefresh) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const params: Record<string, unknown> = {};
       if (debouncedKeyword) params.keyword = debouncedKeyword;
@@ -227,22 +238,33 @@ export const Jobs: React.FC = () => {
       if (filters.workMode.length > 0) params.workMode = filters.workMode;
       if (filters.category.length > 0) params.category = filters.category;
 
-      const { data, total: count } = await jobService.getJobs(params, page, 12);
+      const { data, total: count } = await jobService.getJobs(params, page, 12, {
+        includeTotal: !isBackgroundRefresh,
+        signal: controller.signal,
+      });
       if (requestId !== latestRequestRef.current) return;
+      jobsRef.current = data;
       setJobs(data);
-      setTotal(count);
+      if (!isBackgroundRefresh) setTotal(count);
     } catch (err) {
       if (requestId !== latestRequestRef.current) return;
+      if (controller.signal.aborted) return;
       let loadError = 'Failed to load jobs';
       if (err && typeof err === 'object' && 'message' in err && typeof (err as any).message === 'string') {
         loadError = (err as any).message;
       } else if (typeof err === 'string') {
         loadError = err;
       }
-      setError(loadError);
+      if (isBackgroundRefresh && jobsRef.current.length > 0) {
+        console.error('Background jobs refresh failed:', err);
+      } else {
+        setError(loadError);
+      }
     } finally {
       if (requestId === latestRequestRef.current) {
         setLoading(false);
+        isFetchingRef.current = false;
+        activeRequestRef.current = null;
       }
     }
   }, [
@@ -259,15 +281,25 @@ export const Jobs: React.FC = () => {
   ]);
 
   useEffect(() => {
-    fetchJobs();
+    void fetchJobs();
   }, [fetchJobs]);
 
   useEffect(() => {
+    const refreshIfVisible = () => {
+      if (document.visibilityState === 'visible') {
+        void fetchJobs(true);
+      }
+    };
     const interval = window.setInterval(() => {
-      fetchJobs();
+      refreshIfVisible();
     }, 60000);
+    document.addEventListener('visibilitychange', refreshIfVisible);
 
-    return () => window.clearInterval(interval);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', refreshIfVisible);
+      activeRequestRef.current?.abort();
+    };
   }, [fetchJobs]);
 
   const handleFilterChange = (filterName: string, value: unknown) => {
