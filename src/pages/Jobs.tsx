@@ -1222,6 +1222,21 @@ export const Jobs: React.FC = () => {
                     : 'linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)',
                 }}
               >
+                <Box
+                  component="img"
+                  src="/images/No%20Data%20Found.svg"
+                  alt="No jobs found"
+                  sx={{
+                    display: 'block',
+                    width: '100%',
+                    maxWidth: { xs: 250, sm: 310, md: 360 },
+                    height: 'auto',
+                    maxHeight: { xs: 190, sm: 230, md: 260 },
+                    objectFit: 'contain',
+                    mx: 'auto',
+                    mb: { xs: 1.5, md: 2 },
+                  }}
+                />
                 <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 700, mb: 1.4 }}>
                   No jobs found
                 </Typography>
