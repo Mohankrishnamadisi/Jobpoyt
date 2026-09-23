@@ -348,7 +348,7 @@ export const recruiterService = {
 export const jobService = {
   async getJobs(filters?: Record<string, unknown>, page = 1, limit = 20) {
     const safeLimit = Math.min(Math.max(Number(limit) || 1, 1), 50);
-    let query = supabase.from('job_listings').select(PUBLIC_JOB_SELECT, { count: 'planned' });
+    let query = supabase.from('job_listings').select(PUBLIC_JOB_SELECT, { count: 'exact' });
 
     const keywordInput = filters?.keyword ? String(filters.keyword).trim() : '';
     const companyInput = filters?.company ? String(filters.company).trim() : '';
@@ -442,7 +442,7 @@ export const jobService = {
       let count: number | null = null;
 
       const pageStart = Math.max(page - 1, 0) * safeLimit;
-      const windowSize = Math.min(Math.max(safeLimit * 8, 120), 100);
+      const windowSize = Math.min(Math.max(safeLimit * 8, safeLimit), 100);
       const response = await query
         .order('created_at', { ascending: false })
         .range(pageStart, pageStart + windowSize - 1);
