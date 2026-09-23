@@ -30,6 +30,7 @@ interface HorizontalJobListItemProps {
 const companyLogoAliases: Record<string, string> = {
   cisco: 'cisco.png',
   deloitte: 'deloitte.png',
+  google: 'google.png',
   ibm: 'ibm.png',
   infosys: 'infosys.png',
   'jp morgan': 'JP-Morgan-Chase-Emblem.png',
