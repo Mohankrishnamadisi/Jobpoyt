@@ -10,7 +10,6 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
 import {
   LocationOnOutlined as LocationOnOutlinedIcon,
   WorkOutlineOutlined as WorkOutlineOutlinedIcon,
@@ -62,7 +61,6 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
   isPremiumUser = false,
   isApplied = false,
 }) => {
-  const navigate = useNavigate();
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
   const [isHovered, setIsHovered] = React.useState(false);
@@ -109,12 +107,12 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
   const handleApplyClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (applied) return;
-    navigate(`/jobs/${job.id}`, { state: { from: `${window.location.pathname}${window.location.search}` } });
+    window.open(`/jobs/${job.id}`, '_blank', 'noopener,noreferrer');
   };
 
   const handleViewDetailsClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/jobs/${job.id}`, { state: { from: `${window.location.pathname}${window.location.search}` } });
+    window.open(`/jobs/${job.id}`, '_blank', 'noopener,noreferrer');
   };
 
   const salary = job.salaryMin || job.salary_min || job.salaryMax || job.salary_max
@@ -438,7 +436,6 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
             flex: '0 0 auto',
             display: 'flex',
             flexDirection: 'column',
-            gap: 1,
             alignItems: { xs: 'flex-start', sm: 'flex-end' },
             justifyContent: 'flex-start',
             pointerEvents: 'auto',
