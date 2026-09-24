@@ -120,7 +120,8 @@ async function deliverJobMatchNotification(
       isPremium,
     };
 
-    // Create notification
+    // The partial unique index on (user_id, data.jobId) makes retries and
+    // concurrent delivery attempts idempotent for job-match notifications.
     const { data: notification, error: createError } = await supabase
       .from('notifications')
       .insert([
@@ -132,6 +133,8 @@ async function deliverJobMatchNotification(
           data: {
             jobId,
             matchType,
+            matchedSkills,
+            matchCount: matchedSkills.length,
             cta,
           },
           notification_metadata: notificationMetadata,
@@ -140,6 +143,28 @@ async function deliverJobMatchNotification(
       ])
       .select()
       .single();
+
+    if (createError?.code === '23505') {
+      const { data: existingNotification, error: existingError } = await supabase
+        .from('notifications')
+        .select('id')
+        .eq('user_id', candidateId)
+        .eq('type', 'job_match')
+        .filter('data->>jobId', 'eq', jobId)
+        .maybeSingle();
+
+      if (!existingError && existingNotification?.id) {
+        const { error: markDeliveredError } = await supabase
+          .from('job_match_notifications')
+          .update({
+            notification_id: existingNotification.id,
+            is_delivered: true,
+          })
+          .eq('id', jobMatchNotificationId);
+
+        if (!markDeliveredError) return true;
+      }
+    }
 
     if (createError || !notification?.id) {
       console.error('Error creating notification:', createError);

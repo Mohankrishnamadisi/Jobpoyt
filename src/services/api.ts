@@ -32,6 +32,23 @@ const PUBLIC_JOB_SELECT = [
   'is_premium_locked',
 ].join(', ');
 
+const triggerJobMatchNotifications = async (jobId: string) => {
+  try {
+    const { data, error } = await supabase.functions.invoke('process-job-matches', {
+      body: { jobId },
+    });
+
+    if (error) {
+      console.error('Job match processing failed after publishing job:', { jobId, error, data });
+      return;
+    }
+
+    console.info('Job match processing completed:', { jobId, data });
+  } catch (error) {
+    console.error('Job match processing invocation failed after publishing job:', { jobId, error });
+  }
+};
+
 const parseNumericExperienceYears = (value: unknown): number | null => {
   const text = String(value ?? '').trim();
   if (!/^\d+$/.test(text)) return null;
@@ -602,6 +619,9 @@ export const jobService = {
             await restoreRecruiterWelcomeJobPost(userId, 1).catch(() => undefined);
             throw error;
           }
+          if (data?.[0]?.id) {
+            await triggerJobMatchNotifications(data[0].id);
+          }
           return data?.[0] ? normalizeJob(data[0]) : null;
         } catch (jobError) {
           await restoreRecruiterWelcomeJobPost(userId, 1).catch(() => undefined);
@@ -696,18 +716,9 @@ export const jobService = {
         // 3. Create job_match_notifications for matches
         // 4. Deliver premium notifications immediately
         // 5. Schedule normal notifications for 4-hour delay
-        // Call the Edge Function asynchronously (non-blocking)
-        // This ensures the recruiter's job creation completes immediately
+        // Await processing so invocation failures are visible without failing the published job.
         // Using supabase.functions.invoke() ensures proper routing and auth context
-        supabase.functions
-          .invoke('process-job-matches', {
-            body: { jobId: createdJob.id },
-          })
-          .then((data) => {
-          })
-          .catch((error) => {
-            console.error('Error triggering job match Edge Function:', error);
-          });
+        await triggerJobMatchNotifications(createdJob.id);
       }
     } catch (notificationError) {
       console.error('Error in job creation notification handling:', notificationError);

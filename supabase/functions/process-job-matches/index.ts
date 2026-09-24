@@ -59,9 +59,9 @@ function normalizeSkills(skills: unknown): string[] {
  * Simple skill matching
  */
 function skillsMatch(candidateSkill: string, requiredSkill: string): boolean {
-  const normalized1 = candidateSkill.toLowerCase().replace(/[\s._\-]+/g, '');
-  const normalized2 = requiredSkill.toLowerCase().replace(/[\s._\-]+/g, '');
-  return normalized1 === normalized2 || normalized1.includes(normalized2) || normalized2.includes(normalized1);
+  const normalized1 = candidateSkill.toLowerCase().trim().replace(/[\s._\-/]+/g, '');
+  const normalized2 = requiredSkill.toLowerCase().trim().replace(/[\s._\-/]+/g, '');
+  return normalized1 === normalized2;
 }
 
 /**
@@ -77,13 +77,13 @@ function checkSkillMatch(jobSkills: string[], candidateSkills: string[]): {
 
   const normalizedJobSkills = normalizeSkills(jobSkills);
   const normalizedCandidateSkills = normalizeSkills(candidateSkills).map((s) =>
-    s.toLowerCase().replace(/[\s._\-]+/g, '')
+    s.toLowerCase().trim().replace(/[\s._\-/]+/g, '')
   );
 
   const matchedSkills: string[] = [];
 
   normalizedJobSkills.forEach((jobSkill) => {
-    const normalizedJob = jobSkill.toLowerCase().replace(/[\s._\-]+/g, '');
+    const normalizedJob = jobSkill.toLowerCase().trim().replace(/[\s._\-/]+/g, '');
     if (normalizedCandidateSkills.some((candSkill) => skillsMatch(candSkill, normalizedJob))) {
       matchedSkills.push(jobSkill);
     }
@@ -157,15 +157,18 @@ async function isPremiumCandidate(candidateId: string): Promise<boolean> {
     // Query subscriptions directly using candidateId as user_id
     const { data: subscription } = await supabase
       .from('subscriptions')
-      .select('plan, status')
+      .select('plan, status, end_date')
       .eq('user_id', candidateId)
       .eq('status', 'active')
       .maybeSingle();
 
     if (!subscription) return false;
 
-    const plan = String(subscription.plan || '').toLowerCase();
-    return ['premium', 'pro', 'enterprise'].includes(plan);
+    const plan = String(subscription.plan || '').toLowerCase().trim();
+    const endDate = subscription.end_date ? new Date(subscription.end_date) : null;
+    const isUnexpired = !endDate || (!Number.isNaN(endDate.getTime()) && endDate.getTime() > Date.now());
+
+    return isUnexpired && ['premium', 'pro', 'enterprise'].includes(plan);
   } catch {
     return false;
   }
@@ -232,8 +235,7 @@ Deno.serve(async (req) => {
     const { data: candidates, error: candError } = await supabase
       .from('profiles')
       .select('id, skills, current_designation, preferred_job_titles, role')
-      .eq('role', 'job_seeker')
-      .not('skills', 'is', null);
+      .eq('role', 'job_seeker');
 
     if (candError) {
       return new Response(JSON.stringify({ error: 'Failed to fetch candidates' }), { status: 500 });
@@ -250,7 +252,7 @@ Deno.serve(async (req) => {
         candidate.preferred_job_titles
       );
 
-      // RULE: Match if ANY skill OR ANY designation match
+      // A skill or designation match is sufficient for a job-match notification.
       if (skillMatch.matched || designationMatch.matched) {
         const isPremium = await isPremiumCandidate(candidate.id);
 
