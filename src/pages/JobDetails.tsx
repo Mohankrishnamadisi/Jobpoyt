@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect, useRef } from 'react';
 import {
   Box,
   Container,
@@ -93,6 +93,13 @@ export const JobDetails: React.FC = () => {
   const [selectedChatUser, setSelectedChatUser] = useState<{ id: string; name: string } | null>(null);
   const [chatMessage, setChatMessage] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
+  const applyDialogContentRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (applyDialogOpen) {
+      applyDialogContentRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, [applyDialogOpen]);
 
   useEffect(() => {
     if (!id) return;
@@ -1003,7 +1010,7 @@ export const JobDetails: React.FC = () => {
             </Box>
           </DialogTitle>
 
-          <DialogContent sx={{ p: 0, overflowY: 'auto' }}>
+          <DialogContent ref={applyDialogContentRef} sx={{ p: 0, overflowY: 'auto' }}>
             <Box sx={{ px: { xs: 2, sm: 3.5 }, py: { xs: 2, sm: 3 }, display: 'grid', gap: { xs: 2, sm: 2.5 } }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: { xs: 1.5, sm: 2 }, borderRadius: 2.5, background: isDarkMode ? 'rgba(14, 116, 144, 0.16)' : 'linear-gradient(135deg, #ecfeff, #eff6ff)', border: isDarkMode ? '1px solid rgba(34, 211, 238, 0.2)' : '1px solid #bae6fd' }}>
                 <Box sx={{ width: 42, height: 42, flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: 2, background: isDarkMode ? '#164e63' : '#fff', color: '#0284c7', boxShadow: '0 5px 14px rgba(14, 116, 144, 0.12)' }}>

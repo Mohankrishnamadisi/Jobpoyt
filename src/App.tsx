@@ -101,6 +101,18 @@ const refreshNow = () => {
   window.location.reload();
 };
 
+const RouteScrollRestoration: React.FC = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [location.key]);
+
+  return null;
+};
+
 const RoleDashboard: React.FC = () => {
   const { user } = useAuthStore();
   const { subscription, loading: subscriptionLoading } = useSubscription(user?.id || null);
@@ -582,6 +594,7 @@ const AppContent: React.FC = () => {
       <CssBaseline />
       <Toaster position="top-center" />
       <Router>
+        <RouteScrollRestoration />
         {isMobileView ? (
           <MobileAppShell>
             <AnimatedRoutes />
