@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { trackedFetch } from './requestTracker';
 
 let supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 let supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
@@ -16,6 +17,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
+  },
+  global: {
+    fetch: trackedFetch,
   },
 });
 

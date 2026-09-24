@@ -14,6 +14,7 @@ import { authService } from '@services/supabase';
 import { ROUTES, USER_ROLES } from '@constants/index';
 import { ProtectedRoute } from '@components/common/ProtectedRoute';
 import { ErrorBoundary } from '@components/common/ErrorBoundary';
+import { GlobalApiLoader } from '@components/common/GlobalApiLoader';
 import { ThemeModeProvider, useThemeMode } from './context/ThemeContext';
 
 import { Home } from '@pages/Home';
@@ -593,6 +594,7 @@ const AppContent: React.FC = () => {
     <ThemeProvider theme={getTheme(themeMode)}>
       <CssBaseline />
       <Toaster position="top-center" />
+      <GlobalApiLoader />
       <Router>
         <RouteScrollRestoration />
         {isMobileView ? (
