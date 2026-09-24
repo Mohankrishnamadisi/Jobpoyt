@@ -20,6 +20,7 @@ import {
   Divider,
   Stack,
   LinearProgress,
+  useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
@@ -33,6 +34,10 @@ import {
   CalendarMonth as CalendarMonthIcon,
   Bolt as BoltIcon,
   WorkspacePremium as WorkspacePremiumIcon,
+  CloudUpload as CloudUploadIcon,
+  Description as DescriptionIcon,
+  CheckCircle as CheckCircleIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { Layout } from '@components/layout/Layout';
 import { Loading } from '@components/common/Loading';
@@ -59,6 +64,7 @@ const RecommendedCandidates = React.lazy(() =>
 export const JobDetails: React.FC = () => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -939,96 +945,126 @@ export const JobDetails: React.FC = () => {
         </Dialog>
 
         {/* Apply Dialog */}
-        <Dialog open={applyDialogOpen} onClose={() => setApplyDialogOpen(false)} maxWidth="sm" fullWidth>
-          <Box sx={{ p: 3 }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-              Apply for {job.title}
-            </Typography>
-
-            <Box sx={{ mb: 3, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                Resume Upload / Update
-              </Typography>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-                Upload your latest resume or use the resume already saved to your profile.
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-                <Button variant="outlined" component="label">
-                  {resumeFile ? 'Update Resume' : 'Upload Resume'}
-                  <input
-                    type="file"
-                    hidden
-                    accept=".pdf,.doc,.docx"
-                    onChange={(e) => e.target.files?.[0] && setResumeFile(e.target.files[0])}
-                  />
-                </Button>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  {resumeFile ? resumeFile.name : resumeUrl ? 'Using saved resume' : 'No resume uploaded yet'}
+        <Dialog
+          open={applyDialogOpen}
+          onClose={() => setApplyDialogOpen(false)}
+          fullWidth
+          maxWidth="md"
+          fullScreen={isSmallScreen}
+          PaperProps={{
+            sx: {
+              width: { xs: '100%', sm: 'min(760px, calc(100vw - 48px))' },
+              maxWidth: 'none',
+              maxHeight: { xs: '100%', sm: 'calc(100vh - 48px)' },
+              borderRadius: { xs: 0, sm: 3 },
+              overflow: 'hidden',
+              background: isDarkMode ? '#0f172a' : '#f8fafc',
+              boxShadow: '0 28px 80px rgba(15, 23, 42, 0.24)',
+              border: isDarkMode ? '1px solid rgba(148, 163, 184, 0.18)' : '1px solid rgba(148, 163, 184, 0.22)',
+            },
+          }}
+        >
+          <DialogTitle
+            sx={{
+              px: { xs: 2, sm: 3.5 },
+              py: { xs: 2, sm: 2.5 },
+              color: '#fff',
+              background: 'linear-gradient(135deg, #0f3d68 0%, #075985 52%, #0891b2 100%)',
+              position: 'relative',
+              overflow: 'hidden',
+              '&:after': {
+                content: '""',
+                position: 'absolute',
+                width: 180,
+                height: 180,
+                borderRadius: '50%',
+                right: -70,
+                top: -110,
+                background: 'rgba(255,255,255,0.12)',
+              },
+            }}
+          >
+            <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' }, fontWeight: 800, lineHeight: 1.2 }}>
+                  Apply for this role
+                </Typography>
+                <Typography sx={{ mt: 0.75, color: 'rgba(255,255,255,0.82)', fontSize: { xs: '0.82rem', sm: '0.92rem' }, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {job.title}
                 </Typography>
               </Box>
+              <Button
+                aria-label="Close application form"
+                onClick={() => setApplyDialogOpen(false)}
+                sx={{ minWidth: 36, width: 36, height: 36, p: 0, borderRadius: 2, color: '#fff', '&:hover': { background: 'rgba(255,255,255,0.14)' } }}
+              >
+                <CloseIcon fontSize="small" />
+              </Button>
             </Box>
+          </DialogTitle>
 
-            <Box sx={{ mb: 3, display: 'grid', gap: 2 }}>
-              <TextField
-                fullWidth
-                label="Current CTC"
-                value={currentCtc}
-                onChange={(e) => setCurrentCtc(e.target.value)}
-              />
-              <TextField
-                fullWidth
-                label="Expected CTC"
-                value={expectedCtc}
-                onChange={(e) => setExpectedCtc(e.target.value)}
-              />
-              <TextField
-                fullWidth
-                label="Notice Period"
-                value={noticePeriod}
-                onChange={(e) => setNoticePeriod(e.target.value)}
-              />
-            </Box>
-
-            {job.screeningQuestions?.length ? (
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                  Screening Questions
-                </Typography>
-                <Box sx={{ display: 'grid', gap: 2 }}>
-                  {job.screeningQuestions.map((question) => (
-                    <TextField
-                      key={question}
-                      fullWidth
-                      label={question}
-                      multiline
-                      rows={2}
-                      value={screeningAnswers[question] || ''}
-                      onChange={(e) => setScreeningAnswers((prev) => ({ ...prev, [question]: e.target.value }))}
-                    />
-                  ))}
+          <DialogContent sx={{ p: 0, overflowY: 'auto' }}>
+            <Box sx={{ px: { xs: 2, sm: 3.5 }, py: { xs: 2, sm: 3 }, display: 'grid', gap: { xs: 2, sm: 2.5 } }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: { xs: 1.5, sm: 2 }, borderRadius: 2.5, background: isDarkMode ? 'rgba(14, 116, 144, 0.16)' : 'linear-gradient(135deg, #ecfeff, #eff6ff)', border: isDarkMode ? '1px solid rgba(34, 211, 238, 0.2)' : '1px solid #bae6fd' }}>
+                <Box sx={{ width: 42, height: 42, flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: 2, background: isDarkMode ? '#164e63' : '#fff', color: '#0284c7', boxShadow: '0 5px 14px rgba(14, 116, 144, 0.12)' }}>
+                  <DescriptionIcon />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 800, color: isDarkMode ? '#e0f2fe' : '#0f3d68', fontSize: '0.96rem' }}>Complete your application</Typography>
+                  <Typography sx={{ color: isDarkMode ? '#bae6fd' : '#475569', fontSize: '0.8rem', mt: 0.25 }}>Add your details so the recruiter can review your profile.</Typography>
                 </Box>
               </Box>
-            ) : null}
 
-            <TextField
-              fullWidth
-              multiline
-              rows={4}
-              placeholder="Write a cover letter (optional)"
-              value={coverLetter}
-              onChange={(e) => setCoverLetter(e.target.value)}
-              sx={{ mb: 2 }}
-            />
+              <Box sx={{ p: { xs: 1.5, sm: 2 }, border: '1px solid', borderColor: isDarkMode ? 'rgba(148,163,184,0.2)' : '#dbe5ef', borderRadius: 2.5, background: isDarkMode ? 'rgba(15,23,42,0.55)' : '#fff' }}>
+                <Typography sx={{ fontWeight: 800, color: isDarkMode ? '#f8fafc' : '#0f172a', mb: 0.5 }}>Resume</Typography>
+                <Typography sx={{ color: 'text.secondary', fontSize: '0.82rem', mb: 1.5 }}>PDF, DOC, or DOCX. Use your latest version.</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flexWrap: 'wrap' }}>
+                  <Button variant="contained" component="label" startIcon={<CloudUploadIcon />} sx={{ textTransform: 'none', borderRadius: 1.75, px: 2, background: '#0284c7', '&:hover': { background: '#0369a1' } }}>
+                    {resumeFile ? 'Update resume' : 'Upload resume'}
+                    <input type="file" hidden accept=".pdf,.doc,.docx" onChange={(e) => e.target.files?.[0] && setResumeFile(e.target.files[0])} />
+                  </Button>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0, color: resumeFile || resumeUrl ? '#059669' : 'text.secondary' }}>
+                    {(resumeFile || resumeUrl) && <CheckCircleIcon sx={{ fontSize: 18, flexShrink: 0 }} />}
+                    <Typography sx={{ fontSize: '0.82rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {resumeFile ? resumeFile.name : resumeUrl ? 'Using saved resume' : 'No resume uploaded yet'}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
 
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button variant="outlined" fullWidth onClick={() => setApplyDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button variant="contained" fullWidth onClick={handleApply} disabled={applyLoading || hasApplied}>
-                {hasApplied ? 'Already Applied' : applyLoading ? 'Applying...' : 'Submit Application'}
-              </Button>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 1.5 }}>
+                {[
+                  { label: 'Current CTC', value: currentCtc, setValue: setCurrentCtc },
+                  { label: 'Expected CTC', value: expectedCtc, setValue: setExpectedCtc },
+                  { label: 'Notice Period', value: noticePeriod, setValue: setNoticePeriod },
+                ].map((field) => (
+                  <TextField key={field.label} fullWidth label={field.label} value={field.value} onChange={(e) => field.setValue(e.target.value)} size="small" sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.75, background: isDarkMode ? 'rgba(15,23,42,0.55)' : '#fff' } }} />
+                ))}
+              </Box>
+
+              {job.screeningQuestions?.length ? (
+                <Box>
+                  <Typography sx={{ fontWeight: 800, color: isDarkMode ? '#f8fafc' : '#0f172a', mb: 1.25 }}>Screening questions</Typography>
+                  <Box sx={{ display: 'grid', gap: 1.5 }}>
+                    {job.screeningQuestions.map((question, index) => (
+                      <TextField key={question} fullWidth label={`${index + 1}. ${question}`} multiline minRows={2} value={screeningAnswers[question] || ''} onChange={(e) => setScreeningAnswers((prev) => ({ ...prev, [question]: e.target.value }))} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.75, background: isDarkMode ? 'rgba(15,23,42,0.55)' : '#fff' } }} />
+                    ))}
+                  </Box>
+                </Box>
+              ) : null}
+
+              <TextField fullWidth label="Cover letter (optional)" multiline minRows={4} value={coverLetter} onChange={(e) => setCoverLetter(e.target.value)} sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1.75, background: isDarkMode ? 'rgba(15,23,42,0.55)' : '#fff' } }} />
             </Box>
-          </Box>
+          </DialogContent>
+
+          <DialogActions sx={{ px: { xs: 2, sm: 3.5 }, py: { xs: 1.5, sm: 2 }, gap: 1, borderTop: '1px solid', borderColor: isDarkMode ? 'rgba(148,163,184,0.2)' : '#e2e8f0', background: isDarkMode ? '#111c31' : '#fff', '& > :not(style) ~ :not(style)': { marginLeft: 0 } }}>
+            <Button variant="outlined" fullWidth onClick={() => setApplyDialogOpen(false)} sx={{ minHeight: 46, borderRadius: 1.75, textTransform: 'none', fontWeight: 700, borderColor: isDarkMode ? '#475569' : '#cbd5e1', color: isDarkMode ? '#e2e8f0' : '#334155' }}>
+              Cancel
+            </Button>
+            <Button variant="contained" fullWidth onClick={handleApply} disabled={applyLoading || hasApplied} sx={{ minHeight: 46, borderRadius: 1.75, textTransform: 'none', fontWeight: 800, background: hasApplied ? '#16a34a' : 'linear-gradient(135deg, #0284c7, #2563eb)', boxShadow: '0 8px 18px rgba(37, 99, 235, 0.22)', '&:hover': { background: hasApplied ? '#16a34a' : 'linear-gradient(135deg, #0369a1, #1d4ed8)' }, '&.Mui-disabled': { color: '#fff', background: hasApplied ? '#16a34a' : '#94a3b8' } }}>
+              {hasApplied ? 'Already applied' : applyLoading ? 'Applying...' : 'Submit application'}
+            </Button>
+          </DialogActions>
         </Dialog>
       </Container>
     </Layout>
