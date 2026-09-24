@@ -38,6 +38,7 @@ type SupportWidgetProps = {
   showFab?: boolean;
   open?: boolean;
   onClose?: () => void;
+  embedded?: boolean;
 };
 
 const CATEGORY_OPTIONS = [
@@ -57,6 +58,7 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({
   showFab = true,
   open,
   onClose,
+  embedded = false,
 }) => {
   const { user } = useAuthStore();
   const theme = useTheme();
@@ -81,7 +83,7 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({
   const [ticketCommentError, setTicketCommentError] = useState('');
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const isControlled = typeof open === 'boolean';
-  const dialogOpen = isControlled ? Boolean(open) : internalOpen;
+  const dialogOpen = embedded ? true : (isControlled ? Boolean(open) : internalOpen);
 
   const contactLabel = useMemo(() => {
     if (audience === 'admin') return 'Admin Support Desk';
@@ -244,16 +246,21 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({
         className="customer-care-dialog"
         open={dialogOpen}
         onClose={closeDialog}
+        disablePortal={embedded}
+        hideBackdrop={embedded}
+        sx={embedded ? { position: 'relative', inset: 'auto', height: '100%' } : undefined}
         fullWidth
         maxWidth="md"
         PaperProps={{
           sx: {
-            borderRadius: 3,
+            borderRadius: embedded ? 2 : 3,
+            height: embedded ? '100%' : undefined,
+            maxHeight: embedded ? 'calc(100vh - 150px)' : undefined,
             overflow: 'hidden',
             bgcolor: isDarkMode ? '#0B0F17' : undefined,
             color: isDarkMode ? '#FFFFFF' : undefined,
             border: `1px solid ${isDarkMode ? '#334155' : 'rgba(37, 99, 235, 0.18)'}`,
-            boxShadow: isDarkMode ? '0 24px 60px rgba(0, 0, 0, 0.58)' : '0 24px 60px rgba(15, 23, 42, 0.22)',
+            boxShadow: embedded ? 'none' : (isDarkMode ? '0 24px 60px rgba(0, 0, 0, 0.58)' : '0 24px 60px rgba(15, 23, 42, 0.22)'),
           },
         }}
       >
@@ -287,6 +294,8 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({
           sx={{
             px: { xs: 2, md: 3 },
             py: 2.5,
+            maxHeight: embedded ? 'calc(100vh - 260px)' : undefined,
+            overflowY: 'auto',
             bgcolor: isDarkMode ? '#050608' : 'rgba(248, 250, 252, 0.75)',
           }}
         >
@@ -306,12 +315,12 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({
                 textTransform: 'none',
                 minHeight: 40,
                 fontWeight: 600,
+                color: isDarkMode ? '#CBD5E1' : undefined,
               },
               '& .Mui-selected': {
                 bgcolor: isDarkMode ? 'rgba(59, 130, 246, 0.22)' : 'rgba(37, 99, 235, 0.12)',
                 color: 'primary.main',
               },
-              '& .MuiTab-root': { color: isDarkMode ? '#CBD5E1' : undefined },
             }}
           >
             <Tab label="Raise Ticket" />
@@ -504,11 +513,13 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({
           ) : null}
         </DialogContent>
 
-        <DialogActions sx={{ px: 2.5, py: 1.4, borderTop: `1px solid ${isDarkMode ? '#334155' : 'rgba(148, 163, 184, 0.2)'}`, bgcolor: isDarkMode ? '#0B0F17' : '#FFFFFF' }}>
-          <Button onClick={closeDialog} sx={{ textTransform: 'none', fontWeight: 600 }}>
-            Close
-          </Button>
-        </DialogActions>
+        {!embedded && (
+          <DialogActions sx={{ px: 2.5, py: 1.4, borderTop: `1px solid ${isDarkMode ? '#334155' : 'rgba(148, 163, 184, 0.2)'}`, bgcolor: isDarkMode ? '#0B0F17' : '#FFFFFF' }}>
+            <Button onClick={closeDialog} sx={{ textTransform: 'none', fontWeight: 600 }}>
+              Close
+            </Button>
+          </DialogActions>
+        )}
       </Dialog>
 
       <Dialog

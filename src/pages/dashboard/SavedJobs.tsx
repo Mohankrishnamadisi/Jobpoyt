@@ -19,8 +19,9 @@ type SavedJobItem = {
   };
 };
 
-export const SavedJobsPage: React.FC = () => {
+export const SavedJobsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
   const { user } = useAuthStore();
+  const Shell = embedded ? React.Fragment : Layout;
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
   const [savedJobs, setSavedJobs] = useState<SavedJobItem[]>([]);
@@ -53,7 +54,7 @@ export const SavedJobsPage: React.FC = () => {
   }, [savedJobs]);
 
   return (
-    <Layout>
+    <Shell>
       <Container maxWidth="xl" sx={{ py: { xs: 3, md: 4 } }}>
         <Card
           sx={{
@@ -223,6 +224,6 @@ export const SavedJobsPage: React.FC = () => {
           </Grid>
         )}
       </Container>
-    </Layout>
+    </Shell>
   );
 };

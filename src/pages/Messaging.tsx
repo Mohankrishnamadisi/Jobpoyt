@@ -21,10 +21,12 @@ import MessageInbox from '@components/messaging/MessageInbox';
 import MessageDetail from '@components/messaging/MessageDetail';
 import { Conversation } from '@services/messaging';
 
-const MessagingPageContent: React.FC<{
+export const MessagingPageContent: React.FC<{
   userId: string;
   userRole: 'recruiter' | 'candidate';
-}> = ({ userId, userRole }) => {
+  embedded?: boolean;
+  onClose?: () => void;
+}> = ({ userId, userRole, embedded = false, onClose }) => {
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const navigate = useNavigate();
   const theme = useTheme();
@@ -34,18 +36,21 @@ const MessagingPageContent: React.FC<{
     <Dialog
       className="messaging-page-dialog"
       open
-      onClose={() => navigate(-1)}
+      onClose={() => { if (onClose) onClose(); else if (!embedded) navigate(-1); }}
+      disablePortal={embedded}
+      hideBackdrop={embedded}
+      sx={embedded ? { position: 'relative', inset: 'auto', height: '100%' } : undefined}
       fullWidth
       maxWidth="lg"
-      fullScreen={isSmall}
+      fullScreen={!embedded && isSmall}
       PaperProps={{
         sx: {
           borderRadius: isSmall ? 0 : 3,
           overflow: 'hidden',
           width: isSmall ? '100%' : 'min(1024px, calc(100vw - 40px))',
           maxWidth: 'calc(100vw - 40px)',
-          maxHeight: 'calc(100vh - 40px)',
-          height: isSmall ? '100%' : 720,
+          maxHeight: embedded ? 'none' : 'calc(100vh - 40px)',
+          height: embedded ? 660 : (isSmall ? '100%' : 720),
           boxShadow: '0 30px 80px rgba(15, 23, 42, 0.18)',
           border: '1px solid rgba(148, 163, 184, 0.2)',
           background: '#f8fafc',
@@ -90,9 +95,9 @@ const MessagingPageContent: React.FC<{
           </Box>
         </Box>
 
-        <IconButton
+        {!embedded && <IconButton
           aria-label="close"
-          onClick={() => navigate(-1)}
+          onClick={() => { if (onClose) onClose(); else if (!embedded) navigate(-1); }}
           size="medium"
           sx={{
             width: 40,
@@ -104,7 +109,7 @@ const MessagingPageContent: React.FC<{
           }}
         >
           <CloseIcon fontSize="small" />
-        </IconButton>
+        </IconButton>}
       </DialogTitle>
 
       <DialogContent

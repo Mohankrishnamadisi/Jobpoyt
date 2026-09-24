@@ -30,8 +30,9 @@ type UserApplication = {
   };
 };
 
-export const ApplicationsPage: React.FC = () => {
+export const ApplicationsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
   const { user } = useAuthStore();
+  const Shell = embedded ? React.Fragment : Layout;
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
   const [applications, setApplications] = useState<UserApplication[]>([]);
@@ -151,7 +152,7 @@ export const ApplicationsPage: React.FC = () => {
   ];
 
   return (
-    <Layout>
+    <Shell>
       <Container maxWidth="xl" sx={{ py: { xs: 3, md: 4 } }}>
         <Card
           sx={{
@@ -309,6 +310,6 @@ export const ApplicationsPage: React.FC = () => {
           </Grid>
         )}
       </Container>
-    </Layout>
+    </Shell>
   );
 };

@@ -47,6 +47,7 @@ import {
   EventAvailable as EventAvailableIcon,
   FolderOpen as FolderOpenIcon,
   LocationOn as LocationOnIcon,
+  LockOutlined as LockOutlinedIcon,
   Login as LogoutIcon,
   Notifications as NotificationsIcon,
   PeopleAlt as PeopleAltIcon,
@@ -76,6 +77,11 @@ import { Layout } from '@components/layout/Layout';
 import '../../styles/dashboardFixedNav.css';
 import SupportWidget from '@components/common/SupportWidget';
 import { SubscriptionSummaryCard } from '@components/common/SubscriptionSummaryCard';
+import { NotificationsPage } from '@pages/dashboard/Notifications';
+import { ApplicationsPage } from '@pages/dashboard/Applications';
+import { SavedJobsPage } from '@pages/dashboard/SavedJobs';
+import { AccountSettings } from '@pages/dashboard/settings/AccountSettings';
+import { MessagingPageContent } from '@pages/Messaging';
 import { ROUTES } from '@constants/index';
 import { useSubscription } from '@hooks/index';
 import { useAuthStore } from '@store/index';
@@ -116,6 +122,23 @@ type SavedJobItem = {
   };
 };
 
+const premiumSidebarFeatures = new Set([
+  'Assessments',
+  'Interview Invites',
+  'Resume Builder',
+  'Mock Interview',
+  'Referrals',
+  'Skill Test',
+  'Certificates',
+  'Portfolio',
+  'Career Preferences',
+  'AI Career Coach',
+  'Job Tracker',
+  'Resume Review',
+]);
+
+const embeddedDashboardViews = new Set(['Notifications', 'Applications', 'Saved Jobs', 'Security Settings', 'Help & Support']);
+
 
 export const Dashboard: React.FC = () => {
   const { user, logout } = useAuthStore();
@@ -148,50 +171,75 @@ export const Dashboard: React.FC = () => {
   const [recommendedJobs, setRecommendedJobs] = useState<any[]>([]);
   const [recommendedLoading, setRecommendedLoading] = useState(false);
   const [savingJobId, setSavingJobId] = useState<string | null>(null);
+  const [premiumFeature, setPremiumFeature] = useState<string | null>(null);
+  const [embeddedView, setEmbeddedView] = useState<string | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+
+  const openEmbeddedView = (label: string) => {
+    setPremiumFeature(null);
+    setEmbeddedView(label);
+    setMobileNavOpen(false);
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  };
+
+  const handleSidebarNavigation = (event: React.MouseEvent<HTMLElement>, label: string) => {
+    if (label === 'Chat') {
+      event.preventDefault();
+      setEmbeddedView(null);
+      setPremiumFeature(null);
+      setChatOpen(true);
+      setMobileNavOpen(false);
+      return;
+    }
+    if (embeddedDashboardViews.has(label)) {
+      event.preventDefault();
+      openEmbeddedView(label);
+      return;
+    }
+    if (!premiumSidebarFeatures.has(label)) return;
+    event.preventDefault();
+    setEmbeddedView(null);
+    setPremiumFeature(label);
+    setMobileNavOpen(false);
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  };
 
   const sidebarItems = useMemo(
     () => [
       { label: 'Dashboard', icon: DashboardIcon, to: ROUTES.DASHBOARD, active: true },
-      { label: 'Notifications', icon: NotificationsIcon, to: ROUTES.DASHBOARD_NOTIFICATIONS, badge: notificationsCount },
-      { label: 'Chat', icon: ChatIcon, to: ROUTES.MESSAGING, badge: unreadMessagesCount },
+      { label: 'My Profile', icon: PersonIcon, to: ROUTES.DASHBOARD_PROFILE },
       { label: 'Jobs', icon: WorkIcon, to: ROUTES.JOBS },
       { label: 'Applications', icon: AssignmentTurnedInIcon, to: ROUTES.DASHBOARD_APPLICATIONS },
       { label: 'Saved Jobs', icon: BookmarkIcon, to: ROUTES.DASHBOARD_SAVED_JOBS },
-      { label: 'Assessments', icon: QuizIcon, to: ROUTES.DASHBOARD_ASSESSMENTS },
+      { label: 'Notifications', icon: NotificationsIcon, to: ROUTES.DASHBOARD_NOTIFICATIONS, badge: notificationsCount },
+      { label: 'Chat', icon: ChatIcon, to: ROUTES.MESSAGING, badge: unreadMessagesCount },
       { label: 'Learning', icon: QuizIcon, to: ROUTES.DASHBOARD_LEARNING },
-      { label: 'Interview Invites', icon: EventAvailableIcon, to: ROUTES.DASHBOARD_APPLICATIONS },
-      { label: 'Referrals', icon: PeopleAltIcon, to: ROUTES.DASHBOARD_REFERRALS },
     ],
     [notificationsCount, unreadMessagesCount],
   );
 
-  const profileItems = useMemo(
+  const toolsItems = useMemo(
     () => [
-      { label: 'My Profile', icon: PersonIcon, to: ROUTES.DASHBOARD_PROFILE },
-      { label: 'Resume Builder', icon: DescriptionIcon, to: '/dashboard/resume-review' },
       { label: 'Skill Test', icon: QuizIcon, to: ROUTES.DASHBOARD_ASSESSMENTS },
       { label: 'Certificates', icon: VerifiedIcon, to: ROUTES.DASHBOARD_PROFILE },
       { label: 'Portfolio', icon: FolderOpenIcon, to: ROUTES.DASHBOARD_PROFILE },
       { label: 'Career Preferences', icon: SettingsSuggestIcon, to: ROUTES.DASHBOARD_SETTINGS },
-    ],
-    [],
-  );
-
-  const toolsItems = useMemo(
-    () => [
       { label: 'AI Career Coach', icon: SmartToyIcon, to: ROUTES.DASHBOARD_AI_CAREER_HUB },
-      { label: 'Mock Interview', icon: VideocamIcon, to: '/dashboard/mock-interviews' },
-      { label: 'Resume Review', icon: RateReviewIcon, to: '/dashboard/resume-review' },
       { label: 'Job Tracker', icon: TimelineIcon, to: ROUTES.DASHBOARD_APPLICATIONS },
+      { label: 'Resume Review', icon: RateReviewIcon, to: '/dashboard/resume-review' },
+      { label: 'Assessments', icon: QuizIcon, to: ROUTES.DASHBOARD_ASSESSMENTS },
+      { label: 'Interview Invites', icon: EventAvailableIcon, to: ROUTES.DASHBOARD_APPLICATIONS },
+      { label: 'Resume Builder', icon: DescriptionIcon, to: '/dashboard/resume-review' },
+      { label: 'Mock Interview', icon: VideocamIcon, to: '/dashboard/mock-interviews' },
+      { label: 'Referrals', icon: PeopleAltIcon, to: ROUTES.DASHBOARD_REFERRALS },
     ],
     [],
   );
 
   const otherItems = useMemo(
     () => [
-      { label: 'Settings', icon: SettingsIcon, to: ROUTES.DASHBOARD_SETTINGS },
+      { label: 'Security Settings', icon: SettingsIcon, to: ROUTES.DASHBOARD_SETTINGS },
       { label: 'Help & Support', icon: SupportAgentIcon, to: ROUTES.DASHBOARD_SETTINGS },
-      { label: 'Logout', icon: LogoutIcon, to: '#', action: 'logout' },
     ],
     [],
   );
@@ -541,14 +589,6 @@ export const Dashboard: React.FC = () => {
     }
   }, []);
 
-  const pipeline = [
-    { label: 'Applied', value: recentApplications.length || 0 },
-    { label: 'Screening', value: Math.max(0, Math.round((recentApplications.length || 0) * 0.34)) },
-    { label: 'Interview', value: Math.max(0, Math.round((recentApplications.length || 0) * 0.18)) },
-    { label: 'Offer', value: Math.max(0, Math.round((recentApplications.length || 0) * 0.08)) },
-    { label: 'Joined', value: 0 },
-  ];
-
   const profileCompletionBreakdown = [
     { label: 'Resume', value: Math.min(100, Math.max(60, profileCompletion)), color: '#D6A73A' },
     { label: 'Skills', value: Math.min(100, Math.max(55, profileCompletion - 8)), color: '#D6A73A' },
@@ -561,18 +601,6 @@ export const Dashboard: React.FC = () => {
 
   const heroScore = Math.min(99, Math.max(35, profileCompletion || 0));
   const profileAvatarUrl = profile?.avatar_url || profile?.profile_image_url || profile?.avatarUrl || profile?.image || profile?.photo || (user as any)?.avatar || (user as any)?.user_metadata?.avatar_url || '';
-
-  const coachRecommendations = useMemo(() => {
-    const items: string[] = [];
-
-    if (!profile?.resume_url && !profile?.resumeUrl) items.push('Upload your latest resume');
-    if (!Array.isArray(profile?.skills) || profile.skills.length < 3) items.push('Add core skills that match your target jobs');
-    if (!profile?.experience && !profile?.work_experience && !profile?.workExperience) items.push('Add your work experience timeline');
-    if (!profile?.bio) items.push('Write a stronger professional summary');
-    if (!profile?.location) items.push('Add your preferred location');
-
-    return items.length > 0 ? items.slice(0, 4) : ['Your profile is strong. Keep refining your skills and résumé.'];
-  }, [profile]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
@@ -625,6 +653,7 @@ export const Dashboard: React.FC = () => {
               key={label}
               component={RouterLink}
               to={to}
+              onClick={(event) => handleSidebarNavigation(event, label)}
               startIcon={<Icon fontSize="small" />}
               className="dash-nav-button"
               sx={{
@@ -633,14 +662,14 @@ export const Dashboard: React.FC = () => {
                 borderRadius: 3,
                 px: 1.2,
                 py: 1.1,
-                color: active ? '#071D35' : '#17324D',
-                background: active ? '#F2F6FB' : 'transparent',
-                fontWeight: active ? 800 : 700,
+                color: active && !premiumFeature && !embeddedView ? '#071D35' : '#17324D',
+                background: active && !premiumFeature && !embeddedView ? '#F2F6FB' : premiumFeature === label || embeddedView === label ? '#FFF7D6' : 'transparent',
+                fontWeight: active && !premiumFeature && !embeddedView ? 800 : 700,
                 textTransform: 'none',
                 minHeight: 46,
-                borderLeft: active ? '3px solid #D6A73A' : '3px solid transparent',
+                borderLeft: active && !premiumFeature && !embeddedView ? '3px solid #D6A73A' : premiumFeature === label || embeddedView === label ? '3px solid #D6A73A' : '3px solid transparent',
                 boxShadow: 'none',
-                '&:hover': { background: active ? '#F2F6FB' : '#F8FAFC' },
+                '&:hover': { background: active && !premiumFeature ? '#F2F6FB' : '#F8FAFC' },
               }}
             >
               <span className="sidebar-button-label">{label}</span>
@@ -653,18 +682,31 @@ export const Dashboard: React.FC = () => {
 
       <Box sx={{ px: 2.2, mt: 1 }}>
         <Stack spacing={0.8}>
-          {profileItems.map(({ label, icon: Icon, to }) => (
-            <Button key={label} className="dash-nav-button" component={RouterLink} to={to} startIcon={<Icon fontSize="small" />} sx={{ justifyContent: 'flex-start', gap: 1.3, borderRadius: 3, px: 1.2, py: 1.1, color: '#1e293b', fontWeight: 700, textTransform: 'none', minHeight: 46, '&:hover': { background: '#f8fafc' } }}>
+          {otherItems.filter(({ label }) => label !== 'Logout').map(({ label, icon: Icon }) => (
+            <Button
+              key={label}
+              className="dash-nav-button"
+              component="button"
+              onClick={() => openEmbeddedView(label)}
+              startIcon={<Icon fontSize="small" />}
+              sx={{ justifyContent: 'flex-start', gap: 1.3, borderRadius: 3, px: 1.2, py: 1.1, color: embeddedView === label ? '#071D35' : '#1e293b', background: embeddedView === label ? '#FFF7D6' : 'transparent', borderLeft: embeddedView === label ? '3px solid #D6A73A' : '3px solid transparent', fontWeight: 700, textTransform: 'none', minHeight: 46, '&:hover': { background: '#f8fafc' } }}
+            >
               <span className="sidebar-button-label">{label}</span>
             </Button>
           ))}
         </Stack>
       </Box>
 
-      <Box sx={{ px: 2.2, mt: 1 }}>
+      <Box sx={{ px: 2.2, mt: 1.4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7, px: 1.2, py: 1.25, mb: 1.1, borderTop: '1px solid rgba(214,167,58,0.28)', borderBottom: '1px solid rgba(214,167,58,0.28)', borderRadius: 1.5, background: 'linear-gradient(90deg, rgba(255,249,232,0.72), rgba(255,255,255,0.18))' }}>
+          <LockOutlinedIcon sx={{ color: '#D6A73A', fontSize: 15 }} />
+          <Typography sx={{ color: '#B8861B', fontSize: 11, fontWeight: 800, letterSpacing: 0.8, textTransform: 'uppercase' }}>
+            Premium Features
+          </Typography>
+        </Box>
         <Stack spacing={0.8}>
           {toolsItems.map(({ label, icon: Icon, to }) => (
-            <Button key={label} className="dash-nav-button" component={RouterLink} to={to} startIcon={<Icon fontSize="small" />} sx={{ justifyContent: 'flex-start', gap: 1.3, borderRadius: 3, px: 1.2, py: 1.1, color: '#1e293b', fontWeight: 700, textTransform: 'none', minHeight: 46, '&:hover': { background: '#f8fafc' } }}>
+            <Button key={label} className="dash-nav-button" component={RouterLink} to={to} onClick={(event) => handleSidebarNavigation(event, label)} startIcon={<Icon fontSize="small" />} sx={{ justifyContent: 'flex-start', gap: 1.3, borderRadius: 3, px: 1.2, py: 1.1, color: premiumFeature === label ? '#071D35' : '#1e293b', background: premiumFeature === label ? '#FFF7D6' : 'transparent', borderLeft: premiumFeature === label ? '3px solid #D6A73A' : '3px solid transparent', fontWeight: 700, textTransform: 'none', minHeight: 46, '&:hover': { background: '#f8fafc' } }}>
               <span className="sidebar-button-label">{label}</span>
             </Button>
           ))}
@@ -673,19 +715,15 @@ export const Dashboard: React.FC = () => {
 
       <Box sx={{ px: 2.2, mt: 'auto' }}>
         <Stack spacing={0.8}>
-          {otherItems.map(({ label, icon: Icon, to, action }) => (
-            <Button
-              key={label}
-              className="dash-nav-button"
-              component={action === 'logout' ? 'button' : RouterLink}
-              to={action === 'logout' ? undefined : to}
-              onClick={action === 'logout' ? handleSignout : undefined}
-              startIcon={<Icon fontSize="small" />}
-              sx={{ justifyContent: 'flex-start', gap: 1.3, borderRadius: 3, px: 1.2, py: 1.1, color: '#1e293b', fontWeight: 700, textTransform: 'none', minHeight: 46, '&:hover': { background: '#f8fafc' } }}
-            >
-              <span className="sidebar-button-label">{label}</span>
-            </Button>
-          ))}
+          <Button
+            className="dash-nav-button"
+            component="button"
+            onClick={handleSignout}
+            startIcon={<LogoutIcon fontSize="small" />}
+            sx={{ justifyContent: 'flex-start', gap: 1.3, borderRadius: 3, px: 1.2, py: 1.1, color: '#1e293b', fontWeight: 700, textTransform: 'none', minHeight: 46, '&:hover': { background: '#f8fafc' } }}
+          >
+            <span className="sidebar-button-label">Logout</span>
+          </Button>
         </Stack>
         <Box sx={{ mt: 2.5, p: 1.5, borderRadius: 2, bgcolor: '#FFF9E8', border: '1px solid rgba(214,167,58,0.2)' }}>
           <Typography sx={{ color: '#D6A73A', fontSize: 18, lineHeight: 1 }}>♛</Typography>
@@ -709,6 +747,30 @@ export const Dashboard: React.FC = () => {
         {!isMobile && renderSidebar()}
 
         <Box className="dashboard-content">
+          {embeddedView ? (
+            <Box sx={{ width: '100%', minWidth: 0, '& > .MuiContainer-root': { maxWidth: 'none', px: { xs: 0, md: 1 } } }}>
+              {embeddedView === 'Notifications' && <NotificationsPage embedded />}
+              {embeddedView === 'Applications' && <ApplicationsPage embedded />}
+              {embeddedView === 'Saved Jobs' && <SavedJobsPage embedded />}
+              {embeddedView === 'Security Settings' && <AccountSettings />}
+              {embeddedView === 'Help & Support' && <SupportWidget audience="candidate" showFab={false} embedded />}
+            </Box>
+          ) : premiumFeature ? (
+            <Card sx={{ width: '100%', minHeight: { xs: 520, md: 680 }, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 4, border: '1px solid rgba(214,167,58,0.25)', background: 'linear-gradient(135deg, #FFFDF5 0%, #FFFFFF 52%, #F4F8FF 100%)', boxShadow: '0 18px 40px rgba(15,23,42,0.08)' }}>
+              <CardContent sx={{ width: '100%', maxWidth: 760, textAlign: 'center', px: { xs: 2.5, md: 5 }, py: { xs: 4, md: 6 } }}>
+                <Box component="img" src="/images/Premium.svg" alt="Premium membership" sx={{ display: 'block', width: { xs: 260, md: 390 }, maxWidth: '100%', height: 'auto', mb: { xs: -3, md: -6 }, mx: 'auto' }} />
+                <Typography sx={{ color: '#071D35', fontSize: { xs: 24, md: 32 }, fontWeight: 800, mb: 1.2 }}>
+                  {premiumFeature} is a Premium feature
+                </Typography>
+                <Typography sx={{ color: '#64748B', fontSize: { xs: 14, md: 16 }, lineHeight: 1.7, mb: 3, maxWidth: 720, mx: 'auto' }}>
+                  This feature is available exclusively to Premium candidates. Upgrade your plan to unlock it and make the most of your JobPoyt experience.
+                </Typography>
+                <Button onClick={() => navigate(ROUTES.PRICING)} variant="contained" sx={{ borderRadius: 2, px: 3.5, py: 1.2, background: 'linear-gradient(135deg, #FFF1A8 0%, #F7D774 28%, #D6A73A 62%, #F7D774 82%, #FFF1A8 100%) !important', backgroundColor: 'transparent !important', color: '#5B3A00 !important', textTransform: 'none', fontWeight: 800, boxShadow: '0 4px 12px rgba(214,167,58,0.18), inset 0 1px 0 rgba(255,255,255,0.85), inset 0 -1px 0 rgba(154,112,23,0.2)', border: '1px solid rgba(183,135,27,0.45)', '&.MuiButton-contained:hover': { background: 'linear-gradient(135deg, #FFF7C7 0%, #FFE89A 28%, #E5B94E 62%, #FFE89A 82%, #FFF7C7 100%) !important', boxShadow: '0 5px 14px rgba(214,167,58,0.22), inset 0 1px 0 rgba(255,255,255,0.9)' } }}>
+                  Upgrade to Premium
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
           <Box sx={{ width: '100%', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'stretch' }}>
             <Box sx={{ width: '100%', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
               <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: 'easeOut' }}>
@@ -780,7 +842,6 @@ export const Dashboard: React.FC = () => {
                             {Math.min(100, profileCompletion) >= 100 ? 'Edit Profile' : 'Complete Profile'}
                           </Button>
                           <Button onClick={() => navigate(ROUTES.JOBS)} sx={{ borderRadius: 999, textTransform: 'none', fontWeight: 800, px: { xs: 1, md: 1.6 }, py: { xs: 0.35, md: 0.7 }, color: '#fff', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.22)', boxShadow: 'none', '&:hover': { background: 'rgba(255,255,255,0.18)', boxShadow: 'none' }, fontSize: { xs: 10.5, md: 13 } }}>Browse Jobs</Button>
-                          <Button onClick={() => navigate(ROUTES.DASHBOARD_APPLICATIONS)} sx={{ borderRadius: 999, textTransform: 'none', fontWeight: 800, px: { xs: 1, md: 1.6 }, py: { xs: 0.35, md: 0.7 }, color: '#fff', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.22)', boxShadow: 'none', '&:hover': { background: 'rgba(255,255,255,0.18)', boxShadow: 'none' }, fontSize: { xs: 10.5, md: 13 } }}>My Applications</Button>
 
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 0.5 }}>
                             <Badge badgeContent={notificationsCount || 0} color="error" overlap="circular">
@@ -1234,7 +1295,7 @@ export const Dashboard: React.FC = () => {
               </Grid>
 
               <Grid container spacing={3}>
-                <Grid item xs={12} lg={8}>
+                <Grid item xs={12}>
                   <Card sx={{ borderRadius: 4, border: '1px solid rgba(148,163,184,0.18)', boxShadow: '0 18px 34px rgba(15,23,42,0.04)', height: '100%', overflow: 'hidden' }}>
                     <Box sx={{ height: 4, background: '#071D35' }} />
                     <CardContent sx={{ p: 2.5 }}>
@@ -1262,7 +1323,7 @@ export const Dashboard: React.FC = () => {
                         </Box>
                         <Button
                           component={RouterLink}
-                          to="/dashboard/recommended-jobs"
+                          to={ROUTES.JOBS}
                           endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
                           sx={{ textTransform: 'none', fontWeight: 700, color: '#1d4ed8', borderRadius: 2 }}
                         >
@@ -1493,30 +1554,6 @@ export const Dashboard: React.FC = () => {
                   </Card>
                 </Grid>
 
-                <Grid item xs={12} lg={4}>
-                  <Card sx={{ borderRadius: 4, border: '1px solid rgba(148,163,184,0.18)', boxShadow: '0 18px 34px rgba(15,23,42,0.04)', height: '100%' }}>
-                    <CardContent sx={{ p: 2.5 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                        <Typography sx={{ fontSize: 24, fontWeight: 800, color: '#0F172A', letterSpacing: '-0.04em' }}>AI Career Coach</Typography>
-                        <AutoAwesomeIcon sx={{ color: '#D6A73A' }} />
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2.4 }}>
-                        <Box sx={{ position: 'relative', width: 126, height: 126, borderRadius: '50%', background: `conic-gradient(#2563eb 0deg ${heroScore * 3.6}deg, rgba(37,99,235,0.12) ${heroScore * 3.6}deg 360deg)`, display: 'grid', placeItems: 'center' }}>
-                          <Box sx={{ width: 90, height: 90, borderRadius: '50%', display: 'grid', placeItems: 'center', background: '#fff', color: '#0f172a', fontWeight: 800, fontSize: 28 }}>{Math.round(heroScore)}</Box>
-                        </Box>
-                      </Box>
-                      <Stack spacing={1.2}>
-                        {coachRecommendations.map((tip) => (
-                          <Box key={tip} sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#334155', fontWeight: 600 }}>
-                            <CheckCircleIcon sx={{ color: '#22c55e', fontSize: 18 }} />
-                            {tip}
-                          </Box>
-                        ))}
-                      </Stack>
-                      <Button component={RouterLink} to={ROUTES.DASHBOARD_AI_CAREER_HUB} variant="contained" sx={{ mt: 2.2, width: '100%', borderRadius: 2, background: '#071D35', textTransform: 'none', fontWeight: 800 }}>Improve Profile</Button>
-                    </CardContent>
-                  </Card>
-                </Grid>
               </Grid>
 
               <Grid container spacing={3}>
@@ -1547,7 +1584,7 @@ export const Dashboard: React.FC = () => {
                           </Box>
                         </Box>
                         <Button
-                          onClick={() => navigate(ROUTES.DASHBOARD_NOTIFICATIONS)}
+                          onClick={() => navigate(ROUTES.DASHBOARD_APPLICATIONS)}
                           endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
                           sx={{ textTransform: 'none', fontWeight: 700, color: '#1d4ed8', borderRadius: 2 }}
                         >
@@ -1666,23 +1703,6 @@ export const Dashboard: React.FC = () => {
                   <Stack spacing={3}>
                     <Card sx={{ borderRadius: 4, border: '1px solid rgba(148,163,184,0.18)', boxShadow: '0 18px 34px rgba(15,23,42,0.04)' }}>
                       <CardContent sx={{ p: 2.5 }}>
-                        <Typography sx={{ fontSize: 24, fontWeight: 800, color: '#0F172A', mb: 2, letterSpacing: '-0.04em' }}>Application Pipeline</Typography>
-                        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0,1fr))', gap: 1.2, mb: 2 }}>
-                          {pipeline.map((step, index) => (
-                            <Box key={step.label} sx={{ textAlign: 'center' }}>
-                              <Box sx={{ height: 10, background: index === 0 ? '#2563EB' : '#e2e8f0', borderRadius: 999, mb: 1 }} />
-                              <Typography sx={{ fontSize: 12, color: '#334155', fontWeight: 700 }}>{step.label}</Typography>
-                              <Typography sx={{ fontSize: 22, fontWeight: 800, color: '#0f172a' }}>{step.value}</Typography>
-                            </Box>
-                          ))}
-                        </Box>
-                        <Typography sx={{ color: '#2563EB', fontWeight: 800 }}>Win more opportunities</Typography>
-                        <Button variant="contained" onClick={() => navigate(ROUTES.DASHBOARD_ASSESSMENTS)} sx={{ mt: 2, borderRadius: 2, background: '#071D35', textTransform: 'none', fontWeight: 800 }}>Take Assessment</Button>
-                      </CardContent>
-                    </Card>
-
-                    <Card sx={{ borderRadius: 4, border: '1px solid rgba(148,163,184,0.18)', boxShadow: '0 18px 34px rgba(15,23,42,0.04)' }}>
-                      <CardContent sx={{ p: 2.5 }}>
                         <Typography sx={{ fontSize: 24, fontWeight: 800, color: '#0F172A', mb: 2, letterSpacing: '-0.04em' }}>Profile Completion</Typography>
                         <Stack spacing={1.5}>
                           {profileCompletionBreakdown.map((item) => (
@@ -1740,6 +1760,7 @@ export const Dashboard: React.FC = () => {
               </Grid>
             </Box>
           </Box>
+          )}
         </Box>
 
         <Menu anchorEl={profileMenuAnchorEl} open={Boolean(profileMenuAnchorEl)} onClose={closeProfileMenu} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }}>
@@ -1751,6 +1772,13 @@ export const Dashboard: React.FC = () => {
         </Menu>
       </Box>
 
+      {chatOpen && user?.id && (
+        <MessagingPageContent
+          userId={user.id}
+          userRole="candidate"
+          onClose={() => setChatOpen(false)}
+        />
+      )}
       <SupportWidget audience="candidate" showFab={false} open={supportOpen} onClose={() => setSupportOpen(false)} />
     </Layout>
   );

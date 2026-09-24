@@ -4,10 +4,10 @@ import { Layout } from '@components/layout/Layout';
 import { useAuthStore } from '@store/index';
 import { notificationService } from '@services/api';
 import { formatDate } from '@utils/index';
-import { ROUTES } from '@constants/index';
 
-export const NotificationsPage: React.FC = () => {
+export const NotificationsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
   const { user } = useAuthStore();
+  const Shell = embedded ? React.Fragment : Layout;
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,7 +29,7 @@ export const NotificationsPage: React.FC = () => {
   }, [user?.id]);
 
   return (
-    <Layout>
+    <Shell>
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
@@ -97,6 +97,6 @@ export const NotificationsPage: React.FC = () => {
           </CardContent>
         </Card>
       </Container>
-    </Layout>
+    </Shell>
   );
 };
