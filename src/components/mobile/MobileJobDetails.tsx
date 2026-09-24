@@ -2,7 +2,6 @@ import React from 'react';
 import { Box, Container, Card, CardContent, Typography, Button, Chip } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import {
-  ArrowBack as ArrowBackIcon,
   Bookmark as BookmarkIcon,
   BookmarkBorder as BookmarkBorderIcon,
 } from '@mui/icons-material';
@@ -100,14 +99,7 @@ export const MobileJobDetails: React.FC<JobDetailsProps> = ({
   return (
     <MobileLayout>
       <Container maxWidth="sm" sx={{ py: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Button
-            onClick={() => navigate(-1)}
-            startIcon={<ArrowBackIcon />}
-            sx={{ color: 'text.primary', textTransform: 'none' }}
-          >
-            Back
-          </Button>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
           <Button
             onClick={handleSave}
             startIcon={saved ? <BookmarkIcon /> : <BookmarkBorderIcon />}

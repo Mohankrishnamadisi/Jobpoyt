@@ -521,7 +521,7 @@ export const JobDetails: React.FC = () => {
   };
 
   return (
-    <Layout backTo={backTo}>
+    <Layout>
       <SEO
         title={jobTitle && companyName ? `${jobTitle} at ${companyName} | JobPoyt` : 'Job Details | JobPoyt'}
         description={jobDescription ? jobDescription.slice(0, 160) : 'View job details and application information on JobPoyt.'}

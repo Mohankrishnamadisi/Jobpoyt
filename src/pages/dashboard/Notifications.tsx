@@ -29,7 +29,7 @@ export const NotificationsPage: React.FC = () => {
   }, [user?.id]);
 
   return (
-    <Layout backTo={ROUTES.DASHBOARD}>
+    <Layout>
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>

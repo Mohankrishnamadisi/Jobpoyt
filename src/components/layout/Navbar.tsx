@@ -44,12 +44,11 @@ import InstallApp from '@components/InstallApp/InstallApp';
 import { useSubscription, useThemeMode } from '@hooks/index';
 import SupportWidget from '@components/common/SupportWidget';
 import { supportService } from '@services/support';
-import { AnimatedBackButton } from '@components/common/AnimatedBackButton';
 import '../../styles/navbarPremiumButton.css';
 
 const MotionBox = motion(Box);
 
-export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
+export const Navbar: React.FC = () => {
   const { user, logout } = useAuthStore();
   const { subscription } = useSubscription(user?.id || null);
   const { setThemeMode } = useThemeMode();
@@ -64,7 +63,6 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
       && user.role === USER_ROLES.JOB_SEEKER
       && subscription
   );
-  const canGoBack = location.pathname !== ROUTES.HOME && location.pathname !== '/';
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [mobileAnchor, setMobileAnchor] = useState<null | HTMLElement>(null);
   const [exploreAnchor, setExploreAnchor] = useState<null | HTMLElement>(null);
@@ -279,12 +277,6 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
       ? ROUTES.RECRUITER_DASHBOARD
       : ROUTES.DASHBOARD;
 
-  const getCurrentHashRoute = () => {
-    const hash = window.location.hash || '';
-    const route = hash.startsWith('#') ? hash.slice(1) : hash;
-    return route || '/';
-  };
-
   const handleNotificationsClick = async (event: React.MouseEvent<HTMLElement>) => {
     setNotificationAnchor(event.currentTarget);
     if (!user?.id) return;
@@ -302,36 +294,6 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
   };
 
   const handleNotificationsClose = () => setNotificationAnchor(null);
-
-  const handleBackNavigation = () => {
-    // If a specific back destination is provided, navigate directly to it
-    if (backTo) {
-      navigate(backTo, { replace: true });
-      return;
-    }
-
-    const fallbackRoute = user ? dashboardRoute : ROUTES.HOME;
-
-    if (user?.role === USER_ROLES.JOB_SEEKER && location.pathname.startsWith('/dashboard/')) {
-      navigate(ROUTES.DASHBOARD, { replace: true });
-      return;
-    }
-
-    if (window.history.length > 1) {
-      const beforeRoute = getCurrentHashRoute();
-      window.history.back();
-
-      window.setTimeout(() => {
-        const afterRoute = getCurrentHashRoute();
-        if (afterRoute === beforeRoute) {
-          navigate(fallbackRoute, { replace: true });
-        }
-      }, 180);
-      return;
-    }
-
-    navigate(fallbackRoute, { replace: true });
-  };
 
   return (
     <AppBar
@@ -368,24 +330,6 @@ export const Navbar: React.FC<{ backTo?: string }> = ({ backTo }) => {
               flexShrink: 0,
             }}
           >
-            {canGoBack && (
-              <Box
-                className={isDarkMode ? 'navbar-dark-mode' : undefined}
-                onClick={handleBackNavigation}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  transform: { xs: 'none', md: 'scale(0.62)' },
-                  transformOrigin: 'left center',
-                  zoom: { xs: 0.62, md: 'normal' },
-                  ml: { xs: -1, md: -1 },
-                  cursor: 'pointer',
-                  color: isDarkMode ? '#E2E8F0' : '#334155',
-                }}
-              >
-                <AnimatedBackButton onClick={handleBackNavigation} ariaLabel="Go back" />
-              </Box>
-            )}
             <Logo size={isXs ? 'small' : 'medium'} />
           </Box>
 
