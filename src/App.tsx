@@ -114,6 +114,11 @@ const RouteScrollRestoration: React.FC = () => {
   return null;
 };
 
+const AppNotificationAlerts: React.FC<{ userId: string | null }> = ({ userId }) => {
+  useNotificationAlerts(userId);
+  return null;
+};
+
 const RoleDashboard: React.FC = () => {
   const { user } = useAuthStore();
   const { subscription, loading: subscriptionLoading } = useSubscription(user?.id || null);
@@ -392,7 +397,6 @@ const AppContent: React.FC = () => {
   const { setUser, setLoading, user } = useAuthStore();
   const isMobileView = useMediaQuery('(max-width: 767.95px)');
 
-  useNotificationAlerts(user?.id || null);
   useSubscriptionRenewalAlerts(user?.id || null);
 
   useEffect(() => {
@@ -463,7 +467,7 @@ const AppContent: React.FC = () => {
     };
 
     checkForUpdatedBuild();
-    const timer = window.setInterval(checkForUpdatedBuild, 60000);
+    const timer = window.setInterval(checkForUpdatedBuild, 15 * 60 * 1000);
     window.addEventListener('app-sw-update-available', onSwUpdateAvailable);
 
     return () => {
@@ -596,6 +600,7 @@ const AppContent: React.FC = () => {
       <Toaster position="top-center" />
       <GlobalApiLoader />
       <Router>
+        <AppNotificationAlerts userId={user?.id || null} />
         <RouteScrollRestoration />
         {isMobileView ? (
           <MobileAppShell>

@@ -1,12 +1,14 @@
 import { useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { notificationService } from '@services/api';
 
 export const useNotificationAlerts = (userId: string | null) => {
+  const location = useLocation();
   const seenNotificationIds = useRef<string[]>([]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || location.pathname === '/dashboard/learning') return;
     let mounted = true;
 
     const loadInitialNotifications = async () => {
@@ -52,11 +54,11 @@ export const useNotificationAlerts = (userId: string | null) => {
       if (document.visibilityState === 'visible') {
         pollNotifications();
       }
-    }, 60000);
+    }, 15 * 60 * 1000);
 
     return () => {
       mounted = false;
       window.clearInterval(interval);
     };
-  }, [userId]);
+  }, [userId, location.pathname]);
 };

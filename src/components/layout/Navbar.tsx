@@ -110,7 +110,7 @@ export const Navbar: React.FC = () => {
       if (document.visibilityState === 'visible') {
         refreshUnreadNotifications();
       }
-    }, 30000);
+    }, 15 * 60 * 1000);
 
     return () => {
       mounted = false;
