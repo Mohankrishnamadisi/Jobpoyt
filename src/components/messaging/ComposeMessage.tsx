@@ -101,10 +101,10 @@ export const ComposeMessage: React.FC<ComposeMessageProps> = ({ conversationId, 
             width: 42,
             height: 42,
             borderRadius: 2,
-            background: 'rgba(59,130,246,0.08)',
-            color: '#2563eb',
-            border: '1px solid rgba(59,130,246,0.12)',
-            '&:hover': { background: 'rgba(59,130,246,0.12)' },
+            background: '#E8F1F8',
+            color: '#0F6B9A',
+            border: '1px solid #C9DCEB',
+            '&:hover': { background: '#DCEBF5' },
           }}
         >
           <AttachFileIcon fontSize="small" />
@@ -127,19 +127,19 @@ export const ComposeMessage: React.FC<ComposeMessageProps> = ({ conversationId, 
           fullWidth
           sx={{
             '& .MuiOutlinedInput-root': {
-              borderRadius: 3,
+              borderRadius: 2.5,
               background: '#fff',
               minHeight: 46,
               fontSize: 14,
               '& fieldset': {
-                borderColor: 'rgba(148, 163, 184, 0.24)',
+                borderColor: '#C9D8E6',
               },
               '&:hover fieldset': {
-                borderColor: 'rgba(59, 130, 246, 0.3)',
+                borderColor: '#7EA4C5',
               },
               '&.Mui-focused fieldset': {
-                borderColor: '#60a5fa',
-                boxShadow: '0 0 0 3px rgba(96,165,250,0.12)',
+                borderColor: '#D6A73A',
+                boxShadow: '0 0 0 3px rgba(214,167,58,0.12)',
               },
             },
           }}
@@ -152,10 +152,10 @@ export const ComposeMessage: React.FC<ComposeMessageProps> = ({ conversationId, 
             width: 46,
             height: 46,
             borderRadius: 2.5,
-            background: 'linear-gradient(135deg, #2563eb, #4f46e5)',
+            background: 'linear-gradient(135deg, #0B2745, #0F6B9A)',
             color: '#fff',
-            boxShadow: '0 12px 24px rgba(59,130,246,0.22)',
-            '&:hover': { background: 'linear-gradient(135deg, #1d4ed8, #4338ca)' },
+            boxShadow: '0 10px 20px rgba(15,107,154,0.22)',
+            '&:hover': { background: 'linear-gradient(135deg, #123B5D, #0F6B9A)' },
             '&.Mui-disabled': { background: 'rgba(148,163,184,0.25)', color: '#fff', boxShadow: 'none' },
           }}
         >

@@ -16,6 +16,7 @@ import {
 import {
   ArrowBack as ArrowBackIcon,
   Edit as EditIcon,
+  Circle as CircleIcon,
 } from '@mui/icons-material';
 import { messagingService, Message, Conversation } from '@services/messaging';
 import ComposeMessage from './ComposeMessage';
@@ -182,16 +183,16 @@ export const MessageDetail: React.FC<MessageDetailProps> = ({
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'rgba(255,255,255,0.72)' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: '#FFFFFF' }}>
       <Box
         sx={{
           px: 2,
-          py: 1.5,
-          borderBottom: '1px solid rgba(148, 163, 184, 0.18)',
+          py: 1.25,
+          borderBottom: '1px solid #DCE6F0',
           display: 'flex',
           alignItems: 'center',
           gap: 1.25,
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.88), rgba(239,246,255,0.72))',
+          background: 'linear-gradient(115deg, #071D35 0%, #0B3558 65%, #126B8F 100%)',
         }}
       >
         <IconButton
@@ -200,9 +201,9 @@ export const MessageDetail: React.FC<MessageDetailProps> = ({
             width: 36,
             height: 36,
             borderRadius: '50%',
-            background: 'rgba(59,130,246,0.08)',
-            color: '#1d4ed8',
-            '&:hover': { background: 'rgba(59,130,246,0.12)' },
+            background: 'rgba(255,255,255,0.12)',
+            color: '#fff',
+            '&:hover': { background: 'rgba(255,255,255,0.2)' },
           }}
         >
           <ArrowBackIcon fontSize="small" />
@@ -214,8 +215,8 @@ export const MessageDetail: React.FC<MessageDetailProps> = ({
           sx={{
             width: 42,
             height: 42,
-            bgcolor: conversation.participantAvatar ? 'transparent' : 'linear-gradient(135deg, #2563eb, #7c3aed)',
-            border: '1px solid rgba(148,163,184,0.2)',
+            bgcolor: conversation.participantAvatar ? 'transparent' : '#D6A73A',
+            border: '2px solid rgba(255,255,255,0.65)',
             fontWeight: 700,
           }}
         >
@@ -223,12 +224,13 @@ export const MessageDetail: React.FC<MessageDetailProps> = ({
         </Avatar>
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#fff', lineHeight: 1.2 }}>
             {conversation.participantName}
           </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.72)' }}>
             {conversation.participantRole}
           </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, mt: 0.25, color: '#B8F0D0', fontSize: 10, fontWeight: 700 }}><CircleIcon sx={{ fontSize: 7 }} /> Active conversation</Box>
         </Box>
       </Box>
 
@@ -236,12 +238,13 @@ export const MessageDetail: React.FC<MessageDetailProps> = ({
         sx={{
           flex: 1,
           overflowY: 'auto',
+          overscrollBehavior: 'contain',
           px: { xs: 1.5, sm: 2.5 },
           py: 2,
           display: 'flex',
           flexDirection: 'column',
           gap: { xs: 1, sm: 1.2 },
-          background: 'linear-gradient(180deg, rgba(248,250,252,0.6), rgba(255,255,255,0.7))',
+          background: 'radial-gradient(circle at 20% 0%, rgba(214,167,58,0.08), transparent 28%), linear-gradient(180deg, #F7FAFC, #EDF3F7)',
         }}
       >
         {loading && <Typography variant="body2" sx={{ color: 'text.secondary', textAlign: 'center', py: 2 }}>Loading messages...</Typography>}
@@ -505,7 +508,7 @@ export const MessageDetail: React.FC<MessageDetailProps> = ({
         <div ref={messagesEndRef} />
       </Box>
 
-      <Box sx={{ borderTop: '1px solid rgba(148, 163, 184, 0.18)', p: 2, background: 'rgba(248,250,252,0.9)' }}>
+      <Box sx={{ borderTop: '1px solid #DCE6F0', p: { xs: 1, sm: 1.4 }, background: '#F8FBFD' }}>
         <ComposeMessage conversationId={conversation.id} onSend={handleSendMessage} disabled={!!conversation.isBlocked} />
       </Box>
 

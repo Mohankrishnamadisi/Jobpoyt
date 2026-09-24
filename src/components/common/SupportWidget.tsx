@@ -91,6 +91,46 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({
     return 'Candidate Support Desk';
   }, [audience]);
 
+  const fieldSx = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 2,
+      bgcolor: isDarkMode ? '#111827' : '#FFFFFF',
+      '& fieldset': { borderColor: isDarkMode ? '#475569' : '#CBD8E5' },
+      '&:hover fieldset': { borderColor: '#7EA4C5' },
+      '&.Mui-focused fieldset': { borderColor: '#D6A73A', borderWidth: 2 },
+    },
+    '& .MuiInputLabel-root': { color: isDarkMode ? '#CBD5E1' : '#64748B', fontWeight: 600 },
+    '& .MuiInputLabel-root.Mui-focused': { color: '#9A7017' },
+    '& .MuiSelect-select': { fontWeight: 600 },
+  };
+
+  const menuItemSx = {
+    mx: 0.6,
+    my: 0.25,
+    minHeight: 38,
+    borderRadius: 1.5,
+    color: isDarkMode ? '#E2E8F0' : '#17324D',
+    fontSize: 14,
+    fontWeight: 600,
+    '&:hover': { bgcolor: isDarkMode ? 'rgba(56,189,248,0.14)' : '#EEF6FB', color: '#0F6B9A' },
+    '&.Mui-selected': { bgcolor: isDarkMode ? 'rgba(214,167,58,0.2)' : '#FFF4D6', color: isDarkMode ? '#F7D774' : '#8A6412', fontWeight: 800 },
+    '&.Mui-selected:hover': { bgcolor: isDarkMode ? 'rgba(214,167,58,0.28)' : '#FFEDB0' },
+  };
+
+  const menuProps = {
+    PaperProps: {
+      sx: {
+        mt: 0.7,
+        p: 0.45,
+        border: `1px solid ${isDarkMode ? '#475569' : '#D7E3EC'}`,
+        borderRadius: 2,
+        boxShadow: '0 14px 28px rgba(15,35,63,0.14)',
+        maxHeight: 280,
+        bgcolor: isDarkMode ? '#111827' : '#FFFFFF',
+      },
+    },
+  };
+
   const loadTickets = async () => {
     setLoading(true);
     try {
@@ -266,25 +306,37 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({
       >
         <DialogTitle
           sx={{
-            pb: 1.4,
-            background: isDarkMode
-              ? 'linear-gradient(135deg, #111827 0%, #0F172A 100%)'
-              : 'linear-gradient(135deg, rgba(37,99,235,0.12) 0%, rgba(16,185,129,0.1) 100%)',
-            borderBottom: `1px solid ${isDarkMode ? '#334155' : 'rgba(37, 99, 235, 0.15)'}`,
+            px: { xs: 2, md: 2.5 },
+            py: { xs: 1.5, md: 1.8 },
+            color: '#fff',
+            background: 'linear-gradient(115deg, #071D35 0%, #0B3558 58%, #126B8F 100%)',
+            borderBottom: 'none',
+            position: 'relative',
+            overflow: 'hidden',
+            '&::after': { content: '""', position: 'absolute', width: 190, height: 190, borderRadius: '50%', right: -70, top: -115, background: 'rgba(214,167,58,0.2)' },
           }}
         >
-          <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
-            <Stack direction="row" spacing={1} alignItems="center">
-              <HeadsetMicIcon color="primary" />
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                Customer Care Support
-              </Typography>
+          <Stack direction="row" spacing={1.2} alignItems="center" justifyContent="space-between" sx={{ position: 'relative', zIndex: 1 }}>
+            <Stack direction="row" spacing={1.1} alignItems="center">
+              <Box sx={{ width: 36, height: 36, borderRadius: 2, display: 'grid', placeItems: 'center', bgcolor: 'rgba(255,255,255,0.14)', color: '#F7D774' }}>
+                <HeadsetMicIcon sx={{ fontSize: 20 }} />
+              </Box>
+              <Box>
+                <Typography sx={{ display: 'inline-flex', px: 0.8, py: 0.2, mb: 0.3, borderRadius: 1, bgcolor: 'rgba(255,255,255,0.14)', color: '#F7D774', fontSize: 9, fontWeight: 900, letterSpacing: 1 }}>
+                  CUSTOMER CARE
+                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: 900, lineHeight: 1.15, color: '#fff' }}>
+                  Customer Care Support
+                </Typography>
+                <Typography variant="caption" sx={{ display: 'block', mt: 0.25, color: 'rgba(255,255,255,0.76)' }}>
+                  We&apos;re here to help you move forward.
+                </Typography>
+              </Box>
             </Stack>
             <Chip
               label={contactLabel}
-              color="info"
               size="small"
-              sx={{ fontWeight: 700, bgcolor: isDarkMode ? 'rgba(56, 189, 248, 0.16)' : 'rgba(3, 105, 161, 0.14)', color: isDarkMode ? '#BAE6FD' : undefined }}
+              sx={{ fontWeight: 800, bgcolor: 'rgba(255,255,255,0.14)', color: '#fff', border: '1px solid rgba(255,255,255,0.24)' }}
             />
           </Stack>
         </DialogTitle>
@@ -347,9 +399,11 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({
                   label="Category"
                   value={form.category}
                   onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}
+                  sx={fieldSx}
+                  SelectProps={{ MenuProps: menuProps }}
                 >
                   {CATEGORY_OPTIONS.map((option) => (
-                    <MenuItem key={option} value={option}>{option}</MenuItem>
+                    <MenuItem sx={menuItemSx} key={option} value={option}>{option}</MenuItem>
                   ))}
                 </TextField>
 
@@ -359,9 +413,11 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({
                   label="Priority"
                   value={form.priority}
                   onChange={(e) => setForm((prev) => ({ ...prev, priority: e.target.value }))}
+                  sx={fieldSx}
+                  SelectProps={{ MenuProps: menuProps }}
                 >
                   {PRIORITY_OPTIONS.map((option) => (
-                    <MenuItem key={option} value={option}>{option.toUpperCase()}</MenuItem>
+                    <MenuItem sx={menuItemSx} key={option} value={option}>{option.toUpperCase()}</MenuItem>
                   ))}
                 </TextField>
               </Stack>
@@ -371,6 +427,7 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({
                 fullWidth
                 value={form.subject}
                 onChange={(e) => setForm((prev) => ({ ...prev, subject: e.target.value }))}
+                sx={fieldSx}
               />
 
               <TextField
@@ -380,6 +437,7 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({
                 fullWidth
                 value={form.message}
                 onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
+                sx={fieldSx}
               />
 
               <Box>
@@ -581,6 +639,7 @@ const SupportWidget: React.FC<SupportWidgetProps> = ({
                     fullWidth
                     value={userComment}
                     onChange={(e) => setUserComment(e.target.value)}
+                    sx={fieldSx}
                   />
                   {ticketCommentError ? <Alert severity="error">{ticketCommentError}</Alert> : null}
                 </>

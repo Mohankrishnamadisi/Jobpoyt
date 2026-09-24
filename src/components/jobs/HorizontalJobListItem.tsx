@@ -106,7 +106,10 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
 
   const handleApplyClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (applied) return;
+    if (applied) {
+      window.open(`/jobs/${job.id}`, '_blank', 'noopener,noreferrer');
+      return;
+    }
     window.open(`/jobs/${job.id}`, '_blank', 'noopener,noreferrer');
   };
 

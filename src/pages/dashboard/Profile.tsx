@@ -148,19 +148,22 @@ const SectionCard: React.FC<{
       borderRadius: 3,
       background: isDarkMode ? '#0B0F17' : undefined,
       border: `1px solid ${isDarkMode ? '#263244' : '#e2e8f0'}`,
-      boxShadow: isDarkMode ? '0 1px 3px rgba(0,0,0,0.35)' : '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06)',
+      boxShadow: isDarkMode ? '0 8px 24px rgba(0,0,0,0.28)' : '0 10px 26px rgba(15,35,63,0.055)',
+      overflow: 'hidden',
+      position: 'relative',
       transition: 'box-shadow 0.2s ease, transform 0.2s ease',
       scrollMarginTop: 80,
+      '&::before': { content: '""', position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, background: 'linear-gradient(180deg, #D6A73A, #0F6B9A)' },
       '&:hover': {
         boxShadow: isDarkMode ? '0 4px 16px rgba(0,0,0,0.55)' : '0 4px 16px rgba(0,0,0,0.1)',
         transform: 'translateY(-1px)',
       },
     }}
   >
-    <CardContent sx={{ p: { xs: 2.25, md: 3 } }}>
+    <CardContent sx={{ p: { xs: 2.25, md: 3 }, pl: { xs: 2.75, md: 3.5 } }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Box sx={{ width: 4, height: 22, borderRadius: 2, bgcolor: '#0f9f9a' }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ width: 32, height: 32, borderRadius: 2, display: 'grid', placeItems: 'center', bgcolor: '#E8F1F8', color: '#0F6B9A', fontSize: 14, fontWeight: 900 }}>•</Box>
           <Typography variant="h6" sx={{ fontWeight: 800, fontSize: '1rem', color: isDarkMode ? '#FFFFFF' : '#102a43', letterSpacing: '-0.01em' }}>
             {title}
           </Typography>
@@ -635,10 +638,44 @@ export const ProfilePage: React.FC = () => {
       <Box
         className={`candidate-profile-page${isDarkMode ? ' profile-dark-mode' : ''}`}
         sx={{
-          bgcolor: isDarkMode ? '#07111f' : '#eef3f5',
+          bgcolor: isDarkMode ? '#07111f' : '#F3F7FA',
           minHeight: '100vh',
           py: { xs: 2, md: 4 },
           color: isDarkMode ? '#FFFFFF' : undefined,
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 2,
+            bgcolor: isDarkMode ? '#111827' : '#FFFFFF',
+            '& fieldset': { borderColor: isDarkMode ? '#475569' : '#CBD8E5' },
+            '&:hover fieldset': { borderColor: '#7EA4C5' },
+            '&.Mui-focused fieldset': { borderColor: '#D6A73A', borderWidth: 2 },
+          },
+          '& .MuiInputLabel-root': { color: isDarkMode ? '#CBD5E1' : '#64748B', fontWeight: 600 },
+          '& .MuiInputLabel-root.Mui-focused': { color: '#9A7017' },
+          '& .MuiFormHelperText-root': { color: isDarkMode ? '#CBD5E1' : '#64748B' },
+          '& .MuiSelect-select': { fontWeight: 600 },
+          '& .MuiMenuItem-root': {
+            minHeight: 38,
+            margin: '2px 5px',
+            borderRadius: 8,
+            fontWeight: 600,
+            '&:hover': { backgroundColor: isDarkMode ? 'rgba(56,189,248,0.14)' : '#EEF6FB', color: '#0F6B9A' },
+            '&.Mui-selected': { backgroundColor: isDarkMode ? 'rgba(214,167,58,0.2)' : '#FFF4D6', color: isDarkMode ? '#F7D774' : '#8A6412', fontWeight: 800 },
+          },
+          '& .MuiDialog-paper': {
+            borderRadius: 3,
+            border: `1px solid ${isDarkMode ? '#334155' : '#D7E3EC'}`,
+            boxShadow: '0 24px 60px rgba(15,35,63,0.18)',
+          },
+          '& .MuiDialogTitle-root': { color: isDarkMode ? '#FFFFFF' : '#0B2745', fontWeight: 900 },
+          '& .MuiButton-contained': {
+            borderRadius: 2,
+            textTransform: 'none',
+            fontWeight: 800,
+            background: 'linear-gradient(135deg, #0B2745, #0F6B9A)',
+            boxShadow: '0 8px 18px rgba(15,107,154,0.18)',
+            '&:hover': { background: 'linear-gradient(135deg, #123B5D, #0F6B9A)' },
+          },
+          '& .MuiButton-outlined': { borderRadius: 2, textTransform: 'none', fontWeight: 800, borderColor: '#B8C8D9', color: isDarkMode ? '#E2E8F0' : '#123B5D' },
           '&.profile-dark-mode .MuiCard-root': { backgroundColor: '#0B0F17', color: '#FFFFFF' },
           '&.profile-dark-mode .MuiTypography-root': { color: '#FFFFFF' },
           '&.profile-dark-mode .MuiTableCell-root': { color: '#FFFFFF', borderColor: '#263244' },

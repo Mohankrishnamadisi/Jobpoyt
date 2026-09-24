@@ -506,7 +506,12 @@ export const JobDetails: React.FC = () => {
         detail: { jobId: job.id, userId: user.id },
       }));
       setApplyDialogOpen(false);
-      navigate(backTo, { replace: true });
+      window.close();
+      window.setTimeout(() => {
+        if (!window.closed) {
+          navigate(backTo, { replace: true });
+        }
+      }, 120);
     } catch (error) {
       Swal.fire({
         icon: 'error',

@@ -8,6 +8,7 @@ import {
   Card,
   CardContent,
   LinearProgress,
+  Alert,
 } from '@mui/material';
 import {
   CheckCircle as CheckCircleIcon,
@@ -21,10 +22,15 @@ import { useAuthStore } from '@store/index';
 import { userService } from '@services/api';
 import { authService } from '@services/supabase';
 import { validatePassword, validatePhone } from '@utils/index';
+import Swal from '@utils/sweetAlert';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@constants/index';
 
 export const AccountSettings: React.FC = () => {
   const { user, setUser } = useAuthStore();
+  const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [formData, setFormData] = useState({
     fullName: user?.name || '',
     email: user?.email || '',
@@ -100,17 +106,68 @@ export const AccountSettings: React.FC = () => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    const result = await Swal.fire({
+      title: 'Delete your account permanently?',
+      text: 'All profile data, applications, saved jobs, messages, and account access will be permanently deleted. This cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete permanently',
+      cancelButtonText: 'Keep my account',
+      confirmButtonColor: '#B91C1C',
+      cancelButtonColor: '#64748B',
+    });
+
+    if (!result.isConfirmed) return;
+
+    setDeleting(true);
+    try {
+      await authService.deleteAccount();
+      setUser(null);
+      await Swal.fire({
+        title: 'Account deleted',
+        text: 'Your account has been permanently deleted.',
+        icon: 'success',
+        confirmButtonColor: '#0B2745',
+      });
+      navigate(ROUTES.LOGIN, { replace: true });
+    } catch (error) {
+      console.error('Account deletion failed:', error);
+      toast.error('Unable to delete your account. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const fieldSx = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 2,
+      bgcolor: '#FFFFFF',
+      '& fieldset': { borderColor: '#CBD8E5' },
+      '&:hover fieldset': { borderColor: '#7EA4C5' },
+      '&.Mui-focused fieldset': { borderColor: '#D6A73A', borderWidth: 2 },
+    },
+    '& .MuiInputLabel-root': { color: '#64748B', fontWeight: 600 },
+    '& .MuiInputLabel-root.Mui-focused': { color: '#9A7017' },
+    '& .MuiFormHelperText-root': { color: '#64748B', ml: 0.25 },
+  };
+
   return (
     <Box>
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <PersonIcon sx={{ color: 'primary.main' }} />
-          Account Settings
-        </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          Update your display name, contact details, and security settings.
-        </Typography>
+      <Box sx={{ mb: 2.5, p: { xs: 1.6, md: 2 }, borderRadius: 3, color: '#fff', background: 'linear-gradient(115deg, #071D35 0%, #0B3558 58%, #126B8F 100%)', boxShadow: '0 10px 24px rgba(7,29,53,0.16)', position: 'relative', overflow: 'hidden', '&::after': { content: '""', position: 'absolute', width: 180, height: 180, borderRadius: '50%', right: -70, top: -100, background: 'rgba(214,167,58,0.2)' } }}>
+        <Box sx={{ position: 'relative', zIndex: 1 }}>
+          <Typography sx={{ display: 'inline-flex', px: 0.8, py: 0.2, mb: 0.45, borderRadius: 1, bgcolor: 'rgba(255,255,255,0.14)', color: '#F7D774', fontSize: 9, fontWeight: 900, letterSpacing: 1 }}>
+            ACCOUNT & SECURITY
+          </Typography>
+          <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.45, display: 'flex', alignItems: 'center', gap: 1, color: '#fff' }}>
+            <PersonIcon sx={{ color: '#F7D774', fontSize: 23 }} />
+            Account Settings
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.76)' }}>
+            Update your display name, contact details, and security settings.
+          </Typography>
+        </Box>
       </Box>
 
       {/* Profile Information Section */}
@@ -147,6 +204,7 @@ export const AccountSettings: React.FC = () => {
                 value={formData.fullName}
                 onChange={handleChange}
                 variant="outlined"
+                sx={fieldSx}
                 InputProps={{
                   startAdornment: (
                     <PersonIcon
@@ -170,6 +228,7 @@ export const AccountSettings: React.FC = () => {
                 value={formData.email}
                 disabled
                 variant="outlined"
+                sx={fieldSx}
                 InputProps={{
                   startAdornment: (
                     <EmailIcon
@@ -192,6 +251,7 @@ export const AccountSettings: React.FC = () => {
                 value={formData.phone}
                 onChange={handleChange}
                 variant="outlined"
+                sx={fieldSx}
                 InputProps={{
                   startAdornment: (
                     <PhoneIcon
@@ -247,6 +307,7 @@ export const AccountSettings: React.FC = () => {
                 value={formData.newPassword}
                 onChange={handleChange}
                 variant="outlined"
+                sx={fieldSx}
                 helperText="At least 8 characters, with uppercase, lowercase and numbers."
               />
             </Grid>
@@ -260,6 +321,7 @@ export const AccountSettings: React.FC = () => {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 variant="outlined"
+                sx={fieldSx}
               />
             </Grid>
           </Grid>
@@ -291,6 +353,29 @@ export const AccountSettings: React.FC = () => {
           <LinearProgress />
         </Box>
       )}
+
+      <Card variant="outlined" sx={{ mt: 3, borderColor: 'rgba(185,28,28,0.25)', bgcolor: 'rgba(254,242,242,0.72)' }}>
+        <CardContent sx={{ p: { xs: 2, md: 2.5 } }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#991B1B', mb: 0.5 }}>
+            Delete account
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#7F1D1D', mb: 1.6 }}>
+            Permanently remove your profile, applications, saved jobs, messages, and all associated account data.
+          </Typography>
+          <Alert severity="warning" sx={{ mb: 1.6 }}>
+            This action is permanent and cannot be undone.
+          </Alert>
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={handleDeleteAccount}
+            disabled={deleting || saving}
+            sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 800 }}
+          >
+            {deleting ? 'Deleting account...' : 'Delete my account'}
+          </Button>
+        </CardContent>
+      </Card>
     </Box>
   );
 };

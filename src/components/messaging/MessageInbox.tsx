@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import {
   DeleteOutline as DeleteOutlineIcon,
+  ForumOutlined as ForumOutlinedIcon,
 } from '@mui/icons-material';
 import Swal from '@utils/sweetAlert';
 import { messagingService, Conversation } from '@services/messaging';
@@ -181,7 +182,7 @@ export const MessageInbox: React.FC<MessageInboxProps> = ({
   };
 
   return (
-    <Box className="message-inbox">
+    <Box className="message-inbox" sx={{ height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column', bgcolor: '#fff' }}>
       <Box
         sx={{
           px: 2,
@@ -190,15 +191,18 @@ export const MessageInbox: React.FC<MessageInboxProps> = ({
           justifyContent: 'space-between',
           alignItems: 'center',
           gap: 1,
-          borderBottom: '1px solid rgba(148, 163, 184, 0.18)',
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.9), rgba(239,246,255,0.72))',
+          borderBottom: '1px solid #DCE6F0',
+          background: 'linear-gradient(180deg, #FBFDFF 0%, #F1F7FB 100%)',
         }}
       >
         <Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a' }}>
-            Inbox
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+            <ForumOutlinedIcon sx={{ color: '#0F6B9A', fontSize: 20 }} />
+            <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0B2745' }}>
+              Inbox
+            </Typography>
+          </Box>
+          <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.2 }}>
             {conversations.length} conversation{conversations.length === 1 ? '' : 's'}
           </Typography>
         </Box>
@@ -210,7 +214,7 @@ export const MessageInbox: React.FC<MessageInboxProps> = ({
           startIcon={<DeleteOutlineIcon fontSize="small" />}
           sx={{
             minWidth: 'auto',
-            color: '#dc2626',
+            color: '#B91C1C',
             borderRadius: 2,
             px: 1,
             py: 0.5,
@@ -223,7 +227,22 @@ export const MessageInbox: React.FC<MessageInboxProps> = ({
         </Button>
       </Box>
 
-      <Box sx={{ p: 1.25 }}>
+      <Box
+        sx={{
+          p: 1.1,
+          bgcolor: '#F7FAFC',
+          height: 'calc(100% - 73px)',
+          minHeight: 0,
+          overflowY: 'scroll',
+          overscrollBehavior: 'contain',
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#9CB4C7 transparent',
+          '&::-webkit-scrollbar': { width: 8 },
+          '&::-webkit-scrollbar-track': { background: 'transparent' },
+          '&::-webkit-scrollbar-thumb': { background: '#9CB4C7', borderRadius: 999, border: '2px solid #F7FAFC' },
+          '&::-webkit-scrollbar-thumb:hover': { background: '#6F91AA' },
+        }}
+      >
         {conversations.map((conv, idx) => {
           const isSelected = selectedConversationId === conv.id;
 
@@ -247,14 +266,15 @@ export const MessageInbox: React.FC<MessageInboxProps> = ({
                   alignItems: 'center',
                   p: 1.25,
                   borderRadius: 3,
-                  border: isSelected ? '1px solid rgba(59,130,246,0.25)' : '1px solid rgba(148,163,184,0.18)',
+                  border: isSelected ? '1px solid #B8D7EA' : '1px solid #DCE6F0',
+                  borderLeft: isSelected ? '4px solid #D6A73A' : '4px solid transparent',
                   background: isSelected
                     ? 'linear-gradient(135deg, rgba(59,130,246,0.10), rgba(124,58,237,0.06))'
-                    : 'rgba(255,255,255,0.7)',
-                  boxShadow: isSelected ? '0 10px 18px rgba(59,130,246,0.08)' : 'none',
+                    : '#FFFFFF',
+                  boxShadow: isSelected ? '0 10px 18px rgba(15,107,154,0.1)' : '0 3px 10px rgba(15,35,63,0.035)',
                   transition: 'all 0.2s ease',
                   '&:hover': {
-                    background: isSelected ? 'linear-gradient(135deg, rgba(59,130,246,0.12), rgba(124,58,237,0.08))' : 'rgba(148,163,184,0.05)',
+                    background: isSelected ? '#F0F8FC' : '#F8FBFD',
                     transform: 'translateY(-1px)',
                   },
                 }}

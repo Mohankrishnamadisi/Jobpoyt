@@ -79,6 +79,14 @@ export const authService = {
     if (error) throw error;
   },
 
+  async deleteAccount() {
+    const { error } = await supabase.functions.invoke('delete-account', {
+      body: {},
+    });
+    if (error) throw error;
+    await supabase.auth.signOut();
+  },
+
   async resetPassword(email: string) {
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/#/reset-password`,

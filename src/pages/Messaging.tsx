@@ -53,7 +53,7 @@ export const MessagingPageContent: React.FC<{
           height: embedded ? 660 : (isSmall ? '100%' : 720),
           boxShadow: '0 30px 80px rgba(15, 23, 42, 0.18)',
           border: '1px solid rgba(148, 163, 184, 0.2)',
-          background: '#f8fafc',
+          background: '#EEF4F8',
         },
       }}
     >
@@ -61,35 +61,41 @@ export const MessagingPageContent: React.FC<{
         sx={{
           m: 0,
           px: { xs: 2, sm: 2.5 },
-          py: 2,
+          py: { xs: 1.5, sm: 1.8 },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: 2,
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.9), rgba(239,246,255,0.9))',
-          borderBottom: '1px solid rgba(148, 163, 184, 0.2)',
+          background: 'linear-gradient(115deg, #071D35 0%, #0B3558 58%, #126B8F 100%)',
+          borderBottom: 'none',
+          position: 'relative',
+          overflow: 'hidden',
+          '&::after': { content: '""', position: 'absolute', width: 150, height: 150, borderRadius: '50%', right: -55, top: -90, background: 'rgba(214,167,58,0.2)' },
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.3, position: 'relative', zIndex: 1 }}>
           <Box
             sx={{
-              width: 34,
-              height: 34,
+              width: 36,
+              height: 36,
               borderRadius: 2,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              bgcolor: 'rgba(37, 99, 235, 0.12)',
-              color: '#1d4ed8',
+              bgcolor: 'rgba(255,255,255,0.14)',
+              color: '#F7D774',
             }}
           >
             <ChatBubbleOutlineIcon sx={{ fontSize: 19 }} />
           </Box>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.2, color: '#0f172a' }}>
+            <Typography sx={{ display: 'inline-flex', px: 0.8, py: 0.2, mb: 0.35, borderRadius: 1, bgcolor: 'rgba(255,255,255,0.14)', color: '#F7D774', fontSize: 9, fontWeight: 900, letterSpacing: 1 }}>
+              CAREER CONNECTIONS
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 800, lineHeight: 1.2, color: '#fff' }}>
               Messages
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.76)', display: 'block', mt: 0.25 }}>
               Stay connected with recruiters and employers
             </Typography>
           </Box>
@@ -103,9 +109,11 @@ export const MessagingPageContent: React.FC<{
             width: 40,
             height: 40,
             borderRadius: '50%',
-            background: 'rgba(148, 163, 184, 0.08)',
-            color: '#334155',
-            '&:hover': { background: 'rgba(37, 99, 235, 0.08)', color: '#0f172a' },
+            background: 'rgba(255,255,255,0.12)',
+            color: '#fff',
+            position: 'relative',
+            zIndex: 1,
+            '&:hover': { background: 'rgba(255,255,255,0.2)', color: '#fff' },
           }}
         >
           <CloseIcon fontSize="small" />
@@ -114,22 +122,25 @@ export const MessagingPageContent: React.FC<{
 
       <DialogContent
         sx={{
-          p: 2,
-          background: 'linear-gradient(180deg, rgba(248,250,252,0.98), rgba(241,245,249,0.92))',
+          p: { xs: 1, sm: 1.5 },
+          background: 'linear-gradient(180deg, #F7FAFC 0%, #EDF3F7 100%)',
           height: '100%',
+          overflow: 'hidden',
         }}
       >
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-          <Box className="messaging-dialog-layout" sx={{ display: 'flex', gap: 2, height: '100%', minHeight: 0 }}>
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }} style={{ height: '100%', minHeight: 0 }}>
+          <Box className="messaging-dialog-layout" sx={{ display: 'flex', gap: 2, height: '100%', minHeight: 0, overflow: 'hidden' }}>
             <Box
               sx={{
                 width: 360,
                 flexShrink: 0,
-                bgcolor: 'rgba(255,255,255,0.72)',
-                border: '1px solid rgba(148, 163, 184, 0.18)',
+                bgcolor: '#FFFFFF',
+                border: '1px solid #D7E3EC',
                 borderRadius: 3,
                 overflow: 'hidden',
-                backdropFilter: 'blur(6px)',
+                minHeight: 0,
+                overscrollBehavior: 'contain',
+                boxShadow: '0 10px 24px rgba(15,35,63,0.06)',
               }}
             >
               <MessageInbox
@@ -147,10 +158,13 @@ export const MessagingPageContent: React.FC<{
                 display: selectedConversation ? 'block' : 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                bgcolor: 'rgba(255,255,255,0.5)',
+                bgcolor: '#FFFFFF',
                 borderRadius: 3,
-                border: '1px solid rgba(148, 163, 184, 0.16)',
+                border: '1px solid #D7E3EC',
                 overflow: 'hidden',
+                minHeight: 0,
+                overscrollBehavior: 'contain',
+                boxShadow: '0 10px 24px rgba(15,35,63,0.06)',
               }}
             >
               {selectedConversation && !isSmall ? (

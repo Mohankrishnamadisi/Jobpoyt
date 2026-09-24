@@ -135,6 +135,13 @@ const premiumSidebarFeatures = new Set([
   'AI Career Coach',
   'Job Tracker',
   'Resume Review',
+  'Remote Job Hub',
+  'AI Daily Career Brief',
+  'Intelligence Center',
+  'Exclusive Tools',
+  'AI Match Center',
+  'Priority Apply',
+  'Interview Preparation',
 ]);
 
 const embeddedDashboardViews = new Set(['Notifications', 'Applications', 'Saved Jobs', 'Security Settings', 'Help & Support']);
@@ -183,6 +190,16 @@ export const Dashboard: React.FC = () => {
   };
 
   const handleSidebarNavigation = (event: React.MouseEvent<HTMLElement>, label: string) => {
+    if (label === 'Dashboard') {
+      event.preventDefault();
+      setEmbeddedView(null);
+      setPremiumFeature(null);
+      setChatOpen(false);
+      setMobileNavOpen(false);
+      navigate(ROUTES.DASHBOARD);
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      return;
+    }
     if (label === 'Chat') {
       event.preventDefault();
       setEmbeddedView(null);
@@ -220,6 +237,13 @@ export const Dashboard: React.FC = () => {
 
   const toolsItems = useMemo(
     () => [
+      { label: 'Remote Job Hub', icon: WorkIcon, to: ROUTES.JOBS },
+      { label: 'AI Daily Career Brief', icon: AutoAwesomeIcon, to: ROUTES.DASHBOARD },
+      { label: 'Intelligence Center', icon: WorkspacePremiumIcon, to: ROUTES.DASHBOARD },
+      { label: 'Exclusive Tools', icon: WorkspacePremiumIcon, to: ROUTES.DASHBOARD },
+      { label: 'AI Match Center', icon: AutoAwesomeIcon, to: ROUTES.DASHBOARD },
+      { label: 'Priority Apply', icon: ArrowForwardIcon, to: ROUTES.DASHBOARD },
+      { label: 'Interview Preparation', icon: EventAvailableIcon, to: ROUTES.DASHBOARD },
       { label: 'Skill Test', icon: QuizIcon, to: ROUTES.DASHBOARD_ASSESSMENTS },
       { label: 'Certificates', icon: VerifiedIcon, to: ROUTES.DASHBOARD_PROFILE },
       { label: 'Portfolio', icon: FolderOpenIcon, to: ROUTES.DASHBOARD_PROFILE },
@@ -388,17 +412,6 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const stats = useMemo(
-    () => [
-      { label: 'Applications', value: recentApplications.length || 0, hint: '↑ 3 this week', icon: WorkIcon, color: '#276A9B', tint: '#EDF5FC' },
-      { label: 'Saved Jobs', value: savedCount || 0, hint: '↑ 2 this week', icon: BookmarkIcon, color: '#15803D', tint: '#EEF9F1' },
-      { label: 'Resume Downloads', value: resumeDownloadCount ?? 0, hint: '↑ 1 this week', icon: DownloadIcon, color: '#5B5E9D', tint: '#F2F1FA' },
-      { label: 'Profile Views', value: profileViewCount ?? 0, hint: '↑ 4 this week', icon: VisibilityIcon, color: '#B78317', tint: '#FFF8E5' },
-      { label: 'Recruiter Actions', value: Math.max(0, (profileViewCount ?? 0) + (resumeDownloadCount ?? 0)), hint: 'Live now', icon: TrendingUpIcon, color: '#A54B57', tint: '#FDF0F1' },
-    ],
-    [profileViewCount, recentApplications.length, resumeDownloadCount, savedCount],
-  );
-
   /** Real timeline built from recruiter signals, applications and saved jobs. */
   const activityItems = useMemo(() => {
     const items: Array<{
@@ -535,12 +548,14 @@ export const Dashboard: React.FC = () => {
         if (wasSaved) {
           await savedService.unsaveJob(user.id, jobId);
           setSavedJobs((prev) => prev.filter((item: any) => String(item.job_id || item.jobs?.id || '') !== jobId));
+          setSavedCount((count) => Math.max(0, count - 1));
         } else {
           await savedService.saveJob(user.id, jobId);
           setSavedJobs((prev) => [
             { id: `saved-${jobId}`, job_id: jobId, jobs: job, created_at: new Date().toISOString() } as SavedJobItem,
             ...prev,
           ]);
+          setSavedCount((count) => count + 1);
         }
         void Swal.fire({
           toast: true,
@@ -880,31 +895,37 @@ export const Dashboard: React.FC = () => {
                         </Box>
                       </Grid>
                     </Grid>
+
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: { md: 2.4 },
+                        right: { md: 3.5 },
+                        display: { xs: 'none', md: 'flex' },
+                        flexDirection: 'column',
+                        minWidth: 96,
+                        px: 0.75,
+                        py: 0.2,
+                        borderRadius: 1.5,
+                        background: 'rgba(7,29,53,0.18)',
+                        border: '1px solid rgba(255,255,255,0.18)',
+                        boxShadow: '0 4px 12px rgba(7,29,53,0.1)',
+                        backdropFilter: 'blur(8px)',
+                        zIndex: 3,
+                      }}
+                    >
+                      <Box sx={{ px: 0.15, py: 0.45, borderBottom: '1px solid rgba(255,255,255,0.14)' }}>
+                        <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: 8.5, lineHeight: 1.2 }}>Applications</Typography>
+                        <Typography sx={{ color: '#fff', fontSize: 16, fontWeight: 800, lineHeight: 1.2 }}>{recentApplications.length || 0}</Typography>
+                      </Box>
+                      <Box sx={{ px: 0.15, py: 0.45 }}>
+                        <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: 8.5, lineHeight: 1.2 }}>Saved Jobs</Typography>
+                        <Typography sx={{ color: '#fff', fontSize: 16, fontWeight: 800, lineHeight: 1.2 }}>{savedCount || 0}</Typography>
+                      </Box>
+                    </Box>
                   </CardContent>
                 </Card>
               </motion.div>
-
-              <Grid container spacing={2}>
-                {stats.map((item) => (
-                  <Grid item xs={12} sm={6} md={4} lg={2.4} key={item.label}>
-                    <Card
-                      onClick={item.onClick}
-                      sx={{ borderRadius: 2, border: '1px solid #E5EAF0', background: '#FFFFFF', boxShadow: '0 6px 20px rgba(15,23,42,0.04)', transition: 'all 0.18s ease', cursor: item.onClick ? 'pointer' : 'default', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 12px 26px rgba(15,23,42,0.08)' }, height: '100%' }}
-                    >
-                      <CardContent sx={{ p: 1.2 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                          <Typography sx={{ fontWeight: 700, color: '#334155', fontSize: 12 }}>{item.label}</Typography>
-                          <Box sx={{ width: 34, height: 34, borderRadius: 1.5, bgcolor: item.tint, display: 'grid', placeItems: 'center' }}>
-                            <item.icon sx={{ color: item.color, fontSize: 18 }} />
-                          </Box>
-                        </Box>
-                        <Typography sx={{ fontSize: 22, fontWeight: 800, color: '#0F172A', lineHeight: 1.05 }}>{item.value}</Typography>
-                        <Typography sx={{ color: '#475569', fontSize: 11, mt: 0.6, fontWeight: 600 }}>{item.hint}</Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
 
               <Grid container spacing={2.5} sx={{ mb: 0.5 }}>
                 <Grid item xs={12}>
@@ -994,9 +1015,11 @@ export const Dashboard: React.FC = () => {
                           },
                           {
                             key: 'subscription' as const,
-                            label: 'My Subscription',
-                            value: isCandidatePremium(subscription?.plan) && isSubscriptionActive(subscription?.end_date) ? getPlanDisplayName(subscription?.plan) : 'Free',
-                            subtitle: 'Tap to view billing details',
+                            label: 'Subscription Status',
+                            value: isCandidatePremium(subscription?.plan) && isSubscriptionActive(subscription?.end_date) ? getPlanDisplayName(subscription?.plan) : 'No active subscription',
+                            subtitle: isCandidatePremium(subscription?.plan) && isSubscriptionActive(subscription?.end_date)
+                              ? 'Tap to view billing details'
+                              : 'Choose a plan to unlock premium benefits',
                             icon: WorkspacePremiumIcon,
                             accent: '#B78317',
                           },
@@ -1009,6 +1032,8 @@ export const Dashboard: React.FC = () => {
                                 aria-pressed={isActive}
                                 sx={{
                                   width: '100%',
+                                  height: '100%',
+                                  minHeight: 138,
                                   textAlign: 'left',
                                   justifyContent: 'flex-start',
                                   borderRadius: 3,
@@ -1045,8 +1070,20 @@ export const Dashboard: React.FC = () => {
                                       <item.icon sx={{ fontSize: 17 }} />
                                     </Box>
                                   </Box>
-                                  <Typography sx={{ fontSize: 26, fontWeight: 800, lineHeight: 1.15, mt: 0.4 }}>{item.value}</Typography>
-                                  <Typography sx={{ fontSize: 12, color: '#64748B', fontWeight: 600 }}>
+                                  <Typography
+                                    sx={{
+                                      fontSize: item.key === 'subscription' ? { xs: 16, sm: 18, md: 20 } : 26,
+                                      fontWeight: 800,
+                                      lineHeight: 1.15,
+                                      mt: 0.4,
+                                      whiteSpace: 'nowrap',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                    }}
+                                  >
+                                    {item.value}
+                                  </Typography>
+                                  <Typography sx={{ fontSize: 12, color: '#64748B', fontWeight: 600, minHeight: 18 }}>
                                     {item.subtitle}
                                   </Typography>
                                 </Box>
@@ -1716,46 +1753,19 @@ export const Dashboard: React.FC = () => {
                         </Stack>
                       </CardContent>
                     </Card>
+                    <Card sx={{ borderRadius: 2, background: 'linear-gradient(135deg, #FFF9E8, #FFFFFF)', border: '1px solid rgba(214,167,58,0.2)', boxShadow: '0 6px 20px rgba(15,23,42,0.04)', color: '#10233F' }}>
+                      <CardContent sx={{ p: 2.5 }}>
+                        <Typography sx={{ fontSize: 28, fontWeight: 800, mb: 0.5 }}>Go Premium</Typography>
+                        <Typography sx={{ color: '#64748B', mb: 2 }}>Unlock exclusive career benefits</Typography>
+                        <Stack spacing={1.1}>
+                          {['AI Resume Review', 'Priority Job Alerts', 'See Who Viewed Your Profile', 'Unlimited Applications', 'Interview Preparation', 'Remote Jobs'].map((feature) => (
+                            <Box key={feature} sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#17324D', fontWeight: 600 }}><CheckCircleIcon sx={{ color: '#D6A73A', fontSize: 18 }} /> {feature}</Box>
+                          ))}
+                        </Stack>
+                        <Button onClick={() => navigate(ROUTES.PRICING)} variant="contained" sx={{ mt: 2.2, width: '100%', borderRadius: 2, background: '#D6A73A', color: '#071D35', textTransform: 'none', fontWeight: 800, '&:hover': { background: '#F0C75E' } }}>Upgrade Now</Button>
+                      </CardContent>
+                    </Card>
                   </Stack>
-                </Grid>
-              </Grid>
-
-              <Grid container spacing={3}>
-                <Grid item xs={12} lg={8}>
-                  <Card sx={{ borderRadius: 4, border: '1px solid rgba(148,163,184,0.18)', boxShadow: '0 18px 34px rgba(15,23,42,0.04)' }}>
-                    <CardContent sx={{ p: 2.5 }}>
-                      <Typography sx={{ fontSize: 24, fontWeight: 800, color: '#0F172A', mb: 2, letterSpacing: '-0.04em' }}>Quick Actions</Typography>
-                      <Grid container spacing={2}>
-                        {[
-                          { label: 'Upload Resume', icon: DescriptionIcon },
-                          { label: 'Update Profile', icon: PersonIcon },
-                          { label: 'Skill Test', icon: QuizIcon },
-                          { label: 'Mock Interview', icon: VideocamIcon },
-                          { label: 'Resume Review', icon: RateReviewIcon },
-                          { label: 'Browse Jobs', icon: WorkIcon },
-                        ].map(({ label, icon: Icon }) => (
-                          <Grid item xs={12} sm={6} md={4} key={label}>
-                            <Button variant="outlined" startIcon={<Icon />} sx={{ justifyContent: 'flex-start', width: '100%', borderRadius: 2.5, px: 1.5, py: 1.1, borderColor: 'rgba(148,163,184,0.22)', color: '#0f172a', fontWeight: 700, textTransform: 'none' }}>{label}</Button>
-                          </Grid>
-                        ))}
-                      </Grid>
-                    </CardContent>
-                  </Card>
-                </Grid>
-
-                <Grid item xs={12} lg={4}>
-                  <Card sx={{ borderRadius: 2, background: 'linear-gradient(135deg, #FFF9E8, #FFFFFF)', border: '1px solid rgba(214,167,58,0.2)', boxShadow: '0 6px 20px rgba(15,23,42,0.04)', color: '#10233F' }}>
-                    <CardContent sx={{ p: 2.5 }}>
-                      <Typography sx={{ fontSize: 28, fontWeight: 800, mb: 0.5 }}>Go Premium</Typography>
-                      <Typography sx={{ color: '#64748B', mb: 2 }}>Unlock exclusive career benefits</Typography>
-                      <Stack spacing={1.1}>
-                        {['AI Resume Review', 'Priority Job Alerts', 'See Who Viewed Your Profile', 'Unlimited Applications', 'Interview Preparation', 'Remote Jobs'].map((feature) => (
-                          <Box key={feature} sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#17324D', fontWeight: 600 }}><CheckCircleIcon sx={{ color: '#D6A73A', fontSize: 18 }} /> {feature}</Box>
-                        ))}
-                      </Stack>
-                      <Button onClick={() => navigate(ROUTES.PRICING)} variant="contained" sx={{ mt: 2.2, width: '100%', borderRadius: 2, background: '#D6A73A', color: '#071D35', textTransform: 'none', fontWeight: 800, '&:hover': { background: '#F0C75E' } }}>Upgrade Now</Button>
-                    </CardContent>
-                  </Card>
                 </Grid>
               </Grid>
             </Box>

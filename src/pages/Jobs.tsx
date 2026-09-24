@@ -160,7 +160,10 @@ export const Jobs: React.FC = () => {
         if (isActive) {
           setAppliedJobIds(new Set(
             (applications || [])
-              .map((application: { job_id?: string; jobs?: { id?: string } }) => String(application.job_id || application.jobs?.id || ''))
+              .map((application: { job_id?: string; jobId?: string; jobs?: { id?: string | number } }) => (
+                application.job_id || application.jobId || application.jobs?.id || ''
+              ))
+              .map((jobId) => String(jobId).trim().toLowerCase())
               .filter(Boolean)
           ));
         }
@@ -182,7 +185,7 @@ export const Jobs: React.FC = () => {
 
       setAppliedJobIds((currentIds) => {
         const nextIds = new Set(currentIds);
-        nextIds.add(String(detail.jobId));
+        nextIds.add(String(detail.jobId).trim().toLowerCase());
         return nextIds;
       });
     };
@@ -1303,7 +1306,7 @@ export const Jobs: React.FC = () => {
                       key={job.id}
                       job={job}
                       isPremiumUser={!!subscription}
-                      isApplied={appliedJobIds.has(String(job.id))}
+                      isApplied={appliedJobIds.has(String(job.id).trim().toLowerCase())}
                     />
                   ))}
                 </Box>
