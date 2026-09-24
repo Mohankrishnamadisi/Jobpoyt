@@ -361,6 +361,9 @@ export const JobDetails: React.FC = () => {
         try {
           await applicationService.markExternalApplication(job.id, user.id);
           setHasApplied(true);
+          window.dispatchEvent(new CustomEvent('job-application-updated', {
+            detail: { jobId: job.id, userId: user.id },
+          }));
         } catch (error) {
           console.error('Failed to record external application:', error);
         }
@@ -486,6 +489,9 @@ export const JobDetails: React.FC = () => {
         });
       }
       setHasApplied(true);
+      window.dispatchEvent(new CustomEvent('job-application-updated', {
+        detail: { jobId: job.id, userId: user.id },
+      }));
       setApplyDialogOpen(false);
       navigate(backTo, { replace: true });
     } catch (error) {

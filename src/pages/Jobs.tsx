@@ -176,6 +176,22 @@ export const Jobs: React.FC = () => {
   }, [user?.id]);
 
   useEffect(() => {
+    const handleApplicationUpdated = (event: Event) => {
+      const detail = (event as CustomEvent<{ jobId?: string; userId?: string }>).detail;
+      if (!detail?.jobId || detail.userId !== user?.id) return;
+
+      setAppliedJobIds((currentIds) => {
+        const nextIds = new Set(currentIds);
+        nextIds.add(String(detail.jobId));
+        return nextIds;
+      });
+    };
+
+    window.addEventListener('job-application-updated', handleApplicationUpdated);
+    return () => window.removeEventListener('job-application-updated', handleApplicationUpdated);
+  }, [user?.id]);
+
+  useEffect(() => {
     const debounceTimer = window.setTimeout(() => {
       setDebouncedKeyword(filters.keyword);
     }, 300);

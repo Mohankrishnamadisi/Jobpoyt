@@ -965,7 +965,7 @@ export const applicationService = {
   async getUserApplications(userId: string) {
     const { data, error } = await supabase
       .from('job_applications')
-      .select('*, jobs(id, title, location, job_type, work_mode, experience, category, skills, created_at, featured, status)')
+      .select('*, jobs(id, title, company_name, location, job_type, work_mode, experience, category, skills, created_at, featured, status)')
       .eq('user_id', userId)
       .order('priority_application', { ascending: false })
       .order('applied_at', { ascending: false });
