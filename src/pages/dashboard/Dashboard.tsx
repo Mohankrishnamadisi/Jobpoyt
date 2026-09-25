@@ -702,7 +702,16 @@ export const Dashboard: React.FC = () => {
               key={label}
               className="dash-nav-button"
               component="button"
-              onClick={() => openEmbeddedView(label)}
+              onClick={() => {
+                if (label === 'Help & Support') {
+                  setEmbeddedView(null);
+                  setPremiumFeature(null);
+                  setSupportOpen(true);
+                  setMobileNavOpen(false);
+                  return;
+                }
+                openEmbeddedView(label);
+              }}
               startIcon={<Icon fontSize="small" />}
               sx={{ justifyContent: 'flex-start', gap: 1.3, borderRadius: 3, px: 1.2, py: 1.1, color: embeddedView === label ? '#071D35' : '#1e293b', background: embeddedView === label ? '#FFF7D6' : 'transparent', borderLeft: embeddedView === label ? '3px solid #D6A73A' : '3px solid transparent', fontWeight: 700, textTransform: 'none', minHeight: 46, '&:hover': { background: '#f8fafc' } }}
             >

@@ -48,7 +48,7 @@ export const GlobalApiLoader: React.FC = () => {
           src="/jobpoyttitle.png"
           alt="JobPoyt loading"
           sx={{
-            width: { xs: 80, sm: 96 },
+            width: { xs: 52, sm: 60 },
             height: 'auto',
             objectFit: 'contain',
             transformOrigin: 'center',
