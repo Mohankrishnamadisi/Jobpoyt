@@ -163,8 +163,19 @@ const SectionCard: React.FC<{
     <CardContent sx={{ p: { xs: 2.25, md: 3 }, pl: { xs: 2.75, md: 3.5 } }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Box sx={{ width: 32, height: 32, borderRadius: 2, display: 'grid', placeItems: 'center', bgcolor: '#E8F1F8', color: '#0F6B9A', fontSize: 14, fontWeight: 900 }}>•</Box>
-          <Typography variant="h6" sx={{ fontWeight: 800, fontSize: '1rem', color: isDarkMode ? '#FFFFFF' : '#102a43', letterSpacing: '-0.01em' }}>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 900,
+              fontSize: '1rem',
+              color: 'transparent',
+              background: 'linear-gradient(90deg, #0B2745 0%, #0F6B9A 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.01em',
+            }}
+          >
             {title}
           </Typography>
         </Box>
