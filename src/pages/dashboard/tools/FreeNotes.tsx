@@ -31,6 +31,7 @@ import {
   Search as SearchIcon,
   StickyNote2 as StickyNoteIcon,
   Save as SaveIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import toast from 'react-hot-toast';
 import { Layout } from '@components/layout/Layout';
@@ -110,8 +111,9 @@ const formFromNote = (note: FreeNote): NoteFormState => ({
   pinned: note.pinned,
 });
 
-export const FreeNotesPage: React.FC = () => {
+export const FreeNotesPage: React.FC<{ embedded?: boolean; onNewNoteReady?: (handler: () => void) => void }> = ({ embedded = false, onNewNoteReady }) => {
   const { user } = useAuthStore();
+  const Shell = embedded ? React.Fragment : Layout;
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notes, setNotes] = useState<FreeNote[]>([]);
@@ -237,6 +239,11 @@ export const FreeNotesPage: React.FC = () => {
     setOpenEditor(true);
   };
 
+  useEffect(() => {
+    onNewNoteReady?.(openCreate);
+    return () => onNewNoteReady?.(() => {});
+  }, [onNewNoteReady]);
+
   const openEdit = (note: FreeNote) => {
     setEditingId(note.id);
     setForm(formFromNote(note));
@@ -287,10 +294,20 @@ export const FreeNotesPage: React.FC = () => {
     toast.success('Note deleted');
   };
 
+  const noteFieldSx = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 2,
+      backgroundColor: '#FFFFFF',
+      '&:hover fieldset': { borderColor: '#7EA4C5' },
+      '&.Mui-focused fieldset': { borderColor: '#2563EB', borderWidth: 2 },
+    },
+    '& .MuiInputLabel-root.Mui-focused': { color: '#2563EB' },
+  };
+
   return (
-    <Layout>
+    <Shell>
       <Box sx={{ px: { xs: 2, md: 4 }, py: { xs: 3, md: 4 }, maxWidth: 1280, mx: 'auto' }}>
-        <Card sx={{ mb: 3, borderRadius: 4, background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #334155 100%)', color: '#E2E8F0' }}>
+        {!embedded ? <Card sx={{ mb: 3, borderRadius: 4, background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #334155 100%)', color: '#E2E8F0' }}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5 }}>
               <Box>
@@ -306,7 +323,7 @@ export const FreeNotesPage: React.FC = () => {
               </Button>
             </Box>
           </CardContent>
-        </Card>
+        </Card> : null}
 
         <Grid container spacing={2} sx={{ mb: 2.5 }}>
           <Grid item xs={12} sm={6} md={3}>
@@ -433,21 +450,46 @@ export const FreeNotesPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Dialog open={openEditor} onClose={() => setOpenEditor(false)} fullWidth maxWidth="md">
-          <DialogTitle sx={{ fontWeight: 800 }}>{editingId ? 'Edit Note' : 'Create New Note'}</DialogTitle>
-          <DialogContent dividers>
-            <Stack direction="row" spacing={1} sx={{ mb: 1.5, flexWrap: 'wrap' }}>
-              <Button size="small" variant="outlined" onClick={() => applyTemplate('call')}>Recruiter Call Template</Button>
-              <Button size="small" variant="outlined" onClick={() => applyTemplate('interview')}>Interview Template</Button>
-              <Button size="small" variant="outlined" onClick={() => applyTemplate('followup')}>Follow-up Template</Button>
-            </Stack>
+        <Dialog
+          open={openEditor}
+          onClose={() => setOpenEditor(false)}
+          fullWidth
+          maxWidth="md"
+          PaperProps={{ sx: { borderRadius: 3.5, overflow: 'hidden', boxShadow: '0 24px 70px rgba(15,23,42,0.24)' } }}
+        >
+          <DialogTitle sx={{ px: { xs: 2.5, md: 3.5 }, py: 2.2, color: '#FFFFFF', background: 'linear-gradient(115deg, #071D35 0%, #0B3558 62%, #126B8F 100%)' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+              <Box>
+                <Typography sx={{ fontSize: 10, fontWeight: 900, letterSpacing: 1.5, color: '#F7D774', textTransform: 'uppercase' }}>
+                  Premium workspace
+                </Typography>
+                <Typography sx={{ fontSize: { xs: 21, md: 26 }, fontWeight: 900, lineHeight: 1.2, mt: 0.3 }}>
+                  {editingId ? 'Edit Note' : 'Create New Note'}
+                </Typography>
+              </Box>
+              <IconButton aria-label="Close note editor" onClick={() => setOpenEditor(false)} sx={{ color: '#FFFFFF', bgcolor: 'rgba(255,255,255,0.12)', '&:hover': { bgcolor: '#DC2626' } }}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </DialogTitle>
+          <DialogContent dividers sx={{ px: { xs: 2, md: 3.5 }, py: 2.5, background: '#F8FAFC' }}>
+            <Box sx={{ mb: 2.2, p: 1.5, borderRadius: 2.5, background: '#EEF4F8', border: '1px solid #D7E3EC' }}>
+              <Typography variant="caption" sx={{ display: 'block', mb: 1, color: '#475569', fontWeight: 800 }}>
+                Start quickly with a template
+              </Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                <Button size="small" variant="outlined" startIcon={<PhoneIcon />} onClick={() => applyTemplate('call')} sx={{ borderRadius: 1.8, textTransform: 'none', fontWeight: 700 }}>Recruiter Call</Button>
+                <Button size="small" variant="outlined" startIcon={<EventIcon />} onClick={() => applyTemplate('interview')} sx={{ borderRadius: 1.8, textTransform: 'none', fontWeight: 700 }}>Interview Debrief</Button>
+                <Button size="small" variant="outlined" startIcon={<SaveIcon />} onClick={() => applyTemplate('followup')} sx={{ borderRadius: 1.8, textTransform: 'none', fontWeight: 700 }}>Follow-up Plan</Button>
+              </Stack>
+            </Box>
 
-            <Grid container spacing={1.2}>
+            <Grid container spacing={1.5}>
               <Grid item xs={12} md={6}>
-                <TextField fullWidth label="Title" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} />
+                <TextField fullWidth sx={noteFieldSx} label="Note title" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} />
               </Grid>
               <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
+                <FormControl fullWidth sx={noteFieldSx}>
                   <InputLabel>Type</InputLabel>
                   <Select label="Type" value={form.type} onChange={(e: SelectChangeEvent<any>) => setForm((p) => ({ ...p, type: e.target.value }))}>
                     {typeOptions.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
@@ -455,7 +497,7 @@ export const FreeNotesPage: React.FC = () => {
                 </FormControl>
               </Grid>
               <Grid item xs={6} md={1.5}>
-                <FormControl fullWidth>
+                <FormControl fullWidth sx={noteFieldSx}>
                   <InputLabel>Priority</InputLabel>
                   <Select label="Priority" value={form.priority} onChange={(e: SelectChangeEvent<any>) => setForm((p) => ({ ...p, priority: e.target.value }))}>
                     {priorityOptions.map((value) => <MenuItem key={value} value={value}>{value}</MenuItem>)}
@@ -463,7 +505,7 @@ export const FreeNotesPage: React.FC = () => {
                 </FormControl>
               </Grid>
               <Grid item xs={6} md={1.5}>
-                <FormControl fullWidth>
+                <FormControl fullWidth sx={noteFieldSx}>
                   <InputLabel>Status</InputLabel>
                   <Select label="Status" value={form.status} onChange={(e: SelectChangeEvent<any>) => setForm((p) => ({ ...p, status: e.target.value }))}>
                     {statusOptions.map((value) => <MenuItem key={value} value={value}>{value.replace('_', ' ')}</MenuItem>)}
@@ -473,6 +515,7 @@ export const FreeNotesPage: React.FC = () => {
               <Grid item xs={12}>
                 <TextField
                   fullWidth
+                  sx={noteFieldSx}
                   label="Note"
                   multiline
                   minRows={5}
@@ -480,23 +523,23 @@ export const FreeNotesPage: React.FC = () => {
                   onChange={(e) => setForm((p) => ({ ...p, content: e.target.value }))}
                 />
               </Grid>
-              <Grid item xs={12} md={4}><TextField fullWidth label="Recruiter name" value={form.recruiter_name} onChange={(e) => setForm((p) => ({ ...p, recruiter_name: e.target.value }))} /></Grid>
-              <Grid item xs={12} md={4}><TextField fullWidth label="Company name" value={form.company_name} onChange={(e) => setForm((p) => ({ ...p, company_name: e.target.value }))} /></Grid>
-              <Grid item xs={12} md={4}><TextField fullWidth label="Tags (comma separated)" value={form.tags} onChange={(e) => setForm((p) => ({ ...p, tags: e.target.value }))} /></Grid>
-              <Grid item xs={12} md={4}><TextField fullWidth type="date" label="Call date" InputLabelProps={{ shrink: true }} value={form.call_date} onChange={(e) => setForm((p) => ({ ...p, call_date: e.target.value }))} /></Grid>
-              <Grid item xs={12} md={4}><TextField fullWidth type="date" label="Interview date" InputLabelProps={{ shrink: true }} value={form.interview_date} onChange={(e) => setForm((p) => ({ ...p, interview_date: e.target.value }))} /></Grid>
-              <Grid item xs={12} md={4}><TextField fullWidth type="datetime-local" label="Follow-up reminder" InputLabelProps={{ shrink: true }} value={form.follow_up_at} onChange={(e) => setForm((p) => ({ ...p, follow_up_at: e.target.value }))} /></Grid>
+              <Grid item xs={12} md={4}><TextField fullWidth sx={noteFieldSx} label="Recruiter name" value={form.recruiter_name} onChange={(e) => setForm((p) => ({ ...p, recruiter_name: e.target.value }))} /></Grid>
+              <Grid item xs={12} md={4}><TextField fullWidth sx={noteFieldSx} label="Company name" value={form.company_name} onChange={(e) => setForm((p) => ({ ...p, company_name: e.target.value }))} /></Grid>
+              <Grid item xs={12} md={4}><TextField fullWidth sx={noteFieldSx} label="Tags (comma separated)" value={form.tags} onChange={(e) => setForm((p) => ({ ...p, tags: e.target.value }))} /></Grid>
+              <Grid item xs={12} md={4}><TextField fullWidth sx={noteFieldSx} type="date" label="Call date" InputLabelProps={{ shrink: true }} value={form.call_date} onChange={(e) => setForm((p) => ({ ...p, call_date: e.target.value }))} /></Grid>
+              <Grid item xs={12} md={4}><TextField fullWidth sx={noteFieldSx} type="date" label="Interview date" InputLabelProps={{ shrink: true }} value={form.interview_date} onChange={(e) => setForm((p) => ({ ...p, interview_date: e.target.value }))} /></Grid>
+              <Grid item xs={12} md={4}><TextField fullWidth sx={noteFieldSx} type="datetime-local" label="Follow-up reminder" InputLabelProps={{ shrink: true }} value={form.follow_up_at} onChange={(e) => setForm((p) => ({ ...p, follow_up_at: e.target.value }))} /></Grid>
             </Grid>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenEditor(false)}>Cancel</Button>
-            <Button onClick={handleSave} variant="contained" disabled={saving} startIcon={<SaveIcon />}>
+          <DialogActions sx={{ px: { xs: 2, md: 3.5 }, py: 1.8, bgcolor: '#FFFFFF', borderTop: '1px solid #E2E8F0' }}>
+            <Button onClick={() => setOpenEditor(false)} sx={{ borderRadius: 1.8, textTransform: 'none', fontWeight: 700, color: '#475569' }}>Cancel</Button>
+            <Button onClick={handleSave} variant="contained" disabled={saving} startIcon={<SaveIcon />} sx={{ borderRadius: 1.8, px: 2.4, textTransform: 'none', fontWeight: 800, background: 'linear-gradient(135deg, #2563EB, #1D4ED8)' }}>
               {saving ? 'Saving...' : 'Save Note'}
             </Button>
           </DialogActions>
         </Dialog>
       </Box>
-    </Layout>
+    </Shell>
   );
 };
 

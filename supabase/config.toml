@@ -35,3 +35,13 @@ verify_jwt = false
 
 [functions.process-job-matches]
 verify_jwt = true
+
+# Skill Test authenticates candidates inside the function and keeps Groq server-side.
+[functions.skill-test]
+verify_jwt = true
+
+[functions.resume-studio]
+verify_jwt = true
+
+[functions.career-assessments]
+verify_jwt = false

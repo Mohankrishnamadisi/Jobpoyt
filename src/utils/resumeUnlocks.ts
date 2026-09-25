@@ -166,7 +166,7 @@ export async function getCandidateResumeUnlockRecruiters(candidateId: string) {
 
     const { data: recruiters, error: recruiterError } = await supabase
       .from('profiles')
-      .select('id, name, company_name, company_email')
+      .select('id, name, company_name, company_logo_url, company_email')
       .in('id', recruiterIds);
 
     if (recruiterError) {
@@ -175,7 +175,7 @@ export async function getCandidateResumeUnlockRecruiters(candidateId: string) {
     }
 
     const recruiterMap = new Map((recruiters || []).map((profile: any) => [profile.id, profile]));
-    const grouped = new Map<string, { recruiter_id: string; recruiter_name: string; company_name?: string; total_unlocks: number; last_unlocked_at?: string | null }>();
+    const grouped = new Map<string, { recruiter_id: string; recruiter_name: string; company_name?: string; company_logo_url?: string; total_unlocks: number; last_unlocked_at?: string | null }>();
 
     rows.forEach((row) => {
       const recruiterId = row.recruiter_id;
@@ -192,6 +192,7 @@ export async function getCandidateResumeUnlockRecruiters(candidateId: string) {
           recruiter_id: recruiterId,
           recruiter_name: recruiterName,
           company_name: recruiter.company_name,
+          company_logo_url: recruiter.company_logo_url,
           total_unlocks: 1,
           last_unlocked_at: row.unlocked_at || null,
         });
@@ -224,7 +225,7 @@ export async function getCandidateProfileViewRecruiters(candidateId: string) {
 
     const { data: recruiters, error: recruiterError } = await supabase
       .from('profiles')
-      .select('id, name, company_name, company_email')
+      .select('id, name, company_name, company_logo_url, company_email')
       .in('id', recruiterIds);
 
     if (recruiterError) {
@@ -233,7 +234,7 @@ export async function getCandidateProfileViewRecruiters(candidateId: string) {
     }
 
     const recruiterMap = new Map((recruiters || []).map((profile: any) => [profile.id, profile]));
-    const grouped = new Map<string, { recruiter_id: string; recruiter_name: string; company_name?: string; total_views: number; last_viewed_at?: string | null }>();
+    const grouped = new Map<string, { recruiter_id: string; recruiter_name: string; company_name?: string; company_logo_url?: string; total_views: number; last_viewed_at?: string | null }>();
 
     rows.forEach((row) => {
       const recruiterId = row.recruiter_id;
@@ -251,6 +252,7 @@ export async function getCandidateProfileViewRecruiters(candidateId: string) {
           recruiter_id: recruiterId,
           recruiter_name: recruiterName,
           company_name: recruiter.company_name,
+          company_logo_url: recruiter.company_logo_url,
           total_views: 1,
           last_viewed_at: lastViewedAt,
         });

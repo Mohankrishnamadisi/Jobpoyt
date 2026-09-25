@@ -1336,7 +1336,7 @@ export const savedService = {
   async getUserSavedJobs(userId: string) {
     const { data, error } = await supabase
       .from('saved_jobs')
-      .select('*, jobs(id, title, location, job_type, work_mode, experience, category, skills, created_at, featured, status)')
+      .select('*, jobs(id, title, company_name, company_logo_url, location, job_type, work_mode, experience, category, skills, created_at, featured, status)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     if (error) throw error;

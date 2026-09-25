@@ -54,6 +54,7 @@ import PriorityApply from '@pages/dashboard/tools/PriorityApply';
 import FreeNotesPage from '@pages/dashboard/tools/FreeNotes';
 import AiCareerHub from '@pages/dashboard/AiCareerHub';
 import AssessmentsPage from '@pages/dashboard/Assessments';
+import VerifyAssessmentCertificate from '@pages/VerifyAssessmentCertificate';
 import CommunityNetworkingHub from '@pages/dashboard/CommunityNetworkingHub';
 import LearningPage from '@pages/dashboard/Learning';
 import MessagingPage from '@pages/Messaging';
@@ -280,6 +281,7 @@ const AnimatedRoutes: React.FC = () => {
             </ProtectedRoute>
           }
         />
+        <Route path="/verify-certificate/:verificationId" element={<VerifyAssessmentCertificate />} />
         <Route
           path={ROUTES.DASHBOARD_COMMUNITY}
           element={

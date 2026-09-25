@@ -1,5 +1,6 @@
-import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Avatar,
   Badge,
   Box,
   Button,
@@ -27,7 +28,9 @@ import {
 import { motion } from 'framer-motion';
 import {
   Chat as ChatIcon,
+  Close as CloseIcon,
   Description as DescriptionIcon,
+  Download as DownloadIcon,
   ListAlt as ListAltIcon,
   Notifications as NotificationsIcon,
   Star as StarIcon,
@@ -44,6 +47,11 @@ import {
   AutoAwesome as AutoAwesomeIcon,
   Insights as InsightsIcon,
   Bolt as BoltIcon,
+  Business as BusinessIcon,
+  CalendarToday as CalendarTodayIcon,
+  Assessment as AssessmentIcon,
+  PeopleAlt as PeopleIcon,
+  LocationOn as LocationOnIcon,
   TrackChanges as TrackChangesIcon,
   Tune as TuneIcon,
   StickyNote2 as StickyNote2Icon,
@@ -55,6 +63,9 @@ import toast from 'react-hot-toast';
 import { Layout } from '@components/layout/Layout';
 import RecruiterActivityCenter, { type RecruiterActivityQuickAction } from '@components/dashboard/RecruiterActivityCenter';
 import { SubscriptionSummaryCard } from '@components/common/SubscriptionSummaryCard';
+import { FreeNotesPage } from '@pages/dashboard/tools/FreeNotes';
+import AssessmentsPage from '@pages/dashboard/Assessments';
+import { PremiumToolDashboards } from '@components/dashboard/PremiumToolDashboards';
 import { useAuthStore } from '@store/index';
 import { authService } from '@services/supabase';
 import { userService, applicationService, savedService, notificationService, jobService, subscriptionService } from '@services/api';
@@ -62,7 +73,9 @@ import { useSubscription } from '@hooks/index';
 import { messagingService } from '@services/messaging';
 import {
   getCandidateProfileViewCount,
+  getCandidateProfileViewRecruiters,
   getCandidateResumeUnlockCount,
+  getCandidateResumeUnlockRecruiters,
 } from '@utils/resumeUnlocks';
 import { ROUTES } from '@constants/index';
 import { formatDate } from '@utils/index';
@@ -89,6 +102,60 @@ const getJobList = (response: any): any[] => {
   return [];
 };
 
+const matchValues = (value: unknown): string[] => {
+  if (Array.isArray(value)) return value.flatMap(matchValues);
+  if (typeof value === 'object' && value !== null) {
+    const record = value as Record<string, unknown>;
+    return matchValues(record.name || record.label || record.title || record.value);
+  }
+  if (typeof value !== 'string') return value == null ? [] : [String(value)];
+  const trimmed = value.trim();
+  if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed.flatMap(matchValues);
+    } catch {
+      // Fall back to delimiter parsing for legacy profile/job values.
+    }
+  }
+  return trimmed.split(/[,|;\/\n]/).map((item) => item.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
+};
+
+const normalizeMatchValue = (value: unknown): string => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '').trim();
+
+const premiumToolOrder: Record<string, number> = {
+  'Saved Jobs': 1,
+  'Profile Views': 2,
+  'Resume Downloads': 3,
+  'Priority Apply': 4,
+  'Resume Builder': 5,
+  'Skill Test': 6,
+  Assessments: 7,
+  'Interview Preparation': 8,
+  'Free Notes': 9,
+  Certificates: 10,
+  'Interview Invites': 11,
+  'My Subscription': 12,
+  Community: 13,
+  Portfolio: 14,
+  Referrals: 16,
+};
+
+const hasPriorityProfileMatch = (job: any, profile: any): boolean => {
+  const candidateSkills = matchValues(profile?.skills).map(normalizeMatchValue).filter(Boolean);
+  const jobSkills = matchValues(job?.skills).map(normalizeMatchValue).filter(Boolean);
+  const jobTitle = normalizeMatchValue(job?.title);
+  const titleSignals = [profile?.current_designation, ...(matchValues(profile?.preferred_job_titles))]
+    .map(normalizeMatchValue)
+    .filter(Boolean);
+
+  const skillMatch = candidateSkills.some((candidateSkill) =>
+    jobSkills.some((jobSkill) => candidateSkill === jobSkill || candidateSkill.includes(jobSkill) || jobSkill.includes(candidateSkill))
+  );
+  const titleMatch = titleSignals.some((title) => jobTitle && (jobTitle.includes(title) || title.includes(jobTitle)));
+  return skillMatch || titleMatch;
+};
+
 const MotionCard = motion(Card);
 const candidateHeroGradient = 'linear-gradient(310deg, rgba(15,23,42,0.95) 0%, rgba(30,64,175,0.93) 45%, rgba(14,116,144,0.92) 100%)';
 const AiDailyCareerBrief = React.lazy(() => import('@components/dashboard/AiDailyCareerBrief'));
@@ -103,6 +170,21 @@ type RecentApplication = {
     title?: string;
     company_name?: string;
     location?: string;
+  };
+};
+
+type SavedPremiumJob = {
+  id: string;
+  job_id?: string;
+  jobs?: {
+    id?: string;
+    title?: string;
+    company_name?: string;
+    company_logo_url?: string;
+    location?: string;
+    work_mode?: string;
+    job_type?: string;
+    created_at?: string;
   };
 };
 
@@ -129,6 +211,12 @@ type PremiumSectionKey =
   | 'matchCenter'
   | 'recentApplications';
 
+type PremiumToolPopup = {
+  label: string;
+  description: string;
+  accent: string;
+};
+
 const sectionTabs: Array<{ key: PremiumSectionKey; label: string; icon: React.ElementType }> = [
   { key: 'dailyBrief', label: 'AI Daily Career Brief', icon: DescriptionIcon },
   { key: 'intelligence', label: 'Premium Intelligence Center', icon: InsightsIcon },
@@ -150,6 +238,7 @@ export const PremiumDashboard: React.FC = () => {
 
   const [applicationCount, setApplicationCount] = useState(0);
   const [savedJobsCount, setSavedJobsCount] = useState(0);
+  const [savedJobs, setSavedJobs] = useState<SavedPremiumJob[]>([]);
   const [notificationsCount, setNotificationsCount] = useState(0);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -157,9 +246,19 @@ export const PremiumDashboard: React.FC = () => {
   const [profileStrength, setProfileStrength] = useState(0);
   const [resumeDownloadCount, setResumeDownloadCount] = useState<number>(0);
   const [profileViewCount, setProfileViewCount] = useState<number>(0);
+  const [priorityJobs, setPriorityJobs] = useState<any[]>([]);
+  const [priorityJobsLoading, setPriorityJobsLoading] = useState(false);
+  const [profileViewRecruiters, setProfileViewRecruiters] = useState<any[]>([]);
+  const [resumeUnlockRecruiters, setResumeUnlockRecruiters] = useState<any[]>([]);
   const [interactionModalOpen, setInteractionModalOpen] = useState(false);
   const [quickNoteDialogOpen, setQuickNoteDialogOpen] = useState(false);
   const [quickNote, setQuickNote] = useState('');
+  const [premiumToolPopup, setPremiumToolPopup] = useState<PremiumToolPopup | null>(null);
+  const [freeNotesNewNoteHandler, setFreeNotesNewNoteHandler] = useState<(() => void) | null>(null);
+  const skillTestHeaderActionRef = useRef<(() => void) | null>(null);
+  const [skillTestHeaderState, setSkillTestHeaderState] = useState({ available: false, disabled: false, completed: false });
+  const [savedJobSearch, setSavedJobSearch] = useState('');
+  const [savedJobFilter, setSavedJobFilter] = useState('all');
   const [interactionModalTitle, setInteractionModalTitle] = useState('');
   const [interactionType, setInteractionType] = useState<'downloads' | 'views'>('downloads');
   const [interactionLoading, setInteractionLoading] = useState(false);
@@ -184,6 +283,25 @@ export const PremiumDashboard: React.FC = () => {
     setQuickNoteDialogOpen(false);
     toast.success('Note saved');
   };
+
+  const openPremiumTool = (label: string, description: string, accent: string) => {
+    setPremiumToolPopup({ label, description, accent });
+  };
+
+  const filteredSavedJobs = useMemo(() => {
+    const query = savedJobSearch.trim().toLowerCase();
+    return savedJobs.filter((savedJob) => {
+      const job = savedJob.jobs;
+      const searchable = [job?.title, job?.company_name, job?.location, job?.work_mode, job?.job_type]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      const matchesSearch = !query || searchable.includes(query);
+      const workMode = String(job?.work_mode || '').toLowerCase();
+      const matchesFilter = savedJobFilter === 'all' || workMode === savedJobFilter;
+      return matchesSearch && matchesFilter;
+    });
+  }, [savedJobFilter, savedJobSearch, savedJobs]);
 
   useEffect(() => {
     if (!user?.id) return undefined;
@@ -276,6 +394,21 @@ export const PremiumDashboard: React.FC = () => {
           } else {
             setRecommendedJobs([]);
           }
+
+          setPriorityJobsLoading(true);
+          try {
+            const [findJobsResponse, skillJobsResponse] = await Promise.all([
+              jobService.getJobs({}, 1, 50, { includeTotal: false }),
+              skills.length > 0 ? jobService.getJobsBySkills(matchValues(profile.skills), 1, 50) : Promise.resolve({ data: [] }),
+            ]);
+            const combinedJobs = [...getJobList(findJobsResponse), ...getJobList(skillJobsResponse)];
+            const uniqueJobs = Array.from(new Map(combinedJobs.filter((job) => job?.id).map((job) => [job.id, job])).values());
+            setPriorityJobs(uniqueJobs.filter((job) => hasPriorityProfileMatch(job, profile)));
+          } catch {
+            setPriorityJobs([]);
+          } finally {
+            setPriorityJobsLoading(false);
+          }
         }
 
         const [applications, saved, unreadNotifications, conversations] = await Promise.all([
@@ -287,19 +420,24 @@ export const PremiumDashboard: React.FC = () => {
 
         setRecentApplications(applications || []);
         setApplicationCount(applications?.length || 0);
+        setSavedJobs(saved || []);
         setSavedJobsCount(saved?.length || 0);
         setNotificationsCount((unreadNotifications || []).length);
         setUnreadMessagesCount(
           (((conversations as any[]) || []).reduce((count, conv) => count + (conv.unreadCount || 0), 0)),
         );
 
-        const [downloadCount, viewCount] = await Promise.all([
+        const [downloadCount, viewCount, viewRecruiters, unlockRecruiters] = await Promise.all([
           getCandidateResumeUnlockCount(user.id),
           getCandidateProfileViewCount(user.id),
+          getCandidateProfileViewRecruiters(user.id),
+          getCandidateResumeUnlockRecruiters(user.id),
         ]);
 
         setResumeDownloadCount(downloadCount);
         setProfileViewCount(viewCount);
+        setProfileViewRecruiters(viewRecruiters || []);
+        setResumeUnlockRecruiters(unlockRecruiters || []);
       } catch (error) {
         console.error('Error fetching premium dashboard stats:', error);
       } finally {
@@ -309,61 +447,6 @@ export const PremiumDashboard: React.FC = () => {
 
     fetchStats();
   }, [user?.id]);
-
-  const stats = useMemo(
-    () => [
-      {
-        key: 'applications' as const,
-        label: 'Applications',
-        value: applicationCount,
-        description: 'Track hiring movement',
-        icon: WorkIcon,
-        color: theme.palette.primary.main,
-        lightBg: 'linear-gradient(140deg, #DBEAFE 0%, #EEF4FF 55%, #FFFFFF 100%)',
-        darkBg: 'linear-gradient(145deg, rgba(8,10,16,0.98), rgba(0,0,0,1))',
-        action: () => setSelectedSection('applications'),
-        actionLabel: 'View applications',
-      },
-      {
-        key: 'savedJobs' as const,
-        label: 'Saved Jobs',
-        value: savedJobsCount,
-        description: 'Your shortlisted roles',
-        icon: FavoriteIcon,
-        color: theme.palette.error.main,
-        lightBg: 'linear-gradient(140deg, #FFE4E6 0%, #FFF1F2 55%, #FFFFFF 100%)',
-        darkBg: 'linear-gradient(145deg, rgba(8,10,16,0.98), rgba(0,0,0,1))',
-        action: () => setSelectedSection('savedJobs'),
-        actionLabel: 'View saved jobs',
-      },
-      {
-        key: 'resumeDownloads' as const,
-        label: 'Resume Downloads',
-        value: resumeDownloadCount,
-        description: 'Recruiter resume opens',
-        icon: VideocamIcon,
-        color: theme.palette.success.main,
-        lightBg: 'linear-gradient(140deg, #DCFCE7 0%, #F0FDF4 55%, #FFFFFF 100%)',
-        darkBg: 'linear-gradient(145deg, rgba(8,10,16,0.98), rgba(0,0,0,1))',
-        action: () => setSelectedSection('resumeDownloads'),
-        actionLabel: 'View resume downloads',
-      },
-      {
-        key: 'profileViews' as const,
-        label: 'Profile Views',
-        value: profileViewCount,
-        description: 'Interest from employers',
-        icon: VisibilityIcon,
-        color: theme.palette.secondary.main,
-        lightBg: 'linear-gradient(140deg, #F3E8FF 0%, #FAF5FF 55%, #FFFFFF 100%)',
-        darkBg: 'linear-gradient(145deg, rgba(8,10,16,0.98), rgba(0,0,0,1))',
-        action: () => setSelectedSection('profileViews'),
-        actionLabel: 'View profile views',
-      },
-    ],
-    [applicationCount, navigate, profileViewCount, resumeDownloadCount, savedJobsCount, subscription, theme.palette.error.main, theme.palette.primary.main, theme.palette.secondary.main, theme.palette.success.main],
-  );
-
 
   const premiumInsights = useMemo(() => {
     const views = Number(profileViewCount || 0);
@@ -758,11 +841,16 @@ export const PremiumDashboard: React.FC = () => {
                   />
                 </Box>
 
-                <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.08, mb: 1.2, color: '#FFFFFF' }}>
-                  Premium command deck
-                </Typography>
+                <Box sx={{ mb: 1.2 }}>
+                  <Typography sx={{ color: '#F7D774', fontSize: { xs: 9, md: 10 }, fontWeight: 800, letterSpacing: 1.8, textTransform: 'uppercase', mb: 0.5 }}>
+                    Welcome back, {user?.name || 'Candidate'}
+                  </Typography>
+                  <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: 0, lineHeight: 1.08, color: '#FFFFFF', fontSize: { xs: 26, md: 36 } }}>
+                    Premium <Box component="span" sx={{ color: '#F7D774' }}>career</Box> command center
+                  </Typography>
+                </Box>
                 <Typography variant="h6" sx={{ color: '#FFFFFF', mb: 2.4, maxWidth: 760 }}>
-                  Hello {user?.name || 'Candidate'}, this space is built for high-intent job hunting with exclusive insights, remote pipelines, and premium tools.
+                  Built for high-intent job hunting with exclusive insights, remote pipelines, and premium tools.
                 </Typography>
 
                 <Box className="premium-hero-actions" sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.2 }}>
@@ -816,13 +904,18 @@ export const PremiumDashboard: React.FC = () => {
                     <Typography variant="h6" sx={{ fontWeight: 700, color: '#E2E8F0', mb: 2 }}>
                       Premium communication
                     </Typography>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.2 }}>
-                      <Typography sx={{ color: '#E5E7EB', fontWeight: 600 }}>Unread messages</Typography>
-                      <Typography sx={{ color: '#FFFFFF', fontWeight: 800 }}>{unreadMessagesCount}</Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2.2 }}>
-                      <Typography sx={{ color: '#E5E7EB', fontWeight: 600 }}>Notifications</Typography>
-                      <Typography sx={{ color: '#FFFFFF', fontWeight: 800 }}>{notificationsCount}</Typography>
+                    <Box sx={{ display: 'grid', gap: 1.2, mb: 2.2 }}>
+                      {[
+                        { label: 'Applications', value: applicationCount },
+                        { label: 'Saved Jobs', value: savedJobsCount },
+                        { label: 'Resume Downloads', value: resumeDownloadCount },
+                        { label: 'Profile Views', value: profileViewCount },
+                      ].map((item) => (
+                        <Box key={item.label} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <Typography sx={{ color: '#E5E7EB', fontWeight: 600 }}>{item.label}</Typography>
+                          <Typography sx={{ color: '#FFFFFF', fontWeight: 800 }}>{item.value}</Typography>
+                        </Box>
+                      ))}
                     </Box>
                     <Box sx={{ display: 'flex', gap: 1 }}>
                       <IconButton onClick={() => navigate(ROUTES.MESSAGING)} sx={{ bgcolor: 'rgba(255,255,255,0.08)', '&:hover': { bgcolor: 'rgba(255,255,255,0.14)' } }}>
@@ -907,45 +1000,367 @@ export const PremiumDashboard: React.FC = () => {
           </DialogActions>
         </Dialog>
 
-        <Grid container spacing={2.2} sx={{ mb: 3 }}>
-          {stats.map((stat, idx) => (
-            <Grid item xs={12} sm={6} md={3} key={stat.label}>
-              <MotionCard
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                onClick={stat.action}
-                sx={{
-                  cursor: 'pointer',
-                  borderRadius: 4,
-                  border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : `1px solid ${theme.palette.divider}`,
-                  background: isDarkMode ? '#050608' : stat.lightBg,
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: isDarkMode ? '0 12px 28px rgba(0, 0, 0, 0.56)' : '0 12px 28px rgba(15, 23, 42, 0.12)',
-                  },
-                }}
-              >
-                <CardContent>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: isDarkMode ? '#FFFFFF' : '#334155' }}>
-                      {stat.label}
+        <Dialog
+          open={Boolean(premiumToolPopup)}
+          onClose={() => setPremiumToolPopup(null)}
+          maxWidth="lg"
+          fullWidth
+          PaperProps={{
+            sx: {
+              width: premiumToolPopup?.label === 'Skill Test' ? 'calc(100vw - 20px)' : 'calc(100vw - 32px)',
+              maxWidth: 'none',
+              height: premiumToolPopup?.label === 'Skill Test' ? 'min(calc(100dvh - 20px), 900px)' : 'calc(100vh - 32px)',
+              maxHeight: premiumToolPopup?.label === 'Skill Test' ? 900 : 'none',
+              borderRadius: { xs: 3, md: 4 },
+              overflow: 'hidden',
+              background: isDarkMode ? '#0B1220' : '#F8FAFC',
+            },
+          }}
+        >
+          <DialogTitle
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 2,
+              px: { xs: 2, md: 3.5 },
+              py: { xs: 1.5, md: 2 },
+              color: '#FFFFFF',
+              background: `linear-gradient(115deg, #071D35 0%, #0B3558 62%, ${premiumToolPopup?.accent || '#126B8F'} 100%)`,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0, flex: 1 }}>
+              <Box sx={{ width: 40, height: 40, borderRadius: 2, display: 'grid', placeItems: 'center', bgcolor: 'rgba(255,255,255,0.14)', color: '#F7D774' }}>
+                <AutoAwesomeIcon sx={{ fontSize: 20 }} />
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontSize: { xs: 10, md: 11 }, letterSpacing: 1.5, fontWeight: 900, color: '#F7D774', textTransform: 'uppercase' }}>
+                  Premium workspace
+                </Typography>
+                <Typography sx={{ fontSize: { xs: 18, md: 25 }, fontWeight: 900, lineHeight: 1.15 }}>
+                  {premiumToolPopup?.label === 'Resume Builder' ? 'AI Resume Builder' : premiumToolPopup?.label}
+                </Typography>
+                {premiumToolPopup?.label === 'Skill Test' ? <Typography variant="body2" sx={{ mt: 0.25, color: 'rgba(255,255,255,0.78)' }}>AI-generated assessments based on your JobPoyt skills.</Typography> : null}
+                {premiumToolPopup?.label === 'Resume Builder' ? <Typography variant="body2" sx={{ mt: 0.25, color: 'rgba(255,255,255,0.78)' }}>Build an ATS-friendly resume powered by your JobPoyt profile and AI.</Typography> : null}
+              </Box>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+              {premiumToolPopup?.label === 'Skill Test' && skillTestHeaderState.available ? (
+                <Button
+                  size="small"
+                  variant="contained"
+                  disabled={skillTestHeaderState.disabled}
+                  onClick={() => skillTestHeaderActionRef.current?.()}
+                  sx={{ minHeight: 36, px: 1.5, borderRadius: 1.5, bgcolor: '#2563EB', color: '#FFFFFF', textTransform: 'none', fontWeight: 700, whiteSpace: 'nowrap', '&:hover': { bgcolor: '#1D4ED8' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.75)', bgcolor: 'rgba(255,255,255,0.16)' } }}
+                >
+                  {skillTestHeaderState.completed ? <><Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Today's Skill Test Completed</Box><Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>Completed Today</Box></> : 'Start New Test'}
+                </Button>
+              ) : null}
+              {premiumToolPopup?.label === 'Free Notes' ? (
+                <Button
+                  size="small"
+                  variant="contained"
+                  startIcon={<StickyNote2Icon sx={{ fontSize: 16 }} />}
+                  onClick={() => freeNotesNewNoteHandler?.()}
+                  sx={{ minHeight: 32, px: 1.2, borderRadius: 1.5, bgcolor: '#2563EB', color: '#FFFFFF', textTransform: 'none', fontWeight: 800, '&:hover': { bgcolor: '#1D4ED8' } }}
+                >
+                  New Note
+                </Button>
+              ) : null}
+              <IconButton aria-label="Close premium tool" onClick={() => setPremiumToolPopup(null)} sx={{ width: 40, height: 40, color: '#FFFFFF', bgcolor: '#DC2626', '&:hover': { bgcolor: '#B91C1C' } }}>
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          </DialogTitle>
+          <DialogContent dividers sx={{ px: { xs: 2, md: 4 }, py: { xs: 2, md: 3 }, background: isDarkMode ? 'linear-gradient(180deg, #0F1B2D 0%, #0B1220 100%)' : 'linear-gradient(180deg, #F8FAFC 0%, #EEF4F8 100%)' }}>
+            {premiumToolPopup?.label === 'Saved Jobs' ? (
+              savedJobs.length > 0 ? (
+                <Box sx={{ maxWidth: 1120, width: '100%', mx: 'auto' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5, gap: 2 }}>
+                    <Typography sx={{ color: isDarkMode ? '#F8FAFC' : '#0F172A', fontWeight: 900, fontSize: { xs: 17, md: 21 } }}>
+                      Saved Jobs
                     </Typography>
-                    <Box sx={{ width: 44, height: 44, borderRadius: 2, bgcolor: isDarkMode ? 'rgba(255,255,255,0.08)' : `${stat.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <stat.icon sx={{ color: stat.color }} />
-                    </Box>
+                    <Chip label={`${savedJobs.length} saved`} size="small" sx={{ fontWeight: 800, bgcolor: isDarkMode ? 'rgba(247,215,116,0.16)' : '#FFF4D6', color: isDarkMode ? '#F7D774' : '#8A6412' }} />
                   </Box>
-                  <Typography variant="h4" sx={{ fontWeight: 800, color: isDarkMode ? '#FFFFFF' : '#0F172A' }}>
-                    {stat.value}
+                  <Box sx={{ display: 'flex', gap: 1, mb: 1.5, flexDirection: { xs: 'column', sm: 'row' } }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      value={savedJobSearch}
+                      onChange={(event) => setSavedJobSearch(event.target.value)}
+                      placeholder="Search saved jobs, companies, or locations"
+                      sx={{ bgcolor: isDarkMode ? 'rgba(255,255,255,0.06)' : '#FFFFFF', borderRadius: 1.5 }}
+                    />
+                    <TextField
+                      select
+                      size="small"
+                      value={savedJobFilter}
+                      onChange={(event) => setSavedJobFilter(event.target.value)}
+                      SelectProps={{ native: true }}
+                      sx={{ minWidth: { sm: 150 }, bgcolor: isDarkMode ? 'rgba(255,255,255,0.06)' : '#FFFFFF', borderRadius: 1.5 }}
+                    >
+                      <option value="all">All work modes</option>
+                      <option value="remote">Remote</option>
+                      <option value="hybrid">Hybrid</option>
+                      <option value="onsite">On-site</option>
+                    </TextField>
+                  </Box>
+                  <List sx={{ p: 0, display: 'grid', gap: 1 }}>
+                    {filteredSavedJobs.map((savedJob) => (
+                      <ListItem
+                        key={savedJob.id}
+                        onClick={() => {
+                          const jobId = savedJob.jobs?.id || savedJob.job_id;
+                          if (jobId) {
+                            window.open(ROUTES.JOB_DETAILS.replace(':id', String(jobId)), '_blank', 'noopener,noreferrer');
+                          }
+                        }}
+                        sx={{
+                          px: { xs: 1.2, md: 1.8 },
+                          py: { xs: 0.8, md: 1.2 },
+                          borderRadius: 2.5,
+                          border: `1px solid ${isDarkMode ? 'rgba(148,163,184,0.25)' : '#E2E8F0'}`,
+                          bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
+                          boxShadow: isDarkMode ? '0 10px 24px rgba(0,0,0,0.18)' : '0 8px 20px rgba(15,23,42,0.06)',
+                          cursor: savedJob.jobs?.id || savedJob.job_id ? 'pointer' : 'default',
+                          '&:hover': { borderColor: '#2563EB', transform: 'translateY(-1px)' },
+                          transition: 'border-color 160ms ease, transform 160ms ease',
+                        }}
+                      >
+                        <Avatar
+                          src={savedJob.jobs?.company_logo_url || undefined}
+                          variant="rounded"
+                          sx={{ width: 34, height: 34, mr: 1.2, flexShrink: 0, bgcolor: '#EFF6FF', color: '#2563EB', fontSize: 14, fontWeight: 800 }}
+                        >
+                          {(savedJob.jobs?.company_name || 'C').charAt(0).toUpperCase()}
+                        </Avatar>
+                        <ListItemText
+                          primary={savedJob.jobs?.title || 'Saved job'}
+                          secondary={(
+                            <Box sx={{ display: 'flex', gap: { xs: 1, md: 1.8 }, flexWrap: 'wrap', mt: 0.35 }}>
+                              <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45, color: isDarkMode ? '#CBD5E1' : '#64748B' }}>
+                                <BusinessIcon sx={{ fontSize: 14 }} />
+                                {savedJob.jobs?.company_name || 'Company not available'}
+                              </Typography>
+                              <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45, color: isDarkMode ? '#CBD5E1' : '#64748B' }}>
+                                <LocationOnIcon sx={{ fontSize: 14 }} />
+                                {savedJob.jobs?.location || 'Location not specified'}
+                              </Typography>
+                              <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45, color: isDarkMode ? '#CBD5E1' : '#64748B' }}>
+                                <WorkIcon sx={{ fontSize: 14 }} />
+                                {savedJob.jobs?.work_mode || savedJob.jobs?.job_type || 'Work mode not specified'}
+                              </Typography>
+                              <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45, color: isDarkMode ? '#CBD5E1' : '#64748B' }}>
+                                <CalendarTodayIcon sx={{ fontSize: 13 }} />
+                                Posted {savedJob.jobs?.created_at ? formatDate(savedJob.jobs.created_at) : 'date unavailable'}
+                              </Typography>
+                            </Box>
+                          )}
+                          primaryTypographyProps={{ fontWeight: 800, fontSize: { xs: 13, md: 15 }, color: isDarkMode ? '#F8FAFC' : '#0F172A' }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                  {filteredSavedJobs.length === 0 ? (
+                    <Typography sx={{ py: 3, textAlign: 'center', color: isDarkMode ? '#CBD5E1' : '#64748B', fontSize: 14 }}>
+                      No saved jobs match your search or filter.
+                    </Typography>
+                  ) : null}
+                </Box>
+              ) : (
+                <Box sx={{ maxWidth: 680, mx: 'auto', mt: 3, p: { xs: 2, md: 3 }, textAlign: 'center', borderRadius: 3, border: `1px dashed ${isDarkMode ? '#475569' : '#CBD5E1'}`, bgcolor: isDarkMode ? 'rgba(255,255,255,0.04)' : '#FFFFFF' }}>
+                  <Typography sx={{ color: isDarkMode ? '#CBD5E1' : '#64748B', fontSize: { xs: 15, md: 18 } }}>
+                  No saved jobs yet. Save a job to see it here.
                   </Typography>
-                  <Typography variant="caption" sx={{ color: isDarkMode ? '#FFFFFF' : '#64748B', fontWeight: 600 }}>
-                    {stat.description}
+                </Box>
+              )
+            ) : premiumToolPopup?.label === 'Profile Views' ? (
+              profileViewRecruiters.length > 0 ? (
+                <Box sx={{ maxWidth: 1120, width: '100%', mx: 'auto' }}>
+                  <Typography sx={{ color: isDarkMode ? '#F8FAFC' : '#0F172A', fontWeight: 900, fontSize: { xs: 17, md: 21 }, mb: 1.5 }}>
+                    Recruiters who viewed your profile
                   </Typography>
-                </CardContent>
-              </MotionCard>
-            </Grid>
-          ))}
-        </Grid>
+                  <List sx={{ p: 0, display: 'grid', gap: 1 }}>
+                    {profileViewRecruiters.map((viewer) => (
+                      <ListItem
+                        key={viewer.recruiter_id}
+                        sx={{
+                          px: { xs: 1.2, md: 1.8 },
+                          py: { xs: 0.8, md: 1.2 },
+                          borderRadius: 2.5,
+                          border: `1px solid ${isDarkMode ? 'rgba(148,163,184,0.25)' : '#E2E8F0'}`,
+                          bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
+                          boxShadow: isDarkMode ? '0 10px 24px rgba(0,0,0,0.18)' : '0 8px 20px rgba(15,23,42,0.06)',
+                        }}
+                      >
+                        <Avatar
+                          src={viewer.company_logo_url || undefined}
+                          variant="rounded"
+                          sx={{ width: 34, height: 34, mr: 1.2, flexShrink: 0, bgcolor: '#EFF6FF', color: '#2563EB', fontSize: 14, fontWeight: 800 }}
+                        >
+                          {(viewer.company_name || viewer.recruiter_name || 'C').charAt(0).toUpperCase()}
+                        </Avatar>
+                        <ListItemText
+                          primary={viewer.company_name || viewer.recruiter_name || 'Recruiter'}
+                          secondary={(
+                            <Box sx={{ display: 'flex', gap: { xs: 1, md: 1.8 }, flexWrap: 'wrap', mt: 0.25 }}>
+                              <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45, color: isDarkMode ? '#CBD5E1' : '#64748B' }}>
+                                <VisibilityIcon sx={{ fontSize: 14 }} />
+                                {viewer.total_views || 1} {viewer.total_views === 1 ? 'profile view' : 'profile views'}
+                              </Typography>
+                              <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45, color: isDarkMode ? '#CBD5E1' : '#64748B' }}>
+                                <CalendarTodayIcon sx={{ fontSize: 13 }} />
+                                Viewed {viewer.last_viewed_at ? new Date(viewer.last_viewed_at).toLocaleString() : 'time unavailable'}
+                              </Typography>
+                            </Box>
+                          )}
+                          primaryTypographyProps={{ fontWeight: 800, fontSize: { xs: 13, md: 15 }, color: isDarkMode ? '#F8FAFC' : '#0F172A' }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+              ) : (
+                <Box sx={{ maxWidth: 680, mx: 'auto', mt: 3, p: { xs: 2, md: 3 }, textAlign: 'center', borderRadius: 3, border: `1px dashed ${isDarkMode ? '#475569' : '#CBD5E1'}`, bgcolor: isDarkMode ? 'rgba(255,255,255,0.04)' : '#FFFFFF' }}>
+                  <Typography sx={{ color: isDarkMode ? '#CBD5E1' : '#64748B', fontSize: { xs: 14, md: 16 } }}>
+                    No detailed profile-view records are available yet.
+                  </Typography>
+                </Box>
+              )
+            ) : premiumToolPopup?.label === 'Resume Downloads' ? (
+              resumeUnlockRecruiters.length > 0 ? (
+                <Box sx={{ maxWidth: 1120, width: '100%', mx: 'auto' }}>
+                  <Typography sx={{ color: isDarkMode ? '#F8FAFC' : '#0F172A', fontWeight: 900, fontSize: { xs: 17, md: 21 }, mb: 1.5 }}>
+                    Recruiters who downloaded your resume
+                  </Typography>
+                  <List sx={{ p: 0, display: 'grid', gap: 1 }}>
+                    {resumeUnlockRecruiters.map((recruiter) => (
+                      <ListItem
+                        key={recruiter.recruiter_id}
+                        sx={{
+                          px: { xs: 1.2, md: 1.8 },
+                          py: { xs: 0.8, md: 1.2 },
+                          borderRadius: 2.5,
+                          border: `1px solid ${isDarkMode ? 'rgba(148,163,184,0.25)' : '#E2E8F0'}`,
+                          bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
+                          boxShadow: isDarkMode ? '0 10px 24px rgba(0,0,0,0.18)' : '0 8px 20px rgba(15,23,42,0.06)',
+                        }}
+                      >
+                        <Avatar
+                          src={recruiter.company_logo_url || undefined}
+                          variant="rounded"
+                          sx={{ width: 34, height: 34, mr: 1.2, flexShrink: 0, bgcolor: '#ECFDF5', color: '#16A34A', fontSize: 14, fontWeight: 800 }}
+                        >
+                          {(recruiter.company_name || recruiter.recruiter_name || 'C').charAt(0).toUpperCase()}
+                        </Avatar>
+                        <ListItemText
+                          primary={recruiter.company_name || recruiter.recruiter_name || 'Recruiter'}
+                          secondary={(
+                            <Box sx={{ display: 'flex', gap: { xs: 1, md: 1.8 }, flexWrap: 'wrap', mt: 0.25 }}>
+                              <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45, color: isDarkMode ? '#CBD5E1' : '#64748B' }}>
+                                <DownloadIcon sx={{ fontSize: 14 }} />
+                                {recruiter.total_unlocks || 1} {recruiter.total_unlocks === 1 ? 'resume download' : 'resume downloads'}
+                              </Typography>
+                              <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45, color: isDarkMode ? '#CBD5E1' : '#64748B' }}>
+                                <CalendarTodayIcon sx={{ fontSize: 13 }} />
+                                Downloaded {recruiter.last_unlocked_at ? new Date(recruiter.last_unlocked_at).toLocaleString() : 'time unavailable'}
+                              </Typography>
+                            </Box>
+                          )}
+                          primaryTypographyProps={{ fontWeight: 800, fontSize: { xs: 13, md: 15 }, color: isDarkMode ? '#F8FAFC' : '#0F172A' }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+              ) : (
+                <Box sx={{ maxWidth: 680, mx: 'auto', mt: 3, p: { xs: 2, md: 3 }, textAlign: 'center', borderRadius: 3, border: `1px dashed ${isDarkMode ? '#475569' : '#CBD5E1'}`, bgcolor: isDarkMode ? 'rgba(255,255,255,0.04)' : '#FFFFFF' }}>
+                  <Typography sx={{ color: isDarkMode ? '#CBD5E1' : '#64748B', fontSize: { xs: 14, md: 16 } }}>
+                    No detailed resume-download records are available yet.
+                  </Typography>
+                </Box>
+              )
+            ) : premiumToolPopup?.label === 'Priority Apply' ? (
+              priorityJobsLoading ? (
+                <Box sx={{ display: 'grid', placeItems: 'center', minHeight: 180 }}>
+                  <CircularProgress size={28} />
+                </Box>
+              ) : priorityJobs.length > 0 ? (
+                <Box sx={{ maxWidth: 1120, width: '100%', mx: 'auto' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5, gap: 2 }}>
+                    <Typography sx={{ color: isDarkMode ? '#F8FAFC' : '#0F172A', fontWeight: 900, fontSize: { xs: 17, md: 21 } }}>
+                      Priority matches from Find Jobs
+                    </Typography>
+                    <Chip label={`${priorityJobs.length} matches`} size="small" sx={{ fontWeight: 800, bgcolor: '#FFF4D6', color: '#8A6412' }} />
+                  </Box>
+                  <List sx={{ p: 0, display: 'grid', gap: 1 }}>
+                    {priorityJobs.map((job) => (
+                      <ListItem
+                        key={job.id}
+                        onClick={() => window.open(ROUTES.JOB_DETAILS.replace(':id', String(job.id)), '_blank', 'noopener,noreferrer')}
+                        sx={{
+                          px: { xs: 1.2, md: 1.8 },
+                          py: { xs: 0.8, md: 1.2 },
+                          borderRadius: 2.5,
+                          border: `1px solid ${isDarkMode ? 'rgba(148,163,184,0.25)' : '#E2E8F0'}`,
+                          bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
+                          cursor: 'pointer',
+                          '&:hover': { borderColor: '#D6A73A', transform: 'translateY(-1px)' },
+                          transition: 'border-color 160ms ease, transform 160ms ease',
+                        }}
+                      >
+                        <Avatar
+                          src={job.company_logo_url || job.company_logo || undefined}
+                          variant="rounded"
+                          sx={{ width: 34, height: 34, mr: 1.2, flexShrink: 0, bgcolor: '#FFF7E6', color: '#B7791F', fontSize: 14, fontWeight: 800 }}
+                        >
+                          {(job.company_name || 'C').charAt(0).toUpperCase()}
+                        </Avatar>
+                        <ListItemText
+                          primary={job.title || 'Untitled job'}
+                          secondary={(
+                            <Box sx={{ display: 'flex', gap: { xs: 1, md: 1.8 }, flexWrap: 'wrap', mt: 0.25 }}>
+                              <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45 }}><BusinessIcon sx={{ fontSize: 14 }} />{job.company_name || 'Company not available'}</Typography>
+                              <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45 }}><LocationOnIcon sx={{ fontSize: 14 }} />{job.location || 'Location not specified'}</Typography>
+                              <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45 }}><WorkIcon sx={{ fontSize: 14 }} />{job.work_mode || job.workMode || 'Work mode not specified'}</Typography>
+                              <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45 }}><CalendarTodayIcon sx={{ fontSize: 13 }} />Posted {job.created_at ? formatDate(job.created_at) : 'date unavailable'}</Typography>
+                            </Box>
+                          )}
+                          primaryTypographyProps={{ fontWeight: 800, fontSize: { xs: 13, md: 15 }, color: isDarkMode ? '#F8FAFC' : '#0F172A' }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+              ) : (
+                <Box sx={{ maxWidth: 680, mx: 'auto', mt: 3, p: { xs: 2, md: 3 }, textAlign: 'center', borderRadius: 3, border: '1px dashed #CBD5E1', bgcolor: '#FFFFFF' }}>
+                  <Typography sx={{ color: '#64748B', fontSize: { xs: 14, md: 16 } }}>
+                    No Find Jobs posts match your skills, designation, or preferred job titles yet.
+                  </Typography>
+                </Box>
+              )
+            ) : premiumToolPopup?.label === 'Assessments' ? (
+              <AssessmentsPage embedded onOpenCertificates={() => openPremiumTool('Certificates', 'Showcase your verified JobPoyt assessment achievements.', '#D97706')} />
+            ) : premiumToolPopup?.label === 'Free Notes' ? (
+              <Box sx={{ mx: { xs: -1, md: 0 }, '& > .MuiBox-root': { maxWidth: 'none', px: 0, py: 0 } }}>
+                <FreeNotesPage embedded onNewNoteReady={(handler) => setFreeNotesNewNoteHandler(() => handler)} />
+              </Box>
+            ) : ['Interview Preparation', 'Skill Test', 'Resume Builder', 'Certificates', 'Interview Invites'].includes(premiumToolPopup?.label || '') ? (
+              <PremiumToolDashboards tool={premiumToolPopup?.label as 'Interview Preparation' | 'Skill Test' | 'Resume Builder' | 'Certificates' | 'Interview Invites'} skillTestHeaderActionRef={skillTestHeaderActionRef} onSkillTestHeaderStateChange={setSkillTestHeaderState} />
+            ) : (
+              <>
+                <Box sx={{ maxWidth: 880, mx: 'auto', mt: { xs: 2, md: 4 }, p: { xs: 2.5, md: 3.5 }, borderRadius: 4, bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#FFFFFF', border: `1px solid ${isDarkMode ? 'rgba(148,163,184,0.25)' : '#E2E8F0'}`, boxShadow: isDarkMode ? '0 20px 40px rgba(0,0,0,0.2)' : '0 16px 34px rgba(15,23,42,0.07)', textAlign: 'center' }}>
+                  <Typography sx={{ color: isDarkMode ? '#E5E7EB' : '#334155', lineHeight: 1.6, fontSize: { xs: 15, md: 18 }, fontWeight: 700 }}>
+                    {premiumToolPopup?.description}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 1.5, color: isDarkMode ? '#CBD5E1' : '#64748B', fontWeight: 700, fontSize: { xs: 12, md: 14 } }}>
+                    This premium tool is available inside your Jobpoyt workspace.
+                  </Typography>
+                </Box>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={subscriptionDialogOpen} onClose={() => setSubscriptionDialogOpen(false)} maxWidth="md" fullWidth>
           <DialogContent sx={{ p: { xs: 1.5, md: 2 } }}>
@@ -1322,29 +1737,32 @@ export const PremiumDashboard: React.FC = () => {
               overflow: 'hidden',
               position: 'relative',
               '&:before': {
-                content: '""',
-                position: 'absolute',
-                top: -40,
-                right: -30,
-                width: 220,
-                height: 220,
-                borderRadius: '50%',
-                bgcolor: isDarkMode ? 'rgba(59,130,246,0.12)' : 'rgba(59,130,246,0.14)',
-                filter: 'blur(52px)',
+                display: 'none',
               },
               '&:after': {
-                content: '""',
-                position: 'absolute',
-                bottom: -30,
-                left: -40,
-                width: 240,
-                height: 240,
-                borderRadius: '50%',
-                bgcolor: isDarkMode ? 'rgba(124,58,237,0.12)' : 'rgba(124,58,237,0.12)',
-                filter: 'blur(48px)',
+                display: 'none',
               },
             }}
           >
+            <Box
+              component="video"
+              autoPlay
+              loop
+              muted
+              playsInline
+              aria-hidden="true"
+              src="https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/premium%20site1.mp4?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9wcmVtaXVtIHNpdGUxLm1wNCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTAzNTIyMTMsImV4cCI6MjQyMTA3MjIxM30.eixDBdpBeQkJhdP4yA4wO4OxAgk5GlUR6ZhpPdNueOQ"
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                opacity: 1,
+                pointerEvents: 'none',
+                zIndex: 0,
+              }}
+            />
             <Box sx={{ position: 'relative', zIndex: 1, px: { xs: 3, md: 4 }, pt: { xs: 3, md: 4 }, pb: 2 }}>
               <Typography variant="h5" sx={{ fontWeight: 800, color: isDarkMode ? '#FFFFFF' : '#0F172A', textAlign: 'center' }}>
                 ✨ Explore Premium Workspace ✨
@@ -1373,152 +1791,70 @@ export const PremiumDashboard: React.FC = () => {
               />
             </Box>
 
-            <Grid container spacing={2} sx={{ px: { xs: 2, md: 3 }, pb: { xs: 3, md: 3 } }}>
-              <Grid item xs={12} md={3}>
-                <Box sx={{ display: 'grid', gap: 1.75 }}>
-                  {[
-                    {
-                      id: '01',
-                      title: 'Exclusive Premium Tools',
-                      subtitle: 'Action studio',
-                      icon: AutoAwesomeIcon,
-                      active: true,
-                    },
-                    {
-                      id: '02',
-                      title: 'Recommended Jobs For You',
-                      subtitle: 'AI match feed',
-                      icon: TrendingUpIcon,
-                      active: false,
-                    },
-                    {
-                      id: '03',
-                      title: 'Quick Preferences',
-                      subtitle: 'Personal controls',
-                      icon: TuneIcon,
-                      active: false,
-                    },
-                  ].map((item) => {
-                    const ItemIcon = item.icon;
-                    return (
-                      <MotionCard
-                        key={item.id}
-                        whileHover={{ y: -4 }}
-                        transition={{ duration: 0.25 }}
-                        sx={{
-                          p: 2.2,
-                          borderRadius: 4,
-                          border: item.active
-                            ? `1px solid ${isDarkMode ? 'rgba(59,130,246,0.35)' : 'rgba(59,130,246,0.28)'}`
-                            : isDarkMode
-                            ? '1px solid rgba(255,255,255,0.08)'
-                            : '1px solid rgba(203,213,225,0.8)',
-                          bgcolor: item.active
-                            ? isDarkMode
-                              ? '#080a0f'
-                              : '#FFFFFF'
-                            : isDarkMode
-                            ? '#050608'
-                            : '#FFFFFF',
-                          boxShadow: isDarkMode
-                            ? '0 18px 45px rgba(0,0,0,0.28)'
-                            : '0 16px 36px rgba(15,23,42,0.06)',
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.8 }}>
-                          <Box
-                            sx={{
-                              width: 34,
-                              height: 34,
-                              borderRadius: '50%',
-                              bgcolor: item.active ? 'rgba(59,130,246,0.12)' : 'rgba(148,163,184,0.12)',
-                              color: item.active ? '#2563EB' : isDarkMode ? '#E5E7EB' : '#475569',
-                              display: 'grid',
-                              placeItems: 'center',
-                              fontWeight: 800,
-                            }}
-                          >
-                            {item.id}
-                          </Box>
-                          <Box
-                            sx={{
-                              width: 40,
-                              height: 40,
-                              borderRadius: 2,
-                              bgcolor: item.active
-                                ? 'linear-gradient(135deg, rgba(37,99,235,0.18), rgba(124,58,237,0.18))'
-                                : isDarkMode
-                                ? 'rgba(255,255,255,0.08)'
-                                : 'rgba(241,245,249,0.82)',
-                              display: 'grid',
-                              placeItems: 'center',
-                              color: item.active ? '#2563EB' : isDarkMode ? '#E5E7EB' : '#475569',
-                            }}
-                          >
-                            <ItemIcon sx={{ fontSize: 20 }} />
-                          </Box>
-                        </Box>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 800, color: isDarkMode ? '#F8FAFC' : '#0F172A' }}>
-                          {item.title}
-                        </Typography>
-                        <Typography variant="body2" sx={{ mt: 0.9, color: isDarkMode ? '#E5E7EB' : '#64748B' }}>
-                          {item.subtitle}
-                        </Typography>
-                      </MotionCard>
-                    );
-                  })}
-                </Box>
-              </Grid>
-
-              <Grid item xs={12} md={9}>
+            <Grid container spacing={2} sx={{ position: 'relative', zIndex: 1, px: { xs: 2, md: 3 }, pb: { xs: 3, md: 3 } }}>
+              <Grid item xs={12}>
                 <Grid container spacing={2} sx={{ alignItems: 'stretch' }}>
                   {[
                     {
-                      label: 'Mock Interviews',
-                      icon: VideocamIcon,
-                      action: () => navigate('/dashboard/mock-interviews'),
-                      iconGradient: 'linear-gradient(135deg, rgba(59,130,246,0.18), rgba(191,219,254,0.35))',
+                      label: 'Saved Jobs',
+                      icon: FavoriteIcon,
+                      action: () => openPremiumTool('Saved Jobs', `${savedJobsCount} saved ${savedJobsCount === 1 ? 'job' : 'jobs'} are waiting in your shortlist.`, '#E11D48'),
+                      iconGradient: 'linear-gradient(135deg, rgba(244,63,94,0.16), rgba(255,228,230,0.34))',
+                      accent: '#E11D48',
+                    },
+                    {
+                      label: 'Profile Views',
+                      icon: VisibilityIcon,
+                      action: () => openPremiumTool('Profile Views', `${profileViewCount} recruiter ${profileViewCount === 1 ? 'view' : 'views'} of your profile recorded.`, '#2563EB'),
+                      iconGradient: 'linear-gradient(135deg, rgba(59,130,246,0.16), rgba(191,219,254,0.35))',
                       accent: '#2563EB',
                     },
                     {
-                      label: 'Resume Review',
+                      label: 'Resume Downloads',
+                      icon: DownloadIcon,
+                      action: () => openPremiumTool('Resume Downloads', `${resumeDownloadCount} recruiter ${resumeDownloadCount === 1 ? 'download' : 'downloads'} of your resume recorded.`, '#16A34A'),
+                      iconGradient: 'linear-gradient(135deg, rgba(34,197,94,0.16), rgba(209,250,229,0.34))',
+                      accent: '#16A34A',
+                    },
+                    {
+                      label: 'Resume Builder',
                       icon: DescriptionIcon,
-                      action: () => navigate('/dashboard/resume-review'),
+                      action: () => openPremiumTool('Resume Builder', 'Build, edit, tailor, and download an ATS-friendly resume.', '#7C3AED'),
                       iconGradient: 'linear-gradient(135deg, rgba(124,58,237,0.16), rgba(233,213,255,0.3))',
                       accent: '#7C3AED',
                     },
                     {
                       label: 'Priority Apply',
                       icon: WorkIcon,
-                      action: () => navigate('/dashboard/priority-apply'),
+                      action: () => openPremiumTool('Priority Apply', 'Find high-intent opportunities and keep your strongest applications moving forward.', '#F59E0B'),
                       iconGradient: 'linear-gradient(135deg, rgba(245,158,11,0.16), rgba(254,243,199,0.32))',
                       accent: '#F59E0B',
                     },
                     {
                       label: 'Interview Preparation',
                       icon: ChatIcon,
-                      action: () => window.open('https://www.ambitionbox.com/interviews?campaign=desktop_nav', '_blank', 'noopener'),
+                      action: () => openPremiumTool('Interview Preparation', 'Prepare answers, sharpen your communication, and get ready for recruiter conversations.', '#0284C7'),
                       iconGradient: 'linear-gradient(135deg, rgba(14,165,233,0.16), rgba(204,242,254,0.3))',
                       accent: '#0284C7',
                     },
                     {
                       label: 'Free Notes',
                       icon: StickyNote2Icon,
-                      action: () => navigate(ROUTES.DASHBOARD_FREE_NOTES),
+                      action: () => openPremiumTool('Free Notes', 'Capture application ideas, follow-ups, and career reminders inside your dashboard.', '#16A34A'),
                       iconGradient: 'linear-gradient(135deg, rgba(34,197,94,0.16), rgba(209,250,229,0.3))',
                       accent: '#16A34A',
                     },
                     {
                       label: 'Assessments',
                       icon: TrackChangesIcon,
-                      action: () => navigate(ROUTES.DASHBOARD_ASSESSMENTS),
+                      action: () => openPremiumTool('Assessments', 'Measure your strengths with assessments designed to improve your career readiness.', '#7C3AED'),
                       iconGradient: 'linear-gradient(135deg, rgba(168,85,247,0.16), rgba(244,231,255,0.32))',
                       accent: '#7C3AED',
                     },
                     {
                       label: 'Community',
                       icon: PublicIcon,
-                      action: () => navigate(ROUTES.DASHBOARD_COMMUNITY),
+                      action: () => openPremiumTool('Community', 'Connect with the Jobpoyt career community and discover new professional opportunities.', '#0EA5E9'),
                       iconGradient: 'linear-gradient(135deg, rgba(34,211,238,0.16), rgba(192,232,249,0.34))',
                       accent: '#0EA5E9',
                     },
@@ -1529,10 +1865,45 @@ export const PremiumDashboard: React.FC = () => {
                       iconGradient: 'linear-gradient(135deg, rgba(251,191,36,0.16), rgba(254,243,199,0.34))',
                       accent: '#F59E0B',
                     },
+                    {
+                      label: 'Skill Test',
+                      icon: AssessmentIcon,
+                      action: () => openPremiumTool('Skill Test', 'Test your job-ready skills and understand where to focus your next improvement sprint.', '#2563EB'),
+                      iconGradient: 'linear-gradient(135deg, rgba(37,99,235,0.16), rgba(191,219,254,0.35))',
+                      accent: '#2563EB',
+                    },
+                    {
+                      label: 'Certificates',
+                      icon: WorkspacePremiumIcon,
+                      action: () => openPremiumTool('Certificates', 'Review the certificates and verified achievements that strengthen your professional profile.', '#D97706'),
+                      iconGradient: 'linear-gradient(135deg, rgba(245,158,11,0.16), rgba(254,243,199,0.34))',
+                      accent: '#D97706',
+                    },
+                    {
+                      label: 'Portfolio',
+                      icon: PublicIcon,
+                      action: () => openPremiumTool('Portfolio', 'Build a stronger professional presence by organizing your work, links, and career highlights.', '#0EA5E9'),
+                      iconGradient: 'linear-gradient(135deg, rgba(14,165,233,0.16), rgba(186,230,253,0.34))',
+                      accent: '#0EA5E9',
+                    },
+                    {
+                      label: 'Interview Invites',
+                      icon: VideocamIcon,
+                      action: () => openPremiumTool('Interview Invites', 'Keep track of interview opportunities and be ready to respond quickly to recruiters.', '#16A34A'),
+                      iconGradient: 'linear-gradient(135deg, rgba(34,197,94,0.16), rgba(209,250,229,0.34))',
+                      accent: '#16A34A',
+                    },
+                    {
+                      label: 'Referrals',
+                      icon: PeopleIcon,
+                      action: () => openPremiumTool('Referrals', 'Explore referral opportunities and grow your path to relevant roles through your network.', '#0891B2'),
+                      iconGradient: 'linear-gradient(135deg, rgba(8,145,178,0.16), rgba(207,250,254,0.34))',
+                      accent: '#0891B2',
+                    },
                   ].map((tool) => {
                     const ToolIcon = tool.icon;
                     return (
-                      <Grid item xs={12} sm={6} md={3} key={tool.label} sx={{ display: 'flex' }}>
+                      <Grid item xs={12} sm={6} md={3} key={tool.label} sx={{ display: 'flex', order: premiumToolOrder[tool.label] ?? 99 }}>
                         <MotionCard
                           whileHover={{ y: -4 }}
                           transition={{ duration: 0.25 }}
@@ -1548,16 +1919,17 @@ export const PremiumDashboard: React.FC = () => {
                           sx={{
                             width: '100%',
                             height: '100%',
-                            minHeight: 170,
-                            borderRadius: 4,
+                            minHeight: 128,
+                            borderRadius: 3,
                             border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(226,232,240,0.9)',
-                            bgcolor: isDarkMode ? '#050608' : '#FFFFFF',
-                            boxShadow: isDarkMode ? '0 14px 28px rgba(0,0,0,0.32)' : '0 12px 26px rgba(15,23,42,0.08)',
+                            bgcolor: isDarkMode ? '#050608' : 'rgba(255,255,255,0.94)',
+                            backdropFilter: 'blur(10px)',
+                            boxShadow: isDarkMode ? '0 14px 28px rgba(0,0,0,0.32)' : '0 12px 26px rgba(15,23,42,0.12)',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            p: 2,
+                            p: 1.4,
                             cursor: 'pointer',
                             '&:hover': {
                               boxShadow: isDarkMode ? '0 18px 34px rgba(0,0,0,0.38)' : '0 16px 32px rgba(15,23,42,0.12)',
@@ -1566,18 +1938,18 @@ export const PremiumDashboard: React.FC = () => {
                         >
                           <Box
                             sx={{
-                              width: 52,
-                              height: 52,
-                              borderRadius: 3,
+                              width: 42,
+                              height: 42,
+                              borderRadius: 2.5,
                               bgcolor: tool.iconGradient,
                               display: 'grid',
                               placeItems: 'center',
                               boxShadow: isDarkMode ? '0 12px 28px rgba(59,130,246,0.08)' : '0 12px 28px rgba(59,130,246,0.12)',
                             }}
                           >
-                            <ToolIcon sx={{ fontSize: 22, color: tool.accent }} />
+                            <ToolIcon sx={{ fontSize: 19, color: tool.accent }} />
                           </Box>
-                          <Typography variant="subtitle1" sx={{ mt: 2, fontWeight: 800, color: isDarkMode ? '#F8FAFC' : '#0F172A' }}>
+                          <Typography variant="subtitle1" sx={{ mt: 1.2, fontWeight: 800, fontSize: { xs: 13, md: 14 }, color: isDarkMode ? '#F8FAFC' : '#0F172A', textAlign: 'center', lineHeight: 1.2 }}>
                             {tool.label}
                           </Typography>
                         </MotionCard>
@@ -1586,67 +1958,6 @@ export const PremiumDashboard: React.FC = () => {
                   })}
                 </Grid>
 
-                <Grid item xs={12}>
-                  <MotionCard
-                    whileHover={{ y: -3 }}
-                    transition={{ duration: 0.25 }}
-                    sx={{
-                      mt: 1,
-                      borderRadius: 4,
-                      border: isDarkMode ? '1px solid rgba(148,163,184,0.16)' : '1px solid rgba(226,232,240,0.9)',
-                      bgcolor: isDarkMode ? 'rgba(15,23,42,0.88)' : '#FFFFFF',
-                      boxShadow: isDarkMode ? '0 18px 40px rgba(15,23,42,0.22)' : '0 14px 36px rgba(15,23,42,0.08)',
-                      p: 2.25,
-                      display: 'flex',
-                      flexDirection: { xs: 'column', sm: 'row' },
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 2,
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Box
-                        sx={{
-                          width: 52,
-                          height: 52,
-                          borderRadius: 3,
-                          bgcolor: 'linear-gradient(135deg, rgba(37,99,235,0.18), rgba(124,58,237,0.18))',
-                          display: 'grid',
-                          placeItems: 'center',
-                        }}
-                      >
-                        <StarIcon sx={{ color: '#2563EB', fontSize: 24 }} />
-                      </Box>
-                      <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 800, color: isDarkMode ? '#F8FAFC' : '#0F172A' }}>
-                          Unlock the full power of Jobpoyt Premium
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: isDarkMode ? '#FFFFFF' : '#64748B', mt: 0.5 }}>
-                          More tools. More insights. More opportunities.
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Button
-                      variant="contained"
-                      onClick={() => navigate(ROUTES.DASHBOARD_SETTINGS_PREMIUM)}
-                      sx={{
-                        bgcolor: 'linear-gradient(135deg, #2563EB, #7C3AED)',
-                        color: '#FFFFFF',
-                        borderRadius: 3,
-                        py: 1.4,
-                        px: 3,
-                        textTransform: 'none',
-                        fontWeight: 700,
-                        boxShadow: '0 14px 30px rgba(37,99,235,0.28)',
-                        '&:hover': {
-                          bgcolor: 'linear-gradient(135deg, #1D4ED8, #6D28D9)',
-                        },
-                      }}
-                    >
-                      👑 Go Premium
-                    </Button>
-                  </MotionCard>
-                </Grid>
               </Grid>
             </Grid>
           </Box>
