@@ -12,7 +12,7 @@ import {
 } from '@mui/icons-material';
 import { candidateAssessmentService, type AssessmentCertificate, type CandidateAssessmentDifficulty } from '@services/candidateAssessments';
 
-const verificationUrl = (verificationId: string) => `${window.location.origin}/#/verify-certificate/${encodeURIComponent(verificationId)}`;
+const verificationUrl = (verificationId: string) => `${window.location.origin}/verify-certificate/${encodeURIComponent(verificationId)}`;
 const safeName = (value: string) => value.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '') || 'Candidate';
 const formatDate = (value?: string | null) => value ? new Date(value).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' }) : 'Date unavailable';
 const getDetails = (certificate: AssessmentCertificate) => certificate.scorecard?.scoreDetails || certificate.scoreDetails || {};
