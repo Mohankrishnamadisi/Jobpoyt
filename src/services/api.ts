@@ -399,6 +399,8 @@ export const jobService = {
         const escapedTerm = term.replace(/%/g, '\\%').replace(/_/g, '\\_');
         return [
           `title.ilike.%${escapedTerm}%`,
+          `company_name.ilike.%${escapedTerm}%`,
+          `description.ilike.%${escapedTerm}%`,
           `skills.cs.{${escapedTerm}}`,
         ];
       });
@@ -407,6 +409,9 @@ export const jobService = {
     if (companyInput) {
       const escapedCompany = companyInput.replace(/%/g, '\\%').replace(/_/g, '\\_');
       query = query.ilike('company_name', `%${escapedCompany}%`);
+    }
+    if (filters?.status) {
+      query = query.eq('status', String(filters.status));
     }
     if (Array.isArray(filters?.jobType) && filters.jobType.length > 0) {
       query = query.in('job_type', filters.jobType as string[]);
@@ -483,6 +488,7 @@ export const jobService = {
             const skills = Array.isArray(job.skills) ? job.skills : [];
             const directMatch = (
               matchesAnyKeyword(job.title)
+              || matchesAnyKeyword(job.company_name)
               || matchesAnyKeyword(job.description)
               || skills.some((skill) => matchesAnyKeyword(skill))
             );
@@ -523,6 +529,7 @@ export const jobService = {
 
       const literalMatch = (
         matchesKeyword(job.title)
+        || matchesKeyword(job.company_name)
         || matchesKeyword(job.description)
         || skills.some((skill) => matchesKeyword(skill))
       );

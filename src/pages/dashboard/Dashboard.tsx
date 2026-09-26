@@ -236,7 +236,7 @@ export const Dashboard: React.FC = () => {
 
   const toolsItems = useMemo(
     () => [
-      { label: 'Remote Job Hub', icon: WorkIcon, to: ROUTES.JOBS },
+      { label: 'Remote Job Hub', icon: WorkIcon, to: '/dashboard/remote-jobs' },
       { label: 'AI Daily Career Brief', icon: AutoAwesomeIcon, to: ROUTES.DASHBOARD },
       { label: 'Intelligence Center', icon: WorkspacePremiumIcon, to: ROUTES.DASHBOARD },
       { label: 'Exclusive Tools', icon: WorkspacePremiumIcon, to: ROUTES.DASHBOARD },

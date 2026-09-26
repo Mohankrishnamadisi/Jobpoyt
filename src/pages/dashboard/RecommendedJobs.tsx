@@ -33,6 +33,17 @@ export const RecommendedJobs: React.FC = () => {
   const [userSkills, setUserSkills] = useState<string[]>([]);
   const [profile, setProfile] = useState<any>(null);
 
+  const handleOpenJobDetails = (jobId: string) => {
+    const url = `${window.location.origin}${ROUTES.JOB_DETAILS.replace(':id', jobId)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const preferredTitles = Array.isArray(profile?.preferred_job_titles || profile?.preferredJobTitles)
+    ? (profile?.preferred_job_titles || profile?.preferredJobTitles || []).filter(Boolean)
+    : [];
+  const currentDesignation = profile?.current_designation || profile?.currentDesignation || 'Career professional';
+  const profileSummary = `${currentDesignation}${preferredTitles.length ? ` • Preferred: ${preferredTitles.slice(0, 3).join(', ')}` : ''}`;
+
   useEffect(() => {
     const fetchData = async () => {
       if (!user?.id) return;
@@ -119,11 +130,22 @@ export const RecommendedJobs: React.FC = () => {
     <Layout>
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ mb: 4 }}>
+          <Button
+            variant="outlined"
+            onClick={() => navigate(-1)}
+            sx={{ mb: 2, borderRadius: 2, textTransform: 'none', fontWeight: 700 }}
+          >
+            ← Back
+          </Button>
           <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
             Recommended Jobs for You
           </Typography>
-          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-            {jobs.length} jobs match your skills
+          <Typography variant="body1" sx={{ color: 'text.secondary', mb: 1 }}>
+            {jobs.length} jobs match your skills, designation, and preferred job roles.
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            {userSkills.length ? `Skills: ${userSkills.slice(0, 6).join(', ')}` : 'Add skills to your profile for better matching.'}
+            {profileSummary ? ` • ${profileSummary}` : ''}
           </Typography>
         </Box>
 
@@ -202,7 +224,7 @@ export const RecommendedJobs: React.FC = () => {
                     <Button
                       variant="contained"
                       fullWidth
-                      onClick={() => navigate(`${ROUTES.JOB_DETAILS}/${job.id}`)}
+                      onClick={() => handleOpenJobDetails(job.id)}
                       sx={{
                         background: 'linear-gradient(135deg, #FFD700 0%, #DAA520 100%)',
                         color: '#000',

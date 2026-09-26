@@ -16,9 +16,11 @@ import {
   DialogTitle,
   Grid,
   IconButton,
+  InputAdornment,
   LinearProgress,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
   Menu,
   MenuItem,
@@ -52,20 +54,27 @@ import {
   Assessment as AssessmentIcon,
   PeopleAlt as PeopleIcon,
   LocationOn as LocationOnIcon,
+  BookmarkBorder as BookmarkBorderIcon,
+  OpenInNew as OpenInNewIcon,
+  Search as SearchIcon,
   TrackChanges as TrackChangesIcon,
   Tune as TuneIcon,
   StickyNote2 as StickyNote2Icon,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import toast from 'react-hot-toast';
 
 import { Layout } from '@components/layout/Layout';
-import RecruiterActivityCenter, { type RecruiterActivityQuickAction } from '@components/dashboard/RecruiterActivityCenter';
+import RecruiterActivityCenter from '@components/dashboard/RecruiterActivityCenter';
 import { SubscriptionSummaryCard } from '@components/common/SubscriptionSummaryCard';
 import { FreeNotesPage } from '@pages/dashboard/tools/FreeNotes';
 import AssessmentsPage from '@pages/dashboard/Assessments';
+import { ApplicationsPage } from '@pages/dashboard/Applications';
 import { PremiumToolDashboards } from '@components/dashboard/PremiumToolDashboards';
+import { RemoteJobHub } from '@components/dashboard/RemoteJobHub';
+import { JobPoytAICareerAssistant } from '@components/dashboard/JobPoytAICareerAssistant';
+import type { InterviewPreparationContext } from '@services/candidateInterviewInvites';
 import { useAuthStore } from '@store/index';
 import { authService } from '@services/supabase';
 import { userService, applicationService, savedService, notificationService, jobService, subscriptionService } from '@services/api';
@@ -90,11 +99,13 @@ import {
 import type { AiMatchCandidateContext } from '@services/aiMatchCenter';
 import type { BriefActionKey, DailyCareerBriefContext } from '@services/aiDailyCareerBrief';
 import type { RecruiterActivityContext } from '@services/recruiterActivity';
+import { premiumIntelligenceService, type PremiumIntelligenceNarrative } from '@services/premiumIntelligence';
 import './PremiumHeroStars.css';
 import '../../styles/spaceButton.css';
 import '../../styles/sparkleButton.css';
 import '../../styles/ctaButton.css';
 import '../../styles/opportunitySignalButton.css';
+import '../../styles/premiumWorkspace.css';
 
 const getJobList = (response: any): any[] => {
   if (Array.isArray(response)) return response;
@@ -136,9 +147,29 @@ const premiumToolOrder: Record<string, number> = {
   Certificates: 10,
   'Interview Invites': 11,
   'My Subscription': 12,
-  Community: 13,
-  Portfolio: 14,
-  Referrals: 16,
+  'Edit Profile': 13,
+  Messages: 14,
+  Notifications: 15,
+  'My Applications': 16,
+};
+
+const premiumToolGifs: Record<string, string> = {
+  'Saved Jobs': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/saved%20jobs.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9zYXZlZCBqb2JzLmdpZiIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA0MDI0OTIsImV4cCI6MjQyMTEyMjQ5Mn0.T96sorSXx8sTMcpTpuzWAYqUW0i21SpEDNjOeWFk_ss',
+  'Profile Views': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/profile%20view.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9wcm9maWxlIHZpZXcuZ2lmIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDQwMjU0MCwiZXhwIjoyNDIxMTIyNTQwfQ.uq54j5ul3hbwa2IkA7F_X1ZYBZAgfXLjvWdpOcH32T0',
+  'Resume Downloads': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/profile%20download.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9wcm9maWxlIGRvd25sb2FkLmdpZiIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA0MDI1NTcsImV4cCI6MjQyMTEyMjU1N30.Ac6B2KjFeylI_EF8GTtcbmWwff7PJS0R2oNwYsG7FE8',
+  'Priority Apply': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/priority%20apply.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9wcmlvcml0eSBhcHBseS5naWYiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkwNDAyNTcyLCJleHAiOjI0MjExMjI1NzJ9.97OH5buCZOt7cayL3pCiF0Jyo_frdppWvY3FYHzVpjs',
+  'Resume Builder': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/resume%20builder.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9yZXN1bWUgYnVpbGRlci5naWYiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkwNDAyNTkxLCJleHAiOjI0MjExMjI1OTF9.NWNhDc1E8STVsGkH61Di0oaXB1L0HoxG7KnqG83nH0o',
+  'Skill Test': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/skill%20test.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9za2lsbCB0ZXN0LmdpZiIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA0MDI2MDUsImV4cCI6MjQyMTEyMjYwNX0.18qPoyfbXBJE1L-xfqLl-anh9DoYQdyuE4zoZ9I8x2o',
+  Assessments: 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/assessments.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9hc3Nlc3NtZW50cy5naWYiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkwNDAyNjI1LCJleHAiOjI0MjExMjI2MjV9.utsV2JwtIRmie4Ae8H7EPG-ID8Mq7LoJuiNaqIKS-Zg',
+  'Interview Preparation': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/interview%20Preparation.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9pbnRlcnZpZXcgUHJlcGFyYXRpb24uZ2lmIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDQwMjc5NSwiZXhwIjoyNDIxMTIyNzk1fQ.akgaXcY2GjPrQTBvzebW83u-FuGrQJ3ZJANKUQq3m6A',
+  'Free Notes': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/notebook.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9ub3RlYm9vay5naWYiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkwNDAyNjk3LCJleHAiOjI0MjExMjI2OTd9.PB6nMY-9D4xmi8WDLvNwTWeaPgEeoaEBYce1UNSqMT8',
+  Certificates: 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/certificate.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9jZXJ0aWZpY2F0ZS5naWYiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkwNDAyNjY1LCJleHAiOjI0MjExMjI2NjV9.l5FJ7s48uAQP7wbfFoHrKd_OKROmoucRZ_V6MCQkuek',
+  'Interview Invites': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/interview%20Invites.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9pbnRlcnZpZXcgSW52aXRlcy5naWYiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkwNDAyNjUwLCJleHAiOjI0MjExMjI2NTB9.7-X7jnBxGV73-iAqCID7aYkkqU_k5JgAGmv2TlbIjRs',
+  'My Subscription': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/my%20subscription.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9teSBzdWJzY3JpcHRpb24uZ2lmIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDQwNjgyOSwiZXhwIjoyNDIxMTI2ODI5fQ.6x3FL-PeVE3E4jPyf6TELrW0lv4Ys5LlQMqSv1biR28',
+  'Edit Profile': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/edit-profile.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9lZGl0LXByb2ZpbGUuZ2lmIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDQxNTc1NiwiZXhwIjoyMTA1Nzc1NzU2fQ.t5yx3EJzu8Wfm4k1kOK_TfJi2XH-gDJnujdXCihhTe4',
+  Notifications: 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/notification.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9ub3RpZmljYXRpb24uZ2lmIiwic2NvcGUiOiJkb3dubG9hZCI sImlhdCI6MTc5MDQxNTc5NSwiZXhwIjoyNDIxMTM1Nzk1fQ.u7hmRxMT66KOzl5rZKPYrigo1QOcfsIgO0iWTLw8J8c',
+  'My Applications': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/My%20Applications.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9NeSBBcHBsaWNhdGlvbnMuZ2lmIiwic2NvcGUiOiJkb3dubG9hZCI sImlhdCI6MTc5MDQxNTgxNSwiZXhwIjoyNDIxMTM1ODE1fQ.th1X-BdE7yg9s8Y7OLLM7nJHk4Z1lDZvnad9Ew_Baeg',
+  Messages: 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/chat.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9jaGF0LmdpZiIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA0MTU4NDQsImV4cCI6MjQyMTEzNTg0NH0.q2LYZn1vdWDQ_e1g3cQo5VRtfW1S6dDo3cfw7Pf_gk0',
 };
 
 const hasPriorityProfileMatch = (job: any, profile: any): boolean => {
@@ -165,6 +196,7 @@ type RecentApplication = {
   id: string;
   status: string;
   applied_at?: string;
+  updated_at?: string;
   jobs?: {
     id?: string;
     title?: string;
@@ -224,7 +256,7 @@ const sectionTabs: Array<{ key: PremiumSectionKey; label: string; icon: React.El
   { key: 'premiumTools', label: 'Exclusive Premium Tools', icon: AutoAwesomeIcon },
   { key: 'recruiterActivity', label: 'Recruiter Activity', icon: ChatIcon },
   { key: 'matchCenter', label: 'AI Match Center', icon: TrendingUpIcon },
-  { key: 'recentApplications', label: 'Recent Applications', icon: ListAltIcon },
+  { key: 'recentApplications', label: 'My Applications', icon: ListAltIcon },
 ];
 
 export const PremiumDashboard: React.FC = () => {
@@ -233,6 +265,7 @@ export const PremiumDashboard: React.FC = () => {
   const [subscriptionDialogOpen, setSubscriptionDialogOpen] = useState(false);
   const theme = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const isDarkMode = theme.palette.mode === 'dark';
   const [profileMenuAnchorEl, setProfileMenuAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -254,6 +287,7 @@ export const PremiumDashboard: React.FC = () => {
   const [quickNoteDialogOpen, setQuickNoteDialogOpen] = useState(false);
   const [quickNote, setQuickNote] = useState('');
   const [premiumToolPopup, setPremiumToolPopup] = useState<PremiumToolPopup | null>(null);
+  const [interviewPreparationContext, setInterviewPreparationContext] = useState<InterviewPreparationContext | null>(null);
   const [freeNotesNewNoteHandler, setFreeNotesNewNoteHandler] = useState<(() => void) | null>(null);
   const skillTestHeaderActionRef = useRef<(() => void) | null>(null);
   const [skillTestHeaderState, setSkillTestHeaderState] = useState({ available: false, disabled: false, completed: false });
@@ -270,6 +304,8 @@ export const PremiumDashboard: React.FC = () => {
   const [selectedRoleModel, setSelectedRoleModel] = useState('General');
   const [roleWeightMap, setRoleWeightMap] = useState<Record<string, DemandWeights>>({});
   const [weeklyTargets, setWeeklyTargets] = useState<WeeklyGoalTargets>({ applications: 6, interactions: 10, pipeline: 4 });
+  const [premiumNarrative, setPremiumNarrative] = useState<PremiumIntelligenceNarrative | null>(null);
+  const [premiumNarrativeLoading, setPremiumNarrativeLoading] = useState(false);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -285,7 +321,23 @@ export const PremiumDashboard: React.FC = () => {
   };
 
   const openPremiumTool = (label: string, description: string, accent: string) => {
+    setInterviewPreparationContext(null);
     setPremiumToolPopup({ label, description, accent });
+  };
+
+  useEffect(() => {
+    if (new URLSearchParams(location.search).get('premiumTool') === 'Interview Invites') {
+      openPremiumTool('Interview Invites', 'Manage recruiter invitations, upcoming interviews, and your interview history.', '#174A7C');
+    }
+  }, [location.search]);
+
+  const openPreparationForInterview = (context: InterviewPreparationContext) => {
+    setInterviewPreparationContext(context);
+    setPremiumToolPopup({
+      label: 'Interview Preparation',
+      description: 'Prepare for your confirmed recruiter interview with job-specific AI practice.',
+      accent: '#0284C7',
+    });
   };
 
   const filteredSavedJobs = useMemo(() => {
@@ -495,10 +547,10 @@ export const PremiumDashboard: React.FC = () => {
     ];
 
     const strengths = [
-      profileStrength >= 80 ? 'Profile is highly optimized' : null,
-      userSkills.length >= 5 ? 'Skill stack is strong for matching' : null,
-      downloads > 0 ? 'Resume already attracting recruiters' : null,
-    ].filter(Boolean) as string[];
+      userSkills.length ? `${userSkills.length} skills listed for role matching` : 'Add skills to improve role matching',
+      `${profileStrength}% of tracked profile signals are complete`,
+      interactions > 0 ? `${interactions} recruiter activity signals recorded` : 'No recruiter activity signals recorded yet',
+    ];
 
     return {
       demandScore,
@@ -510,18 +562,35 @@ export const PremiumDashboard: React.FC = () => {
     };
   }, [applicationCount, profileStrength, profileViewCount, recentApplications, resumeDownloadCount, roleWeightMap, selectedRoleModel, userSkills.length, weeklyTargets.applications, weeklyTargets.interactions, weeklyTargets.pipeline]);
 
+  useEffect(() => {
+    if (!user?.id) return undefined;
+    let mounted = true;
+    setPremiumNarrativeLoading(true);
+    premiumIntelligenceService.generateNarrative({
+      profileStrength,
+      skills: userSkills,
+      applicationsTotal: applicationCount,
+      applicationsLastSevenDays: premiumInsights.recentApplications7d,
+      recruiterViews: profileViewCount,
+      resumeUnlocks: resumeDownloadCount,
+      interviewPipeline: premiumInsights.interviewPipelineCount,
+      matchingJobs: recommendedJobs.length,
+      selectedRole: selectedRoleModel,
+    }).then((narrative) => {
+      if (mounted) setPremiumNarrative(narrative);
+    }).catch(() => {
+      if (mounted) setPremiumNarrative(null);
+    }).finally(() => {
+      if (mounted) setPremiumNarrativeLoading(false);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [applicationCount, premiumInsights.interviewPipelineCount, premiumInsights.recentApplications7d, profileStrength, profileViewCount, recommendedJobs.length, resumeDownloadCount, selectedRoleModel, user?.id, userSkills]);
+
   const aiDailyBriefContext = useMemo<DailyCareerBriefContext>(() => ({
-    userId: user?.id || '',
     userName: user?.name,
-    profileStrength,
-    applicationsCount: applicationCount,
-    recentApplications7d: premiumInsights.recentApplications7d,
-    recommendedJobsCount: recommendedJobs.length,
-    recruiterViews: profileViewCount,
-    resumeDownloads: resumeDownloadCount,
-    userSkills,
-    weeklyApplicationGoal: weeklyTargets.applications,
-  }), [applicationCount, premiumInsights.recentApplications7d, profileStrength, profileViewCount, recommendedJobs.length, resumeDownloadCount, user?.id, user?.name, userSkills, weeklyTargets.applications]);
+  }), [user?.name]);
 
   const handleAiDailyBriefAction = (actionKey: BriefActionKey) => {
     switch (actionKey) {
@@ -576,34 +645,6 @@ export const PremiumDashboard: React.FC = () => {
 
   const handleAiMatchImproveMatch = () => {
     navigate(ROUTES.DASHBOARD_PROFILE);
-  };
-
-  const handleRecruiterActivityQuickAction = (action: RecruiterActivityQuickAction) => {
-    switch (action) {
-      case 'improve-profile':
-        navigate(ROUTES.DASHBOARD_PROFILE);
-        break;
-      case 'update-resume':
-        navigate('/dashboard/resume-review');
-        break;
-      case 'take-assessment':
-        navigate(ROUTES.DASHBOARD_ASSESSMENTS);
-        break;
-      case 'browse-jobs':
-        navigate(ROUTES.JOBS);
-        break;
-      case 'ai-career-hub':
-        navigate(ROUTES.DASHBOARD_AI_CAREER_HUB);
-        break;
-      case 'messages':
-        navigate(ROUTES.MESSAGING);
-        break;
-      case 'applications':
-        navigate(ROUTES.DASHBOARD_APPLICATIONS);
-        break;
-      default:
-        break;
-    }
   };
 
   const aiMatchContext = useMemo<AiMatchCandidateContext>(() => {
@@ -678,8 +719,8 @@ export const PremiumDashboard: React.FC = () => {
     if (recommendedJobs.length > 0) {
       const topMatchObservedAt = String(recommendedJobs[0]?.created_at || recommendedJobs[0]?.createdAt || new Date().toISOString());
       signals.push({
-        title: `${recommendedJobs.length} fresh AI matches available`,
-        description: 'High-match roles are ready. Apply early to improve shortlist chances.',
+        title: `${recommendedJobs.length} matching roles available`,
+        description: `${recommendedJobs.length} published roles match at least one of your listed skills.`,
         cta: 'Open matches',
         action: () => navigate('/dashboard/recommended-jobs?minMatch=60'),
         tone: 'success',
@@ -736,10 +777,16 @@ export const PremiumDashboard: React.FC = () => {
       skillsCount: userSkills.length,
       assessmentsCompleted,
       hasResume: Boolean(candidateProfile?.resume_url || candidateProfile?.resumeUrl),
+      projectCount: Array.isArray(candidateProfile?.projects) ? candidateProfile.projects.length : 0,
+      experienceCount: Array.isArray(candidateProfile?.work_experience || candidateProfile?.workExperience)
+        ? (candidateProfile.work_experience || candidateProfile.workExperience).length
+        : 0,
+      portfolioPresent: Boolean(candidateProfile?.portfolio_url || candidateProfile?.portfolio || candidateProfile?.github_url || candidateProfile?.linkedin_url),
       recentApplications: recentApplications.map((item, index) => ({
-        id: item.jobs?.id || `premium-app-${index}`,
+        id: item.id || `premium-app-${index}`,
         status: item.status,
         appliedAt: item.applied_at,
+        updatedAt: item.updated_at,
         title: item.jobs?.title,
         companyName: item.jobs?.company_name,
       })),
@@ -1007,17 +1054,19 @@ export const PremiumDashboard: React.FC = () => {
           fullWidth
           PaperProps={{
             sx: {
-              width: premiumToolPopup?.label === 'Skill Test' ? 'calc(100vw - 20px)' : 'calc(100vw - 32px)',
+              width: premiumToolPopup?.label === 'Skill Test' || premiumToolPopup?.label === 'Interview Preparation' ? 'calc(100vw - 20px)' : 'calc(100vw - 32px)',
               maxWidth: 'none',
-              height: premiumToolPopup?.label === 'Skill Test' ? 'min(calc(100dvh - 20px), 900px)' : 'calc(100vh - 32px)',
+              height: premiumToolPopup?.label === 'Skill Test' ? 'min(calc(100dvh - 20px), 900px)' : premiumToolPopup?.label === 'Interview Preparation' ? 'calc(100dvh - 24px)' : 'calc(100vh - 32px)',
               maxHeight: premiumToolPopup?.label === 'Skill Test' ? 900 : 'none',
               borderRadius: { xs: 3, md: 4 },
               overflow: 'hidden',
               background: isDarkMode ? '#0B1220' : '#F8FAFC',
             },
+            className: 'premium-tool-dialog',
           }}
         >
           <DialogTitle
+            className="premium-workspace-dialog-title"
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -1072,107 +1121,184 @@ export const PremiumDashboard: React.FC = () => {
               </IconButton>
             </Box>
           </DialogTitle>
-          <DialogContent dividers sx={{ px: { xs: 2, md: 4 }, py: { xs: 2, md: 3 }, background: isDarkMode ? 'linear-gradient(180deg, #0F1B2D 0%, #0B1220 100%)' : 'linear-gradient(180deg, #F8FAFC 0%, #EEF4F8 100%)' }}>
+          <DialogContent key={premiumToolPopup?.label} className="premium-workspace-dialog-content" dividers sx={{ minHeight: 0, px: { xs: 2, md: 4 }, py: { xs: 2, md: 3 }, background: isDarkMode ? 'linear-gradient(180deg, #0F1B2D 0%, #0B1220 100%)' : 'linear-gradient(180deg, #F8FAFC 0%, #EEF4F8 100%)' }}>
             {premiumToolPopup?.label === 'Saved Jobs' ? (
               savedJobs.length > 0 ? (
-                <Box sx={{ maxWidth: 1120, width: '100%', mx: 'auto' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5, gap: 2 }}>
-                    <Typography sx={{ color: isDarkMode ? '#F8FAFC' : '#0F172A', fontWeight: 900, fontSize: { xs: 17, md: 21 } }}>
-                      Saved Jobs
-                    </Typography>
-                    <Chip label={`${savedJobs.length} saved`} size="small" sx={{ fontWeight: 800, bgcolor: isDarkMode ? 'rgba(247,215,116,0.16)' : '#FFF4D6', color: isDarkMode ? '#F7D774' : '#8A6412' }} />
+                <Box className="w-full min-w-0" sx={{ maxWidth: 1040, mx: 'auto' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, gap: 2 }}>
+                    <Box>
+                      <Typography sx={{ color: isDarkMode ? '#93C5FD' : '#2563EB', fontWeight: 850, fontSize: 11, letterSpacing: 1.1, textTransform: 'uppercase' }}>
+                        Your shortlist
+                      </Typography>
+                      <Typography sx={{ mt: 0.25, color: isDarkMode ? '#F8FAFC' : '#0F172A', fontWeight: 850, fontSize: { xs: 21, md: 25 }, lineHeight: 1.15 }}>
+                        Saved Jobs
+                      </Typography>
+                    </Box>
+                    <Chip
+                      icon={<BookmarkBorderIcon sx={{ fontSize: 17 }} />}
+                      label={`${savedJobs.length} ${savedJobs.length === 1 ? 'saved job' : 'saved jobs'}`}
+                      size="small"
+                      sx={{ height: 32, px: 0.5, fontWeight: 800, bgcolor: isDarkMode ? 'rgba(96,165,250,0.15)' : '#EFF6FF', color: isDarkMode ? '#BFDBFE' : '#1D4ED8', '& .MuiChip-icon': { color: 'inherit' } }}
+                    />
                   </Box>
-                  <Box sx={{ display: 'flex', gap: 1, mb: 1.5, flexDirection: { xs: 'column', sm: 'row' } }}>
+                  <Box className="w-full min-w-0" sx={{ display: 'flex', gap: 1.2, mb: 2, flexDirection: { xs: 'column', sm: 'row' }, alignItems: { sm: 'center' } }}>
                     <TextField
                       fullWidth
                       size="small"
                       value={savedJobSearch}
                       onChange={(event) => setSavedJobSearch(event.target.value)}
-                      placeholder="Search saved jobs, companies, or locations"
-                      sx={{ bgcolor: isDarkMode ? 'rgba(255,255,255,0.06)' : '#FFFFFF', borderRadius: 1.5 }}
+                      placeholder="Search by role, company, or location"
+                      inputProps={{ 'aria-label': 'Search saved jobs by role, company, or location' }}
+                      InputProps={{
+                        startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 20 }} /></InputAdornment>,
+                      }}
+                      sx={{
+                        flex: 1,
+                        '& .MuiOutlinedInput-root': {
+                          minHeight: 50,
+                          bgcolor: isDarkMode ? 'rgba(15,23,42,0.72)' : '#FFFFFF',
+                          borderRadius: 2,
+                          color: isDarkMode ? '#F8FAFC' : '#0F172A',
+                          '& fieldset': { borderColor: isDarkMode ? 'rgba(148,163,184,0.35)' : '#D7E0EC' },
+                          '&:hover fieldset': { borderColor: isDarkMode ? '#60A5FA' : '#93C5FD' },
+                          '&.Mui-focused': { boxShadow: '0 0 0 3px rgba(37,99,235,0.12)' },
+                        },
+                        '& input::placeholder': { color: isDarkMode ? '#94A3B8' : '#64748B', opacity: 1 },
+                      }}
                     />
                     <TextField
                       select
                       size="small"
                       value={savedJobFilter}
                       onChange={(event) => setSavedJobFilter(event.target.value)}
-                      SelectProps={{ native: true }}
-                      sx={{ minWidth: { sm: 150 }, bgcolor: isDarkMode ? 'rgba(255,255,255,0.06)' : '#FFFFFF', borderRadius: 1.5 }}
+                      inputProps={{ 'aria-label': 'Filter saved jobs by work mode' }}
+                      SelectProps={{
+                        MenuProps: {
+                          PaperProps: {
+                            sx: {
+                              mt: 0.7,
+                              minWidth: 190,
+                              borderRadius: 2,
+                              bgcolor: isDarkMode ? '#111827' : '#FFFFFF',
+                              color: isDarkMode ? '#F8FAFC' : '#0F172A',
+                              border: `1px solid ${isDarkMode ? 'rgba(148,163,184,0.25)' : '#E2E8F0'}`,
+                              boxShadow: '0 14px 32px rgba(15,23,42,0.16)',
+                              '& .MuiMenuItem-root': { minHeight: 42, mx: 0.6, my: 0.25, borderRadius: 1.2, fontSize: 14, '&:hover': { bgcolor: isDarkMode ? 'rgba(96,165,250,0.12)' : '#EFF6FF' }, '&.Mui-selected': { bgcolor: isDarkMode ? 'rgba(96,165,250,0.2)' : '#DBEAFE', color: isDarkMode ? '#BFDBFE' : '#1D4ED8', fontWeight: 800, '&:hover': { bgcolor: isDarkMode ? 'rgba(96,165,250,0.25)' : '#DBEAFE' } } },
+                            },
+                          },
+                        },
+                      }}
+                      sx={{
+                        width: { xs: '100%', sm: 220 },
+                        flexShrink: 0,
+                        '& .MuiOutlinedInput-root': {
+                          minHeight: 50,
+                          bgcolor: isDarkMode ? 'rgba(15,23,42,0.72)' : '#FFFFFF',
+                          borderRadius: 2,
+                          color: isDarkMode ? '#F8FAFC' : '#0F172A',
+                          '& fieldset': { borderColor: isDarkMode ? 'rgba(148,163,184,0.35)' : '#D7E0EC' },
+                          '&:hover fieldset': { borderColor: isDarkMode ? '#60A5FA' : '#93C5FD' },
+                          '&.Mui-focused': { boxShadow: '0 0 0 3px rgba(37,99,235,0.12)' },
+                        },
+                      }}
                     >
-                      <option value="all">All work modes</option>
-                      <option value="remote">Remote</option>
-                      <option value="hybrid">Hybrid</option>
-                      <option value="onsite">On-site</option>
+                      <MenuItem value="all">All work modes</MenuItem>
+                      <MenuItem value="remote">Remote</MenuItem>
+                      <MenuItem value="hybrid">Hybrid</MenuItem>
+                      <MenuItem value="onsite">On-site</MenuItem>
                     </TextField>
                   </Box>
-                  <List sx={{ p: 0, display: 'grid', gap: 1 }}>
-                    {filteredSavedJobs.map((savedJob) => (
-                      <ListItem
-                        key={savedJob.id}
-                        onClick={() => {
-                          const jobId = savedJob.jobs?.id || savedJob.job_id;
-                          if (jobId) {
-                            window.open(ROUTES.JOB_DETAILS.replace(':id', String(jobId)), '_blank', 'noopener,noreferrer');
-                          }
-                        }}
-                        sx={{
-                          px: { xs: 1.2, md: 1.8 },
-                          py: { xs: 0.8, md: 1.2 },
-                          borderRadius: 2.5,
-                          border: `1px solid ${isDarkMode ? 'rgba(148,163,184,0.25)' : '#E2E8F0'}`,
-                          bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
-                          boxShadow: isDarkMode ? '0 10px 24px rgba(0,0,0,0.18)' : '0 8px 20px rgba(15,23,42,0.06)',
-                          cursor: savedJob.jobs?.id || savedJob.job_id ? 'pointer' : 'default',
-                          '&:hover': { borderColor: '#2563EB', transform: 'translateY(-1px)' },
-                          transition: 'border-color 160ms ease, transform 160ms ease',
-                        }}
-                      >
-                        <Avatar
-                          src={savedJob.jobs?.company_logo_url || undefined}
-                          variant="rounded"
-                          sx={{ width: 34, height: 34, mr: 1.2, flexShrink: 0, bgcolor: '#EFF6FF', color: '#2563EB', fontSize: 14, fontWeight: 800 }}
-                        >
-                          {(savedJob.jobs?.company_name || 'C').charAt(0).toUpperCase()}
-                        </Avatar>
-                        <ListItemText
-                          primary={savedJob.jobs?.title || 'Saved job'}
-                          secondary={(
-                            <Box sx={{ display: 'flex', gap: { xs: 1, md: 1.8 }, flexWrap: 'wrap', mt: 0.35 }}>
-                              <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45, color: isDarkMode ? '#CBD5E1' : '#64748B' }}>
-                                <BusinessIcon sx={{ fontSize: 14 }} />
-                                {savedJob.jobs?.company_name || 'Company not available'}
-                              </Typography>
-                              <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45, color: isDarkMode ? '#CBD5E1' : '#64748B' }}>
-                                <LocationOnIcon sx={{ fontSize: 14 }} />
-                                {savedJob.jobs?.location || 'Location not specified'}
-                              </Typography>
-                              <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45, color: isDarkMode ? '#CBD5E1' : '#64748B' }}>
-                                <WorkIcon sx={{ fontSize: 14 }} />
-                                {savedJob.jobs?.work_mode || savedJob.jobs?.job_type || 'Work mode not specified'}
-                              </Typography>
-                              <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45, color: isDarkMode ? '#CBD5E1' : '#64748B' }}>
-                                <CalendarTodayIcon sx={{ fontSize: 13 }} />
-                                Posted {savedJob.jobs?.created_at ? formatDate(savedJob.jobs.created_at) : 'date unavailable'}
-                              </Typography>
-                            </Box>
-                          )}
-                          primaryTypographyProps={{ fontWeight: 800, fontSize: { xs: 13, md: 15 }, color: isDarkMode ? '#F8FAFC' : '#0F172A' }}
-                        />
-                      </ListItem>
-                    ))}
+                  <List className="w-full min-w-0" sx={{ p: 0, display: 'grid', gap: 1.1 }}>
+                    {filteredSavedJobs.map((savedJob) => {
+                      const jobId = savedJob.jobs?.id || savedJob.job_id;
+                      const jobTitle = savedJob.jobs?.title || 'Saved job';
+                      return (
+                        <ListItem key={savedJob.id} disablePadding>
+                          <ListItemButton
+                            aria-label={`Open ${jobTitle} job details`}
+                            disabled={!jobId}
+                            onClick={() => {
+                              if (jobId) window.open(ROUTES.JOB_DETAILS.replace(':id', String(jobId)), '_blank', 'noopener,noreferrer');
+                            }}
+                            sx={{
+                              minHeight: 86,
+                              px: { xs: 1.25, sm: 1.8 },
+                              py: { xs: 1.15, sm: 1.45 },
+                              gap: { xs: 1.1, sm: 1.6 },
+                              borderRadius: 2,
+                              border: `1px solid ${isDarkMode ? 'rgba(148,163,184,0.23)' : '#E2E8F0'}`,
+                              bgcolor: isDarkMode ? 'rgba(15,23,42,0.76)' : '#FFFFFF',
+                              boxShadow: isDarkMode ? '0 8px 22px rgba(0,0,0,0.16)' : '0 5px 16px rgba(15,23,42,0.045)',
+                              transition: 'border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease',
+                              '&:hover': { borderColor: '#93C5FD', boxShadow: '0 10px 22px rgba(37,99,235,0.09)', transform: 'translateY(-1px)', bgcolor: isDarkMode ? 'rgba(30,41,59,0.92)' : '#FFFFFF' },
+                              '&.Mui-focusVisible': { outline: '3px solid rgba(37,99,235,0.32)', outlineOffset: 2 },
+                              '&.Mui-disabled': { opacity: 0.7 },
+                            }}
+                          >
+                            <Avatar
+                              src={savedJob.jobs?.company_logo_url || undefined}
+                              variant="rounded"
+                              sx={{ width: { xs: 42, sm: 48 }, height: { xs: 42, sm: 48 }, flexShrink: 0, borderRadius: 1.7, bgcolor: isDarkMode ? 'rgba(96,165,250,0.14)' : '#EFF6FF', color: isDarkMode ? '#93C5FD' : '#2563EB', fontSize: 16, fontWeight: 850 }}
+                            >
+                              {(savedJob.jobs?.company_name || 'C').charAt(0).toUpperCase()}
+                            </Avatar>
+                            <ListItemText
+                              sx={{ minWidth: 0, my: 0 }}
+                              primary={jobTitle}
+                              secondary={(
+                                <Box sx={{ display: 'flex', gap: { xs: 0.8, sm: 1.5 }, flexWrap: 'wrap', mt: 0.6 }}>
+                                  <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, color: isDarkMode ? '#CBD5E1' : '#64748B', fontSize: 12 }}>
+                                    <BusinessIcon sx={{ fontSize: 15, color: isDarkMode ? '#93C5FD' : '#64748B' }} />
+                                    {savedJob.jobs?.company_name || 'Company not available'}
+                                  </Typography>
+                                  <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, color: isDarkMode ? '#CBD5E1' : '#64748B', fontSize: 12 }}>
+                                    <LocationOnIcon sx={{ fontSize: 15, color: isDarkMode ? '#93C5FD' : '#64748B' }} />
+                                    {savedJob.jobs?.location || 'Location not specified'}
+                                  </Typography>
+                                  <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, color: isDarkMode ? '#CBD5E1' : '#64748B', fontSize: 12 }}>
+                                    <WorkIcon sx={{ fontSize: 15, color: isDarkMode ? '#93C5FD' : '#64748B' }} />
+                                    {savedJob.jobs?.work_mode || savedJob.jobs?.job_type || 'Work mode not specified'}
+                                  </Typography>
+                                  <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, color: isDarkMode ? '#CBD5E1' : '#64748B', fontSize: 12 }}>
+                                    <CalendarTodayIcon sx={{ fontSize: 14, color: isDarkMode ? '#93C5FD' : '#64748B' }} />
+                                    Posted {savedJob.jobs?.created_at ? formatDate(savedJob.jobs.created_at) : 'date unavailable'}
+                                  </Typography>
+                                </Box>
+                              )}
+                              primaryTypographyProps={{ fontWeight: 800, fontSize: { xs: 14, sm: 16 }, lineHeight: 1.3, color: isDarkMode ? '#F8FAFC' : '#0F172A' }}
+                            />
+                            {jobId ? <OpenInNewIcon aria-hidden="true" sx={{ flexShrink: 0, fontSize: 18, color: isDarkMode ? '#94A3B8' : '#94A3B8' }} /> : null}
+                          </ListItemButton>
+                        </ListItem>
+                      );
+                    })}
                   </List>
                   {filteredSavedJobs.length === 0 ? (
-                    <Typography sx={{ py: 3, textAlign: 'center', color: isDarkMode ? '#CBD5E1' : '#64748B', fontSize: 14 }}>
-                      No saved jobs match your search or filter.
-                    </Typography>
+                    <Paper variant="outlined" sx={{ mt: 1.2, px: 2, py: 2.5, textAlign: 'center', borderRadius: 2, borderColor: isDarkMode ? 'rgba(148,163,184,0.25)' : '#E2E8F0', bgcolor: isDarkMode ? 'rgba(15,23,42,0.6)' : 'rgba(255,255,255,0.8)' }}>
+                      <Typography sx={{ color: isDarkMode ? '#F8FAFC' : '#0F172A', fontSize: 15, fontWeight: 800 }}>No matching jobs</Typography>
+                      <Typography sx={{ mt: 0.35, color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 13 }}>Try a different search or work mode.</Typography>
+                    </Paper>
                   ) : null}
                 </Box>
               ) : (
-                <Box sx={{ maxWidth: 680, mx: 'auto', mt: 3, p: { xs: 2, md: 3 }, textAlign: 'center', borderRadius: 3, border: `1px dashed ${isDarkMode ? '#475569' : '#CBD5E1'}`, bgcolor: isDarkMode ? 'rgba(255,255,255,0.04)' : '#FFFFFF' }}>
-                  <Typography sx={{ color: isDarkMode ? '#CBD5E1' : '#64748B', fontSize: { xs: 15, md: 18 } }}>
-                  No saved jobs yet. Save a job to see it here.
+                <Paper
+                  className="w-full min-w-0"
+                  variant="outlined"
+                  sx={{ maxWidth: 680, mx: 'auto', mt: 1, p: { xs: 3, md: 4 }, textAlign: 'center', borderRadius: 2.5, borderColor: isDarkMode ? 'rgba(148,163,184,0.24)' : '#E2E8F0', bgcolor: isDarkMode ? 'rgba(15,23,42,0.64)' : 'rgba(255,255,255,0.92)' }}
+                >
+                  <Box sx={{ width: 48, height: 48, mx: 'auto', mb: 1.2, display: 'grid', placeItems: 'center', borderRadius: 2, bgcolor: isDarkMode ? 'rgba(96,165,250,0.14)' : '#EFF6FF', color: isDarkMode ? '#93C5FD' : '#2563EB' }}>
+                    <BookmarkBorderIcon />
+                  </Box>
+                  <Typography sx={{ color: isDarkMode ? '#F8FAFC' : '#0F172A', fontSize: { xs: 17, md: 19 }, fontWeight: 850 }}>
+                    Your shortlist is ready to fill
                   </Typography>
-                </Box>
+                  <Typography sx={{ mt: 0.45, color: isDarkMode ? '#94A3B8' : '#64748B', fontSize: 14 }}>
+                    Save roles that interest you and compare them here.
+                  </Typography>
+                  <Button variant="contained" onClick={() => { setPremiumToolPopup(null); navigate(ROUTES.JOBS); }} sx={{ mt: 1.8, px: 2.2, bgcolor: '#2563EB', '&:hover': { bgcolor: '#1D4ED8' } }}>
+                    Browse jobs
+                  </Button>
+                </Paper>
               )
             ) : premiumToolPopup?.label === 'Profile Views' ? (
               profileViewRecruiters.length > 0 ? (
@@ -1346,7 +1472,7 @@ export const PremiumDashboard: React.FC = () => {
                 <FreeNotesPage embedded onNewNoteReady={(handler) => setFreeNotesNewNoteHandler(() => handler)} />
               </Box>
             ) : ['Interview Preparation', 'Skill Test', 'Resume Builder', 'Certificates', 'Interview Invites'].includes(premiumToolPopup?.label || '') ? (
-              <PremiumToolDashboards tool={premiumToolPopup?.label as 'Interview Preparation' | 'Skill Test' | 'Resume Builder' | 'Certificates' | 'Interview Invites'} skillTestHeaderActionRef={skillTestHeaderActionRef} onSkillTestHeaderStateChange={setSkillTestHeaderState} />
+              <PremiumToolDashboards tool={premiumToolPopup?.label as 'Interview Preparation' | 'Skill Test' | 'Resume Builder' | 'Certificates' | 'Interview Invites'} skillTestHeaderActionRef={skillTestHeaderActionRef} onSkillTestHeaderStateChange={setSkillTestHeaderState} interviewPreparationContext={interviewPreparationContext} onPrepareInterview={openPreparationForInterview} />
             ) : (
               <>
                 <Box sx={{ maxWidth: 880, mx: 'auto', mt: { xs: 2, md: 4 }, p: { xs: 2.5, md: 3.5 }, borderRadius: 4, bgcolor: isDarkMode ? 'rgba(255,255,255,0.05)' : '#FFFFFF', border: `1px solid ${isDarkMode ? 'rgba(148,163,184,0.25)' : '#E2E8F0'}`, boxShadow: isDarkMode ? '0 20px 40px rgba(0,0,0,0.2)' : '0 16px 34px rgba(15,23,42,0.07)', textAlign: 'center' }}>
@@ -1486,6 +1612,13 @@ export const PremiumDashboard: React.FC = () => {
                   <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.4 }}>
                     Live signals based on your activity, recruiter interactions, and match momentum.
                   </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mt: 1 }}>
+                    {premiumNarrativeLoading && <CircularProgress size={14} />}
+                    <Typography variant="body2" sx={{ fontWeight: 600, maxWidth: 760 }}>
+                      {premiumNarrative?.summary || 'Preparing a personalised intelligence summary from your latest activity...'}
+                    </Typography>
+                    {premiumNarrative && <Chip size="small" label={premiumNarrative.generatedBy === 'ai' ? 'AI insight' : 'Data insight'} color={premiumNarrative.generatedBy === 'ai' ? 'primary' : 'default'} />}
+                  </Box>
                 </Box>
                 <Chip icon={<InsightsIcon />} label={`Demand score ${premiumInsights.demandScore}/100`} color={premiumInsights.demandScore >= 70 ? 'success' : 'warning'} sx={{ fontWeight: 700 }} />
               </Box>
@@ -1533,8 +1666,9 @@ export const PremiumDashboard: React.FC = () => {
                       <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1.1 }}>
                         Strategic strengths
                       </Typography>
+                      {premiumNarrativeLoading && !premiumNarrative && <LinearProgress sx={{ mb: 1 }} />}
                       <List sx={{ p: 0, display: 'grid', gap: 0.6 }}>
-                        {(premiumInsights.strengths.length > 0 ? premiumInsights.strengths : ['Add skills and update profile to unlock stronger signals.']).map((point) => (
+                        {(premiumNarrative?.strengths?.length ? premiumNarrative.strengths : premiumInsights.strengths).map((point) => (
                           <ListItem key={point} sx={{ px: 0, py: 0.1 }}>
                             <ListItemText
                               primary={point}
@@ -1646,85 +1780,7 @@ export const PremiumDashboard: React.FC = () => {
           </Card>
         )}
 
-        {selectedSection === 'remoteHub' && (
-          <Card
-            sx={{
-              mb: 3,
-              borderRadius: 4,
-              border: isDarkMode ? '1px solid rgba(148,163,184,0.2)' : `1px solid ${theme.palette.divider}`,
-              background: isDarkMode
-                ? 'linear-gradient(138deg, rgba(2,6,23,0.95), rgba(30,41,59,0.95))'
-                : 'linear-gradient(140deg, #BFDBFE 0%, #DBEAFE 55%, #EFF6FF 100%)',
-            }}
-          >
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2, mb: 2.6 }}>
-                <Box>
-                  <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.6 }}>
-                    Remote Job Hub
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 660 }}>
-                    Premium remote opportunities in one place. Explore remote roles, track remote applications, and jump to high-match options.
-                  </Typography>
-                </Box>
-                <Chip label="Remote Focus" color="success" sx={{ fontWeight: 700 }} />
-              </Box>
-
-              <Grid container spacing={2}>
-                {[
-                  {
-                    title: 'Explore Remote Jobs',
-                    description: 'Browse remote roles tailored to your profile.',
-                    action: () => navigate('/dashboard/remote-jobs'),
-                    icon: PublicIcon,
-                  },
-                  {
-                    title: 'Remote Applications',
-                    description: 'Track remote jobs you already applied to.',
-                    action: () => navigate(`${ROUTES.DASHBOARD_APPLICATIONS}?filter=remote`),
-                    icon: FlightTakeoffIcon,
-                  },
-                  {
-                    title: 'Priority Remote Matches',
-                    description: 'Open newly matched premium remote opportunities.',
-                    action: () => navigate('/dashboard/remote-jobs'),
-                    icon: AutoAwesomeIcon,
-                  },
-                ].map((item) => (
-                  <Grid item xs={12} md={4} key={item.title}>
-                    <Card sx={{ borderRadius: 3, height: '100%', border: isDarkMode ? '1px solid rgba(148,163,184,0.18)' : `1px solid ${theme.palette.divider}`, background: isDarkMode ? 'linear-gradient(180deg, rgba(15,23,42,0.9), rgba(30,41,59,0.9))' : '#FFFFFF' }}>
-                      <CardContent>
-                        <item.icon color="success" sx={{ mb: 1 }} />
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 0.8 }}>
-                          {item.title}
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-                          {item.description}
-                        </Typography>
-                        <button
-                          className="cta"
-                          onClick={item.action}
-                          type="button"
-                          style={{
-                            background: candidateHeroGradient,
-                            borderColor: 'rgba(255,255,255,0.2)',
-                            boxShadow: '0 10px 22px rgba(2,6,23,0.16)',
-                          }}
-                        >
-                          <span style={{ color: '#FFFFFF' }}>Open&nbsp;</span>
-                          <svg viewBox="0 0 13 10" height="10px" width="15px" aria-hidden="true" style={{ stroke: '#FFFFFF' }}>
-                            <path d="M1,5 L11,5"></path>
-                            <polyline points="8 1 12 5 8 9"></polyline>
-                          </svg>
-                        </button>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            </CardContent>
-          </Card>
-        )}
+        {selectedSection === 'remoteHub' && <RemoteJobHub subscription={subscription} subscriptionLoading={subscriptionLoading} />}
 
         {selectedSection === 'premiumTools' && (
           <Box
@@ -1763,32 +1819,47 @@ export const PremiumDashboard: React.FC = () => {
                 zIndex: 0,
               }}
             />
-            <Box sx={{ position: 'relative', zIndex: 1, px: { xs: 3, md: 4 }, pt: { xs: 3, md: 4 }, pb: 2 }}>
-              <Typography variant="h5" sx={{ fontWeight: 800, color: isDarkMode ? '#FFFFFF' : '#0F172A', textAlign: 'center' }}>
-                ✨ Explore Premium Workspace ✨
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  color: isDarkMode ? '#FFFFFF' : '#475569',
-                  textAlign: 'center',
-                  maxWidth: 680,
-                  mx: 'auto',
-                  mt: 1,
-                }}
-              >
-                Powerful tools and insights to accelerate your career growth
-              </Typography>
+            <Box sx={{ position: 'relative', zIndex: 1, px: { xs: 2, md: 4 }, pt: { xs: 3, md: 4 }, pb: 2 }}>
               <Box
                 sx={{
-                  height: 4,
-                  width: 120,
+                  maxWidth: 760,
                   mx: 'auto',
-                  mt: 3,
+                  px: { xs: 2, md: 3 },
+                  py: { xs: 1.5, md: 2 },
                   borderRadius: 2,
-                  background: 'linear-gradient(135deg, rgba(37,99,235,0.85), rgba(124,58,237,0.85))',
+                  backgroundColor: isDarkMode ? 'rgba(15,23,42,0.94)' : 'rgba(255,255,255,0.94)',
+                  border: isDarkMode ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(226,232,240,0.9)',
+                  boxShadow: '0 8px 24px rgba(15,23,42,0.12)',
+                  backdropFilter: 'blur(8px)',
                 }}
-              />
+              >
+                <Typography variant="h5" sx={{ fontWeight: 800, color: isDarkMode ? '#FFFFFF' : '#0F172A', textAlign: 'center' }}>
+                  ✨ Explore Premium Workspace ✨
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: isDarkMode ? '#E2E8F0' : '#334155',
+                    textAlign: 'center',
+                    maxWidth: 680,
+                    mx: 'auto',
+                    mt: 1,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Powerful tools and insights to accelerate your career growth
+                </Typography>
+                <Box
+                  sx={{
+                    height: 4,
+                    width: 120,
+                    mx: 'auto',
+                    mt: 2.5,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, rgba(37,99,235,0.85), rgba(124,58,237,0.85))',
+                  }}
+                />
+              </Box>
             </Box>
 
             <Grid container spacing={2} sx={{ position: 'relative', zIndex: 1, px: { xs: 2, md: 3 }, pb: { xs: 3, md: 3 } }}>
@@ -1852,13 +1923,6 @@ export const PremiumDashboard: React.FC = () => {
                       accent: '#7C3AED',
                     },
                     {
-                      label: 'Community',
-                      icon: PublicIcon,
-                      action: () => openPremiumTool('Community', 'Connect with the Jobpoyt career community and discover new professional opportunities.', '#0EA5E9'),
-                      iconGradient: 'linear-gradient(135deg, rgba(34,211,238,0.16), rgba(192,232,249,0.34))',
-                      accent: '#0EA5E9',
-                    },
-                    {
                       label: 'My Subscription',
                       icon: WorkspacePremiumIcon,
                       action: () => setSubscriptionDialogOpen(true),
@@ -1880,13 +1944,6 @@ export const PremiumDashboard: React.FC = () => {
                       accent: '#D97706',
                     },
                     {
-                      label: 'Portfolio',
-                      icon: PublicIcon,
-                      action: () => openPremiumTool('Portfolio', 'Build a stronger professional presence by organizing your work, links, and career highlights.', '#0EA5E9'),
-                      iconGradient: 'linear-gradient(135deg, rgba(14,165,233,0.16), rgba(186,230,253,0.34))',
-                      accent: '#0EA5E9',
-                    },
-                    {
                       label: 'Interview Invites',
                       icon: VideocamIcon,
                       action: () => openPremiumTool('Interview Invites', 'Keep track of interview opportunities and be ready to respond quickly to recruiters.', '#16A34A'),
@@ -1894,14 +1951,43 @@ export const PremiumDashboard: React.FC = () => {
                       accent: '#16A34A',
                     },
                     {
-                      label: 'Referrals',
-                      icon: PeopleIcon,
-                      action: () => openPremiumTool('Referrals', 'Explore referral opportunities and grow your path to relevant roles through your network.', '#0891B2'),
-                      iconGradient: 'linear-gradient(135deg, rgba(8,145,178,0.16), rgba(207,250,254,0.34))',
-                      accent: '#0891B2',
+                      label: 'Edit Profile',
+                      icon: SettingsIcon,
+                      action: () => navigate(ROUTES.DASHBOARD_PROFILE),
+                      iconGradient: 'linear-gradient(135deg, rgba(79,70,229,0.16), rgba(224,231,255,0.34))',
+                      accent: '#4F46E5',
+                    },
+                    {
+                      label: 'Messages',
+                      icon: ChatIcon,
+                      action: () => navigate(ROUTES.MESSAGING),
+                      iconGradient: 'linear-gradient(135deg, rgba(14,165,233,0.16), rgba(207,250,254,0.34))',
+                      accent: '#0284C7',
+                    },
+                    {
+                      label: 'Notifications',
+                      icon: NotificationsIcon,
+                      action: () => navigate(ROUTES.DASHBOARD_NOTIFICATIONS),
+                      iconGradient: 'linear-gradient(135deg, rgba(245,158,11,0.16), rgba(254,243,199,0.34))',
+                      accent: '#D97706',
+                    },
+                    {
+                      label: 'My Applications',
+                      icon: ListAltIcon,
+                      action: () => navigate(ROUTES.DASHBOARD_APPLICATIONS),
+                      iconGradient: 'linear-gradient(135deg, rgba(22,163,74,0.16), rgba(220,252,231,0.34))',
+                      accent: '#16A34A',
                     },
                   ].map((tool) => {
                     const ToolIcon = tool.icon;
+                    const configuredToolGif = tool.label === 'Notifications'
+                      ? 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/notification%202.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9ub3RpZmljYXRpb24gMi5naWYiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkwNDE2ODE1LCJleHAiOjI0MjExMzY4MTV9.inH6Wb3op_N58HM4ZEB_oAZo6z4i1QY7IV7h9v5CQUE'
+                      : tool.label === 'My Applications'
+                        ? 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/my%20applications2.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9teSBhcHBsaWNhdGlvbnMyLmdpZiIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA0MTY4NjksImV4cCI6MjQyMTEzNjg2OX0.WE30ZhgQVNUw2Cw2opbPj7emTAkqgv7zZE27ii05HF0'
+                        : premiumToolGifs[tool.label]?.replace(' sI', '6I');
+                    const toolGif = tool.label === 'My Applications'
+                      ? 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/applications3.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9hcHBsaWNhdGlvbnMzLmdpZiIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA0MTcyNjEsImV4cCI6MjQyMTEzNzI2MX0.FlXX8RPlL6jHFIjQIggf1laZTPJ4iQr-2xKOrljS69Y'
+                      : configuredToolGif;
                     return (
                       <Grid item xs={12} sm={6} md={3} key={tool.label} sx={{ display: 'flex', order: premiumToolOrder[tool.label] ?? 99 }}>
                         <MotionCard
@@ -1938,16 +2024,19 @@ export const PremiumDashboard: React.FC = () => {
                         >
                           <Box
                             sx={{
-                              width: 42,
-                              height: 42,
-                              borderRadius: 2.5,
+                              width: toolGif ? 58 : 42,
+                              height: toolGif ? 58 : 42,
+                              borderRadius: toolGif ? 1.5 : 2.5,
                               bgcolor: tool.iconGradient,
                               display: 'grid',
                               placeItems: 'center',
-                              boxShadow: isDarkMode ? '0 12px 28px rgba(59,130,246,0.08)' : '0 12px 28px rgba(59,130,246,0.12)',
+                              overflow: 'hidden',
+                              position: 'relative',
+                              boxShadow: toolGif ? 'none' : isDarkMode ? '0 12px 28px rgba(59,130,246,0.08)' : '0 12px 28px rgba(59,130,246,0.12)',
                             }}
                           >
                             <ToolIcon sx={{ fontSize: 19, color: tool.accent }} />
+                            {toolGif ? <Box component="img" src={toolGif} alt={`${tool.label} animation`} loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none'; }} sx={{ position: 'absolute', inset: 0, display: 'block', width: '100%', height: '100%', objectFit: 'contain' }} /> : null}
                           </Box>
                           <Typography variant="subtitle1" sx={{ mt: 1.2, fontWeight: 800, fontSize: { xs: 13, md: 14 }, color: isDarkMode ? '#F8FAFC' : '#0F172A', textAlign: 'center', lineHeight: 1.2 }}>
                             {tool.label}
@@ -1966,159 +2055,10 @@ export const PremiumDashboard: React.FC = () => {
         {selectedSection === 'recruiterActivity' && (
           <RecruiterActivityCenter
             context={recruiterActivityContext}
-            onQuickAction={handleRecruiterActivityQuickAction}
           />
         )}
 
-        {selectedSection === 'recentApplications' && (
-          <Card
-            sx={{
-              mt: 3,
-              borderRadius: 4,
-              border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(180, 122, 20, 0.24)',
-              background: isDarkMode
-                ? 'linear-gradient(138deg, rgba(5,6,8,0.95), rgba(15,23,42,0.95))'
-                : 'linear-gradient(140deg, #BFDBFE 0%, #DBEAFE 55%, #EFF6FF 100%)',
-              position: 'relative',
-              overflow: 'hidden',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                inset: 0,
-                background: isDarkMode
-                  ? 'radial-gradient(circle at 90% 12%, rgba(56,189,248,0.12), transparent 35%)'
-                  : 'radial-gradient(circle at 90% 12%, rgba(245,158,11,0.16), transparent 35%)',
-                pointerEvents: 'none',
-              },
-            }}
-          >
-            <CardContent>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  mb: 2,
-                  pb: 1.6,
-                  borderBottom: isDarkMode ? '1px dashed rgba(148,163,184,0.32)' : '1px dashed rgba(180, 122, 20, 0.35)',
-                }}
-              >
-                <Typography variant="h6" sx={{ fontWeight: 800, color: isDarkMode ? '#E2E8F0' : '#000000' }}>
-                  Recent Applications
-                </Typography>
-                <Button
-                  onClick={() => navigate(ROUTES.DASHBOARD_APPLICATIONS)}
-                  className="opportunity-signal-btn"
-                  sx={{
-                    fontWeight: 700,
-                  }}
-                >
-                  <span className="opportunity-signal-text">View all ({recentApplications.length})</span>
-                </Button>
-              </Box>
-
-              <List sx={{ p: 0, display: 'grid', gap: 1.2 }}>
-                {recentApplications.length === 0 ? (
-                  <ListItem
-                    sx={{
-                      px: 2,
-                      py: 2,
-                      borderRadius: 2.5,
-                      border: isDarkMode ? '1px solid rgba(148,163,184,0.24)' : '1px solid rgba(180, 122, 20, 0.25)',
-                      background: isDarkMode
-                        ? 'linear-gradient(140deg, rgba(30,41,59,0.75), rgba(15,23,42,0.76))'
-                        : '#FFFFFF',
-                    }}
-                  >
-                    <ListItemText primary="No applications yet" secondary="Apply to jobs to track your application history." />
-                  </ListItem>
-                ) : (
-                  recentApplications.slice(0, 3).map((application) => (
-                    <ListItem
-                      key={application.id}
-                      sx={{
-                        px: 2,
-                        py: 1.6,
-                        borderRadius: 2.5,
-                        border: isDarkMode ? '1px solid rgba(148,163,184,0.2)' : '1px solid rgba(180, 122, 20, 0.24)',
-                        background: isDarkMode
-                          ? 'linear-gradient(145deg, rgba(30,41,59,0.8), rgba(15,23,42,0.84))'
-                          : '#FFFFFF',
-                        alignItems: 'flex-start',
-                        gap: 1.4,
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: 10,
-                          height: 10,
-                          borderRadius: '50%',
-                          mt: 1,
-                          bgcolor:
-                            application.status === 'shortlisted'
-                              ? '#22C55E'
-                              : application.status === 'under_review'
-                              ? '#F59E0B'
-                              : application.status === 'rejected'
-                              ? '#EF4444'
-                              : application.status === 'accepted'
-                              ? '#3B82F6'
-                              : isDarkMode
-                              ? '#94A3B8'
-                              : '#B7791F',
-                          boxShadow: '0 0 0 4px rgba(148,163,184,0.12)',
-                          flexShrink: 0,
-                        }}
-                      />
-
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 800, color: isDarkMode ? '#F8FAFC' : '#000000', lineHeight: 1.2 }}>
-                          {application.jobs?.title || 'Unknown role'}
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: isDarkMode ? '#FFFFFF' : '#000000', fontWeight: 600, mt: 0.35 }}>
-                          {application.jobs?.company_name || 'Unknown company'}
-                        </Typography>
-                        <Typography variant="caption" sx={{ display: 'block', color: isDarkMode ? '#FFFFFF' : '#000000', mt: 0.55 }}>
-                          {application.jobs?.location || 'Location not specified'}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ textAlign: 'right', minWidth: 128 }}>
-                        <Chip
-                          label={(application.status || 'applied').replace('_', ' ').toUpperCase()}
-                          size="small"
-                          color={
-                            application.status === 'shortlisted'
-                              ? 'success'
-                              : application.status === 'under_review'
-                              ? 'warning'
-                              : application.status === 'rejected'
-                              ? 'error'
-                              : application.status === 'accepted'
-                              ? 'primary'
-                              : 'default'
-                          }
-                          sx={{ fontWeight: 700 }}
-                        />
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            display: 'block',
-                            color: isDarkMode ? '#FFFFFF' : '#000000',
-                            mt: 0.75,
-                            fontWeight: 600,
-                          }}
-                        >
-                          {application.applied_at ? formatDate(application.applied_at) : 'Date unavailable'}
-                        </Typography>
-                      </Box>
-                    </ListItem>
-                  ))
-                )}
-              </List>
-            </CardContent>
-          </Card>
-        )}
+        {selectedSection === 'recentApplications' && <ApplicationsPage embedded />}
 
         {selectedSection === 'matchCenter' && (
           <Suspense
@@ -2279,6 +2219,7 @@ export const PremiumDashboard: React.FC = () => {
           </DialogActions>
         </Dialog>
       </Box>
+      <JobPoytAICareerAssistant />
     </Layout>
   );
 };

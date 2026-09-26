@@ -362,7 +362,7 @@ export const ApplicationsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
   return (
     <Shell>
       <Container maxWidth="xl" sx={{ py: { xs: 1.5, md: 2.2 }, px: { xs: 1.2, sm: 2, md: 3 } }}>
-        <Box
+        {!embedded ? <Box
           sx={{
             mb: 2,
             p: { xs: 2, md: 2.6 },
@@ -388,7 +388,7 @@ export const ApplicationsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
           <Button component={RouterLink} to={ROUTES.JOBS} variant="contained" sx={{ position: 'relative', zIndex: 1, borderRadius: 2, px: 2.2, py: 1.1, bgcolor: '#D6A73A', color: '#071D35', textTransform: 'none', fontWeight: 900, boxShadow: '0 8px 18px rgba(0,0,0,0.16)', '&:hover': { bgcolor: '#F0C75E' } }}>
             Explore more jobs
           </Button>
-        </Box>
+        </Box> : null}
 
         <Grid container spacing={1.2} sx={{ mb: 1.8 }}>
           {summaryItems.map(([label, value, color], index) => (

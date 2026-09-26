@@ -17,6 +17,7 @@ export interface RecruiterActivityApplication {
   id: string;
   status?: string;
   appliedAt?: string;
+  updatedAt?: string;
   title?: string;
   companyName?: string;
 }
@@ -33,6 +34,11 @@ export interface RecruiterActivityContext {
   assessmentsCompleted: number;
   hasResume: boolean;
   recentApplications: RecruiterActivityApplication[];
+  activityEvents?: RecruiterActivityEvent[];
+  interviewInvitations?: number;
+  projectCount?: number;
+  experienceCount?: number;
+  portfolioPresent?: boolean;
 }
 
 export interface RecruiterActivityEvent {
@@ -51,26 +57,26 @@ export interface RecruiterActivityOverview {
   resumeDownloads: number;
   recruiterMessages: number;
   interviewInvitations: number;
-  searchAppearances: number;
+  searchAppearances: number | null;
   shortlists: number;
-  bookmarks: number;
+  bookmarks: number | null;
 }
 
 export interface VisibilityBreakdown {
-  resumeQuality: number;
   profileCompletion: number;
-  skills: number;
-  projects: number;
-  assessments: number;
-  portfolio: number;
-  experience: number;
+  skillsCount: number;
+  projectCount: number;
+  assessmentsCompleted: number;
+  hasResume: boolean;
+  experienceCount: number;
+  hasPortfolio: boolean;
 }
 
 export interface WeeklyComparisonRow {
   label: 'Profile Views' | 'Resume Downloads' | 'Messages';
   thisWeek: number;
   lastWeek: number;
-  growth: number;
+  growth: number | null;
 }
 
 export interface RecruiterNotificationItem {
@@ -101,28 +107,10 @@ export interface RecruiterActivityInsights {
   engagementScore: number;
   interestCategories: RecruiterInterestCategory[];
   trend: Record<TrendRange, VisibilityTrendPoint[]>;
-  profileRankingPercentile: number;
+  profileRankingPercentile: number | null;
 }
 
 const clamp = (value: number, min = 0, max = 100): number => Math.max(min, Math.min(max, value));
-
-const seedFromUser = (userId: string): number => {
-  if (!userId) return 17;
-  return userId.split('').reduce((acc, char, index) => acc + (char.charCodeAt(0) * (index + 3)), 17);
-};
-
-const pseudo = (seed: number, salt: number, min: number, max: number): number => {
-  const raw = Math.sin(seed * 0.013 + salt * 1.17) * 10000;
-  const normalized = raw - Math.floor(raw);
-  return Math.round(min + (max - min) * normalized);
-};
-
-const toIsoDate = (daysAgo: number, hourOffset = 0): string => {
-  const date = new Date();
-  date.setDate(date.getDate() - daysAgo);
-  date.setHours(Math.max(0, 17 - hourOffset), Math.max(0, 50 - (daysAgo * 3) % 40), 0, 0);
-  return date.toISOString();
-};
 
 const normalizeStatus = (status?: string): RecruiterActivityStatus => {
   if (!status) return 'new';
@@ -132,273 +120,154 @@ const normalizeStatus = (status?: string): RecruiterActivityStatus => {
 };
 
 const buildTimelineFromApplications = (apps: RecruiterActivityApplication[]): RecruiterActivityEvent[] => {
-  return apps.slice(0, 5).map((item, index) => {
+  return apps.flatMap((item) => {
     const normalized = (item.status || '').toLowerCase();
     const isShortlisted = normalized === 'shortlisted';
     const isReview = normalized === 'under_review';
     const isAccepted = normalized === 'accepted';
-
-    const title = isShortlisted
-      ? 'Application shortlisted'
-      : isReview
-      ? 'Application moved to next stage'
-      : isAccepted
-      ? 'Interview invitation received'
-      : 'Recruiter viewed your application';
-
-    return {
-      id: `application-${item.id}-${index}`,
-      type: isAccepted ? 'interview_invite' : isShortlisted ? 'application_shortlisted' : 'application_stage_update',
+    const occurredAt = item.updatedAt || item.appliedAt;
+    if (!occurredAt) return [];
+    const title = isShortlisted ? 'Application shortlisted' : isReview ? 'Application moved to review' : isAccepted ? 'Application accepted' : normalized === 'rejected' ? 'Application rejected' : 'Application submitted';
+    return [{
+      id: `application-${item.id}`,
+      type: isShortlisted ? 'application_shortlisted' : 'application_stage_update',
       title,
-      subtitle: `${item.title || 'Role'} at ${item.companyName || 'Company'}`,
-      occurredAt: item.appliedAt || toIsoDate(index + 1, index),
+      subtitle: `${item.title || 'Role'}${item.companyName ? ` at ${item.companyName}` : ''}`,
+      occurredAt,
       status: normalizeStatus(item.status),
       actionLabel: 'View application',
       actionKey: 'applications',
-    };
+    }];
   });
 };
 
 const buildBaseTimeline = (ctx: RecruiterActivityContext): RecruiterActivityEvent[] => {
-  const appEvents = buildTimelineFromApplications(ctx.recentApplications);
-  const staticEvents: RecruiterActivityEvent[] = [
-    {
-      id: 'profile-view-1',
-      type: 'profile_viewed',
-      title: 'Recruiter viewed your profile',
-      subtitle: 'Your profile appeared in recruiter discovery feed.',
-      occurredAt: toIsoDate(0, 1),
-      status: 'new',
-      actionLabel: 'Improve profile',
-      actionKey: 'improve-profile',
-    },
-    {
-      id: 'resume-download-1',
-      type: 'resume_downloaded',
-      title: 'Resume downloaded',
-      subtitle: 'A recruiter downloaded your resume.',
-      occurredAt: toIsoDate(1, 2),
-      status: 'completed',
-      actionLabel: 'Update resume',
-      actionKey: 'update-resume',
-    },
-    {
-      id: 'message-1',
-      type: 'recruiter_message',
-      title: 'Recruiter sent message',
-      subtitle: 'You received a new recruiter message.',
-      occurredAt: toIsoDate(2, 3),
-      status: ctx.recruiterMessages > 0 ? 'new' : 'in_progress',
-      actionLabel: 'Open messages',
-      actionKey: 'messages',
-    },
-    {
-      id: 'saved-by-recruiter-1',
-      type: 'saved_by_recruiter',
-      title: 'Saved by recruiter',
-      subtitle: 'A recruiter bookmarked your profile for follow-up.',
-      occurredAt: toIsoDate(3, 4),
-      status: 'in_progress',
-      actionLabel: 'Browse jobs',
-      actionKey: 'browse-jobs',
-    },
-    {
-      id: 'assessment-viewed-1',
-      type: 'assessment_viewed',
-      title: 'Assessment viewed',
-      subtitle: 'Recruiters checked your assessment performance.',
-      occurredAt: toIsoDate(5, 5),
-      status: 'completed',
-      actionLabel: 'Take assessment',
-      actionKey: 'take-assessment',
-    },
-  ];
-
-  return [...appEvents, ...staticEvents]
+  return [...(ctx.activityEvents || []), ...buildTimelineFromApplications(ctx.recentApplications)]
     .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime());
 };
 
 const filterTimeline = (timeline: RecruiterActivityEvent[], filter: RecruiterActivityFilter): RecruiterActivityEvent[] => {
   const now = Date.now();
   const dayMs = 24 * 60 * 60 * 1000;
-  const days = filter === 'today' ? 1 : filter === '7d' ? 7 : filter === '30d' ? 30 : 90;
-  return timeline.filter((item) => now - new Date(item.occurredAt).getTime() <= days * dayMs);
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const days = filter === '7d' ? 7 : filter === '30d' ? 30 : 90;
+  return timeline.filter((item) => {
+    const occurredAt = new Date(item.occurredAt).getTime();
+    if (filter === 'today') return Number.isFinite(occurredAt) && occurredAt >= todayStart.getTime() && occurredAt <= now;
+    return Number.isFinite(occurredAt) && occurredAt <= now && now - occurredAt <= days * dayMs;
+  });
 };
 
-const calculateVisibilityBreakdown = (ctx: RecruiterActivityContext, timelineCount: number): VisibilityBreakdown => {
-  const resumeQuality = clamp((ctx.hasResume ? 58 : 25) + (ctx.resumeDownloads * 5));
-  const profileCompletion = clamp(ctx.profileCompletion);
-  const skills = clamp(28 + (ctx.skillsCount * 9));
-  const projects = clamp(Math.round(ctx.profileCompletion * 0.78));
-  const assessments = clamp(20 + (ctx.assessmentsCompleted * 12));
-  const portfolio = clamp((ctx.hasResume ? 45 : 18) + (ctx.skillsCount * 4));
-  const experience = clamp(30 + (timelineCount * 7) + (ctx.profileViews * 2));
+const calculateVisibilityBreakdown = (ctx: RecruiterActivityContext): VisibilityBreakdown => ({
+  profileCompletion: clamp(ctx.profileCompletion),
+  skillsCount: ctx.skillsCount,
+  projectCount: ctx.projectCount || 0,
+  assessmentsCompleted: ctx.assessmentsCompleted,
+  hasResume: ctx.hasResume,
+  experienceCount: ctx.experienceCount || 0,
+  hasPortfolio: ctx.portfolioPresent === true,
+});
 
-  return {
-    resumeQuality,
-    profileCompletion,
-    skills,
-    projects,
-    assessments,
-    portfolio,
-    experience,
-  };
-};
+const buildOverview = (events: RecruiterActivityEvent[]): RecruiterActivityOverview => ({
+  profileViews: events.filter((event) => event.type === 'profile_viewed').length,
+  resumeDownloads: events.filter((event) => event.type === 'resume_downloaded').length,
+  recruiterMessages: events.filter((event) => event.type === 'recruiter_message').length,
+  interviewInvitations: events.filter((event) => event.type === 'interview_invite').length,
+  searchAppearances: null,
+  shortlists: events.filter((event) => event.type === 'application_shortlisted').length,
+  bookmarks: null,
+});
 
-const computeVisibilityScore = (breakdown: VisibilityBreakdown): number => {
-  const weighted = (
-    (breakdown.resumeQuality * 0.2)
-    + (breakdown.profileCompletion * 0.2)
-    + (breakdown.skills * 0.18)
-    + (breakdown.assessments * 0.12)
-    + (breakdown.experience * 0.12)
-    + (breakdown.projects * 0.08)
-    + (breakdown.portfolio * 0.1)
-  );
+const percentageChange = (current: number, previous: number): number | null => (
+  previous > 0 ? Math.round(((current - previous) / previous) * 100) : null
+);
 
-  return clamp(Math.round(weighted));
-};
-
-const buildOverview = (ctx: RecruiterActivityContext, seed: number): RecruiterActivityOverview => {
-  const shortlists = ctx.recentApplications.filter((item) => item.status === 'shortlisted').length;
-  const interviewInvitations = ctx.recentApplications.filter((item) => item.status === 'accepted').length;
-  const searchAppearances = clamp(
-    Math.round((ctx.profileViews * 1.6) + (ctx.skillsCount * 2.2) + pseudo(seed, 3, 5, 18)),
-    0,
-    999,
-  );
-
-  return {
-    profileViews: ctx.profileViews,
-    resumeDownloads: ctx.resumeDownloads,
-    recruiterMessages: ctx.recruiterMessages,
-    interviewInvitations,
-    searchAppearances,
-    shortlists,
-    bookmarks: ctx.savedJobs,
-  };
-};
-
-const growth = (thisWeek: number, lastWeek: number): number => {
-  if (lastWeek <= 0 && thisWeek > 0) return 100;
-  if (lastWeek <= 0) return 0;
-  return Math.round(((thisWeek - lastWeek) / lastWeek) * 100);
-};
-
-const buildWeeklyComparison = (overview: RecruiterActivityOverview, seed: number): WeeklyComparisonRow[] => {
-  const viewsLast = Math.max(0, overview.profileViews - pseudo(seed, 11, 1, 5));
-  const downloadsLast = Math.max(0, overview.resumeDownloads - pseudo(seed, 13, 0, 3));
-  const messagesLast = Math.max(0, overview.recruiterMessages - pseudo(seed, 17, 0, 2));
-
-  return [
-    {
-      label: 'Profile Views',
-      thisWeek: overview.profileViews,
-      lastWeek: viewsLast,
-      growth: growth(overview.profileViews, viewsLast),
-    },
-    {
-      label: 'Resume Downloads',
-      thisWeek: overview.resumeDownloads,
-      lastWeek: downloadsLast,
-      growth: growth(overview.resumeDownloads, downloadsLast),
-    },
-    {
-      label: 'Messages',
-      thisWeek: overview.recruiterMessages,
-      lastWeek: messagesLast,
-      growth: growth(overview.recruiterMessages, messagesLast),
-    },
+const buildWeeklyComparison = (events: RecruiterActivityEvent[]): WeeklyComparisonRow[] => {
+  const now = Date.now();
+  const week = 7 * 24 * 60 * 60 * 1000;
+  const rows: Array<{ label: WeeklyComparisonRow['label']; type: RecruiterActivityType }> = [
+    { label: 'Profile Views', type: 'profile_viewed' },
+    { label: 'Resume Downloads', type: 'resume_downloaded' },
+    { label: 'Messages', type: 'recruiter_message' },
   ];
+  return rows.map(({ label, type }) => {
+    const matching = events.filter((event) => event.type === type).map((event) => new Date(event.occurredAt).getTime()).filter(Number.isFinite);
+    const thisWeek = matching.filter((at) => at <= now && now - at <= week).length;
+    const lastWeek = matching.filter((at) => now - at > week && now - at <= week * 2).length;
+    return { label, thisWeek, lastWeek, growth: percentageChange(thisWeek, lastWeek) };
+  });
 };
 
-const buildSuggestions = (ctx: RecruiterActivityContext, score: number): string[] => {
+const buildSuggestions = (ctx: RecruiterActivityContext): string[] => {
   const suggestions: string[] = [];
-
-  if (ctx.assessmentsCompleted === 0) suggestions.push('Complete React Assessment.');
-  if (!ctx.hasResume) suggestions.push('Upload resume to attract recruiters.');
-  if (ctx.skillsCount < 6) suggestions.push('Add Docker skill.');
-  if (ctx.profileCompletion < 80) suggestions.push('Increase profile completion.');
-  if (score < 70) suggestions.push('Improve ATS score.');
-  suggestions.push('Add certifications.');
-  suggestions.push('Upload GitHub profile.');
-
+  if (!ctx.hasResume) suggestions.push('Add a resume so recruiters can review your experience.');
+  if (ctx.skillsCount === 0) suggestions.push('Add skills to help recruiters find relevant experience.');
+  if (ctx.profileCompletion < 80) suggestions.push('Complete more of your profile to improve recruiter visibility.');
+  if (ctx.assessmentsCompleted === 0) suggestions.push('Complete an assessment to add verified skills to your profile.');
+  if (!ctx.portfolioPresent && (ctx.projectCount || 0) > 0) suggestions.push('Add a portfolio link to showcase your projects.');
   return suggestions.slice(0, ctx.isPremium ? 6 : 3);
 };
 
-const buildNotifications = (timeline: RecruiterActivityEvent[]): RecruiterNotificationItem[] => {
-  return timeline
-    .filter((item) => (
-      item.type === 'profile_viewed'
-      || item.type === 'resume_downloaded'
-      || item.type === 'interview_invite'
-      || item.type === 'recruiter_message'
-      || item.type === 'application_shortlisted'
-    ))
-    .slice(0, 5)
-    .map((item) => ({
-      id: `notif-${item.id}`,
-      text: item.title,
-      occurredAt: item.occurredAt,
-    }));
+const buildNotifications = (timeline: RecruiterActivityEvent[]): RecruiterNotificationItem[] => timeline
+  .filter((event) => ['profile_viewed', 'resume_downloaded', 'interview_invite', 'recruiter_message', 'application_shortlisted'].includes(event.type))
+  .slice(0, 5)
+  .map((event) => ({ id: `activity-${event.id}`, text: event.title, occurredAt: event.occurredAt }));
+
+const startOfWeek = (value: Date) => {
+  const date = new Date(value);
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() - ((date.getDay() + 6) % 7));
+  return date;
 };
 
-const buildTrend = (seed: number, baseline: number): Record<TrendRange, VisibilityTrendPoint[]> => {
-  const mk = (labels: string[], salt: number): VisibilityTrendPoint[] => labels.map((label, idx) => ({
+const buildTrend = (events: RecruiterActivityEvent[], range: TrendRange): VisibilityTrendPoint[] => {
+  const now = new Date();
+  const buckets: Array<{ start: Date; end: Date; label: string }> = [];
+  if (range === 'weekly') {
+    const thisWeek = startOfWeek(now);
+    for (let offset = 3; offset >= 0; offset -= 1) {
+      const start = new Date(thisWeek);
+      start.setDate(start.getDate() - offset * 7);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 7);
+      buckets.push({ start, end, label: `${start.getDate()} ${start.toLocaleDateString(undefined, { month: 'short' })}` });
+    }
+  } else if (range === 'monthly') {
+    for (let offset = 5; offset >= 0; offset -= 1) {
+      const start = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+      const end = new Date(now.getFullYear(), now.getMonth() - offset + 1, 1);
+      buckets.push({ start, end, label: start.toLocaleDateString(undefined, { month: 'short' }) });
+    }
+  } else {
+    const currentQuarter = Math.floor(now.getMonth() / 3);
+    for (let offset = 3; offset >= 0; offset -= 1) {
+      const quarterStartMonth = (currentQuarter - offset) * 3;
+      const start = new Date(now.getFullYear(), quarterStartMonth, 1);
+      const end = new Date(now.getFullYear(), quarterStartMonth + 3, 1);
+      buckets.push({ start, end, label: `Q${Math.floor(((quarterStartMonth % 12) + 12) % 12 / 3) + 1} ${start.getFullYear()}` });
+    }
+  }
+  const validTimes = events.map((event) => new Date(event.occurredAt).getTime()).filter(Number.isFinite);
+  return buckets.map(({ start, end, label }) => ({
     label,
-    score: clamp(baseline + pseudo(seed, salt + idx, -12, 14)),
-  }));
-
-  return {
-    weekly: mk(['W1', 'W2', 'W3', 'W4'], 21),
-    monthly: mk(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'], 31),
-    quarterly: mk(['Q1', 'Q2', 'Q3', 'Q4'], 41),
-  };
-};
-
-const buildInterestCategories = (seed: number): RecruiterInterestCategory[] => {
-  const raw = [
-    { category: 'Frontend Companies', score: clamp(pseudo(seed, 61, 72, 96)) },
-    { category: 'Remote Companies', score: clamp(pseudo(seed, 62, 65, 90)) },
-    { category: 'Product Companies', score: clamp(pseudo(seed, 63, 48, 82)) },
-    { category: 'Enterprise Companies', score: clamp(pseudo(seed, 64, 38, 78)) },
-  ];
-
-  return raw.map((item) => ({
-    category: item.category,
-    score: item.score,
-    level: item.score >= 88 ? 'Very High' : item.score >= 72 ? 'High' : item.score >= 52 ? 'Medium' : 'Low',
+    score: validTimes.filter((at) => at >= start.getTime() && at < end.getTime()).length,
   }));
 };
 
-const buildEngagementScore = (overview: RecruiterActivityOverview, seed: number): number => {
-  const score = (
-    (overview.recruiterMessages * 12)
-    + (overview.resumeDownloads * 16)
-    + (overview.searchAppearances * 0.9)
-    + (overview.profileViews * 4)
-    + (overview.shortlists * 14)
-    + pseudo(seed, 70, 8, 20)
-  ) / 4.2;
-
-  return clamp(Math.round(score));
-};
+const buildSuggestionsMessage = (context: RecruiterActivityContext) => buildSuggestions(context);
 
 export const recruiterActivityService = {
   getInsights(context: RecruiterActivityContext, filter: RecruiterActivityFilter = '7d'): RecruiterActivityInsights {
-    const seed = seedFromUser(context.userId);
     const timelineAll = buildBaseTimeline(context);
     const timeline = filterTimeline(timelineAll, filter);
-    const overview = buildOverview(context, seed);
-    const visibilityBreakdown = calculateVisibilityBreakdown(context, timeline.length);
-    const visibilityScore = computeVisibilityScore(visibilityBreakdown);
-    const weeklyComparison = buildWeeklyComparison(overview, seed);
-    const suggestions = buildSuggestions(context, visibilityScore);
-    const notifications = buildNotifications(timelineAll);
-    const engagementScore = buildEngagementScore(overview, seed);
-    const interestCategories = buildInterestCategories(seed);
-    const trend = buildTrend(seed, visibilityScore);
-    const profileRankingPercentile = clamp(100 - pseudo(seed, 81, 4, 36), 35, 98);
+    const overview = buildOverview(timeline);
+    const visibilityBreakdown = calculateVisibilityBreakdown(context);
+    const visibilityScore = clamp(context.profileCompletion);
+    const weeklyComparison = buildWeeklyComparison(timelineAll);
+    const suggestions = buildSuggestionsMessage(context);
+    const notifications = buildNotifications(timeline);
+    const engagementScore = overview.profileViews + overview.resumeDownloads + overview.recruiterMessages + overview.interviewInvitations + overview.shortlists;
 
     return {
       visibilityScore,
@@ -409,9 +278,13 @@ export const recruiterActivityService = {
       suggestions,
       notifications,
       engagementScore,
-      interestCategories,
-      trend,
-      profileRankingPercentile,
+      interestCategories: [],
+      trend: {
+        weekly: buildTrend(timelineAll, 'weekly'),
+        monthly: buildTrend(timelineAll, 'monthly'),
+        quarterly: buildTrend(timelineAll, 'quarterly'),
+      },
+      profileRankingPercentile: null,
     };
   },
 };

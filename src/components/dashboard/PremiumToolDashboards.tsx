@@ -15,27 +15,28 @@ import {
   Grid,
   LinearProgress,
   Stack,
-  Tab,
-  Tabs,
   TextField,
   Typography,
 } from '@mui/material';
 import {
   AutoAwesome as AutoAwesomeIcon,
-  CheckCircle as CheckCircleIcon,
   Description as DescriptionIcon,
-  EventAvailable as EventAvailableIcon,
   PlayArrow as PlayArrowIcon,
 } from '@mui/icons-material';
 import { skillTestService, type SkillTestAttempt } from '@services/skillTest';
+import type { InterviewPreparationContext } from '@services/candidateInterviewInvites';
 
 const LazyResumeStudio = React.lazy(() => import('./ResumeStudio').then((module) => ({ default: module.ResumeStudio })));
 const LazyAssessmentCertifications = React.lazy(() => import('./AssessmentCertifications').then((module) => ({ default: module.AssessmentCertifications })));
+const LazyCandidateInterviewCoach = React.lazy(() => import('./CandidateInterviewCoach').then((module) => ({ default: module.CandidateInterviewCoach })));
+const LazyCandidateInterviewInvites = React.lazy(() => import('./CandidateInterviewInvites').then((module) => ({ default: module.CandidateInterviewInvites })));
 
 type PremiumToolDashboardsProps = {
   tool: 'Interview Preparation' | 'Skill Test' | 'Resume Builder' | 'Certificates' | 'Interview Invites';
   skillTestHeaderActionRef?: React.MutableRefObject<(() => void) | null>;
   onSkillTestHeaderStateChange?: React.Dispatch<React.SetStateAction<{ available: boolean; disabled: boolean; completed: boolean }>>;
+  interviewPreparationContext?: InterviewPreparationContext | null;
+  onPrepareInterview?: (context: InterviewPreparationContext) => void;
 };
 
 const panelSx = {
@@ -406,34 +407,13 @@ const SkillTestDashboard: React.FC<Pick<PremiumToolDashboardsProps, 'skillTestHe
   );
 };
 
-export const PremiumToolDashboards: React.FC<PremiumToolDashboardsProps> = ({ tool, skillTestHeaderActionRef, onSkillTestHeaderStateChange }) => {
-  const [tab, setTab] = useState(0);
-  const [inviteStatus, setInviteStatus] = useState<Record<string, string>>({});
-
+export const PremiumToolDashboards: React.FC<PremiumToolDashboardsProps> = ({ tool, skillTestHeaderActionRef, onSkillTestHeaderStateChange, interviewPreparationContext, onPrepareInterview }) => {
   if (tool === 'Interview Preparation') {
-    return (
-      <Stack spacing={2}>
-        <Box sx={panelSx}>
-          <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" gap={2}>
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: 900, color: '#0F172A' }}>Interview Preparation Hub</Typography>
-              <Typography sx={{ mt: 0.5, color: '#64748B' }}>Build a focused plan for recruiter screens, technical rounds, and final interviews.</Typography>
-            </Box>
-            <Chip icon={<AutoAwesomeIcon />} label="Premium coaching" color="primary" sx={{ fontWeight: 800 }} />
-          </Stack>
-        </Box>
-        <Card sx={panelSx}>
-          <Tabs value={tab} onChange={(_, value) => setTab(value)} variant="fullWidth">
-            <Tab label="Preparation Plan" />
-            <Tab label="Question Bank" />
-            <Tab label="Session Notes" />
-          </Tabs>
-          {tab === 0 && <Box sx={{ pt: 2 }}><Stack spacing={1.2}>{['Research the company and role', 'Prepare your 60-second introduction', 'Practice role-specific questions', 'Write two questions for the interviewer'].map((item, index) => <Box key={item} sx={{ display: 'flex', alignItems: 'center', gap: 1.2, p: 1.3, borderRadius: 2, bgcolor: '#F8FAFC' }}><CheckCircleIcon sx={{ color: index === 0 ? '#16A34A' : '#94A3B8' }} /><Typography sx={{ fontWeight: 700 }}>{item}</Typography></Box>)}</Stack></Box>}
-          {tab === 1 && <Box sx={{ pt: 2, display: 'grid', gap: 1 }}><Typography sx={{ fontWeight: 800 }}>Common questions to practice</Typography>{['Tell me about yourself.', 'Why are you interested in this role?', 'Describe a difficult problem you solved.', 'What are your strengths and growth areas?'].map((question) => <Card key={question} variant="outlined"><CardContent sx={{ py: 1.4, '&:last-child': { pb: 1.4 } }}><Typography>{question}</Typography></CardContent></Card>)}</Box>}
-          {tab === 2 && <TextField fullWidth multiline minRows={8} placeholder="Write interview notes, answers, and follow-up points here..." sx={{ mt: 2 }} />}
-        </Card>
-      </Stack>
-    );
+    return <React.Suspense fallback={<LinearProgress />}><LazyCandidateInterviewCoach preparationContext={interviewPreparationContext} /></React.Suspense>;
+  }
+
+  if (tool === 'Interview Invites') {
+    return <React.Suspense fallback={<LinearProgress />}><LazyCandidateInterviewInvites onPrepareInterview={onPrepareInterview || (() => undefined)} /></React.Suspense>;
   }
 
   if (tool === 'Skill Test') {
@@ -448,10 +428,5 @@ export const PremiumToolDashboards: React.FC<PremiumToolDashboardsProps> = ({ to
     return <React.Suspense fallback={<LinearProgress />}><LazyAssessmentCertifications /></React.Suspense>;
   }
 
-  return (
-    <Stack spacing={2}>
-      <Box sx={panelSx}><Typography variant="h5" sx={{ fontWeight: 900 }}>Interview Invites</Typography><Typography sx={{ color: '#64748B', mt: 0.5 }}>Review recruiter invitations and respond without leaving your dashboard.</Typography></Box>
-      {[['Frontend Engineer', 'Northstar Labs', 'Technical round'], ['Product Analyst', 'Brightline Systems', 'Recruiter screen']].map(([role, company, stage]) => { const key = `${role}-${company}`; return <Card key={key} sx={panelSx}><Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ sm: 'center' }} gap={2}><Box><Typography variant="h6" sx={{ fontWeight: 800 }}>{role}</Typography><Typography sx={{ color: '#64748B' }}>{company} • {stage}</Typography></Box>{inviteStatus[key] ? <Chip label={inviteStatus[key]} color="success" /> : <Stack direction="row" spacing={1}><Button size="small" variant="outlined" onClick={() => setInviteStatus((p) => ({ ...p, [key]: 'Declined' }))} sx={{ textTransform: 'none' }}>Decline</Button><Button size="small" variant="contained" startIcon={<EventAvailableIcon />} onClick={() => setInviteStatus((p) => ({ ...p, [key]: 'Accepted' }))} sx={{ textTransform: 'none', fontWeight: 800 }}>Accept</Button></Stack>}</Stack></Card>; })}
-    </Stack>
-  );
+  return null;
 };

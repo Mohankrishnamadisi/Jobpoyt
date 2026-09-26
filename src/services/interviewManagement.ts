@@ -43,6 +43,7 @@ export interface InterviewRecord {
   duration: number;
   timezone: string;
   interviewer: string;
+  interviewerEmail?: string;
   meetingLink?: string;
   location?: string;
   instructions?: string;
@@ -159,6 +160,7 @@ function normalizeInterviewRow(row: any, recruiterIdFallback: string): Interview
     duration: normalizeNumber(row?.duration, 30),
     timezone: String(row?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'),
     interviewer: String(row?.interviewer || ''),
+    interviewerEmail: row?.interviewer_email || row?.interviewerEmail || undefined,
     meetingLink: row?.meeting_link || row?.meetingLink || undefined,
     location: row?.location || undefined,
     instructions: row?.instructions || undefined,
@@ -201,6 +203,7 @@ function serializeInterviewForRemote(interview: InterviewRecord): Record<string,
     duration: interview.duration,
     timezone: interview.timezone,
     interviewer: interview.interviewer,
+    interviewer_email: interview.interviewerEmail || null,
     meeting_link: interview.meetingLink || null,
     location: interview.location || null,
     instructions: interview.instructions || null,
@@ -250,21 +253,15 @@ function addTimelineEvent(
 }
 
 async function syncInterviewToRemote(interview: InterviewRecord): Promise<void> {
-  try {
-    await supabase.from('interviews').upsert(serializeInterviewForRemote(interview));
-  } catch {
-    // Ignore remote sync issues; local fallback remains source of truth.
-  }
+  const { error } = await supabase.from('interviews').upsert(serializeInterviewForRemote(interview));
+  if (error) throw error;
 }
 
 async function syncInterviewsToRemote(interviews: InterviewRecord[]): Promise<void> {
-  try {
-    await supabase
-      .from('interviews')
-      .upsert(interviews.map((item) => serializeInterviewForRemote(item)));
-  } catch {
-    // Ignore remote sync issues; local fallback remains source of truth.
-  }
+  const { error } = await supabase
+    .from('interviews')
+    .upsert(interviews.map((item) => serializeInterviewForRemote(item)));
+  if (error) throw error;
 }
 
 async function updateApplicationStage(
@@ -458,6 +455,7 @@ export interface SaveInterviewPayload {
   duration: number;
   timezone: string;
   interviewer: string;
+  interviewerEmail?: string;
   meetingLink?: string;
   location?: string;
   instructions?: string;
@@ -506,6 +504,15 @@ export async function createInterview(recruiterId: string, payload: SaveIntervie
 
   updateLocalCollection(recruiterId, (rows) => [withEvent, ...rows]);
   await syncInterviewToRemote(withEvent);
+
+  try {
+    const { error } = await supabase.functions.invoke('candidate-interview-invites', {
+      body: { action: 'notify_candidate', interviewId: withEvent.id },
+    });
+    if (error) console.warn('Candidate interview notification failed:', error.message);
+  } catch (error) {
+    console.warn('Candidate interview notification failed:', error);
+  }
 
   await sendInterviewLifecycleMessage(recruiterId, withEvent, 'scheduled');
 

@@ -1,0 +1,93 @@
+.premium-tool-dialog {
+  --workspace-ink: #172033;
+  --workspace-muted: #64748b;
+  --workspace-line: #dbe4ef;
+  --workspace-blue: #2563eb;
+}
+
+.premium-tool-dialog .MuiDialogContent-root {
+  scrollbar-color: #94a3b8 transparent;
+}
+
+.premium-tool-dialog .MuiTextField-root,
+.premium-tool-dialog .MuiFormControl-root {
+  min-width: 0;
+}
+
+.premium-tool-dialog .MuiOutlinedInput-root {
+  min-height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  transition: box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.premium-tool-dialog .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #93c5fd;
+}
+
+.premium-tool-dialog .MuiOutlinedInput-root.Mui-focused {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.premium-tool-dialog .MuiInputLabel-root {
+  font-weight: 600;
+  color: var(--workspace-muted);
+}
+
+.premium-tool-dialog .MuiButton-root {
+  min-height: 42px;
+  border-radius: 11px;
+  text-transform: none;
+  font-weight: 750;
+  letter-spacing: 0;
+}
+
+.premium-tool-dialog .MuiButton-contained {
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.2);
+}
+
+.premium-tool-dialog .MuiCard-root {
+  border-radius: 16px;
+  border-color: var(--workspace-line);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.055);
+}
+
+.premium-tool-dialog .MuiChip-root {
+  border-radius: 9px;
+  font-weight: 700;
+}
+
+.premium-tool-dialog .premium-workspace-panel {
+  border: 1px solid var(--workspace-line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+}
+
+.premium-tool-dialog .premium-workspace-section-title {
+  color: var(--workspace-ink);
+  font-weight: 850;
+  letter-spacing: -0.01em;
+}
+
+.premium-tool-dialog .premium-workspace-muted {
+  color: var(--workspace-muted);
+}
+
+.premium-tool-dialog .premium-workspace-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+@media (max-width: 600px) {
+  .premium-tool-dialog .MuiDialogContent-root {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .premium-tool-dialog .premium-workspace-action-row > .MuiButton-root {
+    flex: 1 1 100%;
+  }
+}

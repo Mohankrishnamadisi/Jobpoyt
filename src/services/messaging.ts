@@ -400,6 +400,7 @@ export const messagingService = {
           const unreadCount = (msgs.filter(
             (m: any) => !m.is_read && m.sender_id !== userId
           ).length) || 0;
+          const lastIncomingMessage = msgs.filter((m: any) => m.sender_id !== userId).slice(-1)[0] || null;
 
           const lastMessageTime = lastMsg?.created_at || conv.created_at || new Date().toISOString();
 
@@ -413,6 +414,11 @@ export const messagingService = {
             participantRole,
             lastMessage: lastMsg?.content || '',
             lastMessageTime,
+            lastIncomingMessageTime: lastIncomingMessage?.created_at || null,
+            lastIncomingMessageUnread: Boolean(lastIncomingMessage && !lastIncomingMessage.is_read),
+            incomingMessages: msgs
+              .filter((message: any) => message.sender_id !== userId && message.created_at)
+              .map((message: any) => ({ id: message.id, occurredAt: message.created_at, unread: !message.is_read })),
             unreadCount,
             isInitiatedByRecruiter: conv.initiated_by_recruiter,
             isBlocked,

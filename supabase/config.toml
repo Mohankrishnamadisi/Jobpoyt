@@ -40,8 +40,23 @@ verify_jwt = true
 [functions.skill-test]
 verify_jwt = true
 
+[functions.candidate-interview-coach]
+verify_jwt = true
+
+[functions.candidate-interview-invites]
+verify_jwt = true
+
 [functions.resume-studio]
 verify_jwt = true
 
 [functions.career-assessments]
 verify_jwt = false
+
+[functions.daily-career-brief]
+verify_jwt = true
+
+[functions.premium-intelligence]
+verify_jwt = true
+
+[functions.career-assistant]
+verify_jwt = true

@@ -11,7 +11,8 @@ const isSilentBackgroundRequest = (input: RequestInfo | URL, init?: RequestInit)
   // These requests update secondary UI state or persist playback progress.
   // They must never cover an already-rendered page with the initial loader.
   return (
-    url.includes('/rest/v1/notifications')
+    url.includes('/functions/v1/career-assistant')
+    || url.includes('/rest/v1/notifications')
     || url.includes('/rest/v1/free_notes')
     || url.includes('/auth/v1/token')
     || (method !== 'GET' && url.includes('/rest/v1/'))

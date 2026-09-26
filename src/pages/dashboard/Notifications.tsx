@@ -5,9 +5,12 @@ import { Layout } from '@components/layout/Layout';
 import { useAuthStore } from '@store/index';
 import { notificationService } from '@services/api';
 import { formatDate } from '@utils/index';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '@constants/index';
 
 export const NotificationsPage: React.FC<{ embedded?: boolean }> = ({ embedded = false }) => {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
   const Shell = embedded ? React.Fragment : Layout;
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,6 +114,7 @@ export const NotificationsPage: React.FC<{ embedded?: boolean }> = ({ embedded =
                             <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.1, whiteSpace: 'nowrap', flexShrink: 0 }}>
                               {formatDate(notification.created_at || notification.createdAt || new Date().toISOString())}
                             </Typography>
+                            {notification.data?.premiumTool === 'Interview Invites' ? <Button size="small" onClick={() => navigate(`${ROUTES.DASHBOARD}?premiumTool=Interview%20Invites`)} sx={{ minHeight: 28, textTransform: 'none', fontWeight: 750 }}>View interview invite</Button> : null}
                           </Box>
                         }
                       />

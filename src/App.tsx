@@ -34,6 +34,8 @@ import { ProfilePage } from '@pages/dashboard/Profile';
 import { ApplicationsPage } from '@pages/dashboard/Applications';
 import { SavedJobsPage } from '@pages/dashboard/SavedJobs';
 import { NotificationsPage } from '@pages/dashboard/Notifications';
+import { Layout } from '@components/layout/Layout';
+const LazyCandidateInterviewInvites = React.lazy(() => import('@components/dashboard/CandidateInterviewInvites').then((module) => ({ default: module.CandidateInterviewInvites })));
 import { RecruiterRegister } from '@pages/recruiter/RecruiterRegister';
 import { RecruiterDashboard } from '@pages/recruiter/RecruiterDashboard';
 import PremiumDashboard from '@pages/dashboard/PremiumDashboard';
@@ -123,6 +125,7 @@ const AppNotificationAlerts: React.FC<{ userId: string | null }> = ({ userId }) 
 const RoleDashboard: React.FC = () => {
   const { user } = useAuthStore();
   const { subscription, loading: subscriptionLoading } = useSubscription(user?.id || null);
+  const location = useLocation();
 
   if (user?.role === USER_ROLES.ADMIN) {
     return <Navigate to={ROUTES.ADMIN_DASHBOARD} replace />;
@@ -142,6 +145,10 @@ const RoleDashboard: React.FC = () => {
 
   if (subscription) {
     return <PremiumDashboard />;
+  }
+
+  if (new URLSearchParams(location.search).get('premiumTool') === 'Interview Invites') {
+    return <Layout><Box sx={{ maxWidth: 1240, mx: 'auto', px: { xs: 1.5, md: 3 }, py: { xs: 2, md: 3 } }}><React.Suspense fallback={<CircularProgress size={24} />}><LazyCandidateInterviewInvites onPrepareInterview={() => toast('AI Interview Preparation requires an active Premium subscription.')} /></React.Suspense></Box></Layout>;
   }
 
   return <Dashboard />;

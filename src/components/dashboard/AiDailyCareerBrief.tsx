@@ -14,8 +14,6 @@ import {
 import {
   AutoAwesome as AiIcon,
   OpenInNew as OpenIcon,
-  Insights as InsightIcon,
-  RocketLaunch as RocketIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import {
@@ -42,16 +40,22 @@ interface AiDailyCareerBriefProps {
 
 export const AiDailyCareerBrief: React.FC<AiDailyCareerBriefProps> = ({ context, onAction }) => {
   const [brief, setBrief] = useState<DailyCareerBrief | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     let mounted = true;
-    aiDailyCareerBriefService.generateBrief(context).then((data) => {
+    setBrief(null);
+    setError(null);
+    aiDailyCareerBriefService.generateBrief({ userName: context.userName }).then((data) => {
       if (mounted) setBrief(data);
+    }).catch((loadError: unknown) => {
+      if (mounted) setError(loadError instanceof Error ? loadError.message : 'Daily career brief is temporarily unavailable.');
     });
     return () => {
       mounted = false;
     };
-  }, [context]);
+  }, [context, retryCount]);
 
   const greeting = useMemo(() => getGreeting(), []);
 
@@ -59,8 +63,17 @@ export const AiDailyCareerBrief: React.FC<AiDailyCareerBriefProps> = ({ context,
     return (
       <Card sx={{ borderRadius: 4, mb: 3 }}>
         <CardContent>
-          <Typography variant="body2" color="text.secondary">Generating AI daily brief...</Typography>
-          <LinearProgress sx={{ mt: 1.2 }} />
+          {error ? (
+            <Stack spacing={1.2} alignItems="flex-start">
+              <Alert severity="warning">{error}</Alert>
+              <Button size="small" variant="outlined" onClick={() => setRetryCount((count) => count + 1)}>Retry</Button>
+            </Stack>
+          ) : (
+            <>
+              <Typography variant="body2" color="text.secondary">Loading your daily career brief...</Typography>
+              <LinearProgress sx={{ mt: 1.2 }} />
+            </>
+          )}
         </CardContent>
       </Card>
     );
@@ -86,16 +99,16 @@ export const AiDailyCareerBrief: React.FC<AiDailyCareerBriefProps> = ({ context,
         <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }} spacing={1.2} sx={{ mb: 2 }}>
           <Box>
             <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.6 }}>
-              <Chip size="small" icon={<AiIcon />} label="AI Brief" color="primary" sx={{ fontWeight: 700 }} />
+              <Chip size="small" icon={<AiIcon />} label={brief.source === 'ai' ? 'AI-generated' : 'Activity-based'} color="primary" sx={{ fontWeight: 700 }} />
               <Typography variant="caption" color="text.secondary">{brief.dateLabel}</Typography>
             </Stack>
-            <Typography variant="h5" sx={{ fontWeight: 800 }}>🤖 AI Daily Career Brief</Typography>
+            <Typography variant="h5" sx={{ fontWeight: 800 }}>AI Daily Career Brief</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.2 }}>
-              {greeting}{context.userName ? `, ${context.userName}` : ''}. Personalized recommendations generated from your profile, activity and market trends.
+              {greeting}{context.userName ? `, ${context.userName}` : ''}. Built from activity recorded in your JobPoyt account.
             </Typography>
           </Box>
-          <Alert icon={<InsightIcon />} severity="info" sx={{ py: 0.2 }}>
-            Future-ready: API-backed recommendation provider can replace this mock service anytime.
+          <Alert severity={brief.source === 'ai' ? 'info' : 'warning'} sx={{ py: 0.2 }}>
+            {brief.source === 'ai' ? brief.summary : 'AI narration is unavailable today. The profile and activity signals below remain data-based.'}
           </Alert>
         </Stack>
 
@@ -112,10 +125,7 @@ export const AiDailyCareerBrief: React.FC<AiDailyCareerBriefProps> = ({ context,
                 <CardContent sx={{ p: 1.6 }}>
                   <Typography variant="caption" color="text.secondary">{card.label}</Typography>
                   <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.2 }}>{card.value}</Typography>
-                  <Stack direction="row" spacing={0.8} alignItems="center" sx={{ mt: 0.4 }}>
-                    {card.delta ? <Chip size="small" label={card.delta} color="success" /> : null}
-                    <Typography variant="caption" color="text.secondary">{card.hint}</Typography>
-                  </Stack>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.4 }}>{card.hint}</Typography>
                 </CardContent>
               </MotionCard>
             </Grid>
@@ -128,27 +138,9 @@ export const AiDailyCareerBrief: React.FC<AiDailyCareerBriefProps> = ({ context,
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>Intelligent Recommendations</Typography>
                 <Stack spacing={0.7}>
-                  {brief.recommendations.map((point, idx) => (
+                  {brief.recommendations.length ? brief.recommendations.map((point, idx) => (
                     <Typography key={`${point}-${idx}`} variant="body2" color="text.secondary">{point}</Typography>
-                  ))}
-                </Stack>
-              </CardContent>
-            </Card>
-
-            <Card className="ai-brief-momentum-card" sx={{ borderRadius: 3, border: (theme) => `1px solid ${theme.palette.divider}`, mb: 1.4 }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>Career Momentum</Typography>
-                <Stack spacing={1.1}>
-                  {brief.momentum.map((item) => (
-                    <Box key={item.id}>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.4 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{item.label}</Typography>
-                        <Typography variant="caption" color="text.secondary">{item.progress}%</Typography>
-                      </Stack>
-                      <LinearProgress variant="determinate" value={item.progress} sx={{ height: 8, borderRadius: 999 }} />
-                      <Typography variant="caption" color="text.secondary">{item.helper}</Typography>
-                    </Box>
-                  ))}
+                  )) : <Typography variant="body2" color="text.secondary">No recommendations are available from today's recorded activity.</Typography>}
                 </Stack>
               </CardContent>
             </Card>
@@ -157,7 +149,7 @@ export const AiDailyCareerBrief: React.FC<AiDailyCareerBriefProps> = ({ context,
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>Today's Focus</Typography>
                 <Grid container spacing={1}>
-                  {brief.focusActions.map((focus) => (
+                  {brief.focusActions.length ? brief.focusActions.map((focus) => (
                     <Grid item xs={12} sm={4} key={focus.id}>
                       <Card sx={{ borderRadius: 2.5, border: (theme) => `1px solid ${theme.palette.divider}`, height: '100%' }}>
                         <CardContent sx={{ p: 1.4 }}>
@@ -169,7 +161,7 @@ export const AiDailyCareerBrief: React.FC<AiDailyCareerBriefProps> = ({ context,
                         </CardContent>
                       </Card>
                     </Grid>
-                  ))}
+                  )) : <Grid item xs={12}><Typography variant="body2" color="text.secondary">No immediate actions were identified from your current data.</Typography></Grid>}
                 </Grid>
               </CardContent>
             </Card>
@@ -180,16 +172,15 @@ export const AiDailyCareerBrief: React.FC<AiDailyCareerBriefProps> = ({ context,
               <CardContent>
                 <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>Opportunity Alerts</Typography>
                 <Stack spacing={0.9}>
-                  {brief.alerts.slice(0, 5).map((alert) => (
+                  {brief.alerts.length ? brief.alerts.slice(0, 5).map((alert) => (
                     <Card
                       key={alert.id}
-                      className={`ai-priority-${alert.priority}`}
+                      className="ai-brief-alert"
                       sx={{ borderRadius: 2.5, border: (theme) => `1px solid ${theme.palette.divider}` }}
                     >
                       <CardContent sx={{ p: 1.2 }}>
                         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.4 }}>
                           <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>{alert.title}</Typography>
-                          <Chip size="small" label={alert.priority.toUpperCase()} color={alert.priority === 'high' ? 'error' : alert.priority === 'medium' ? 'warning' : 'success'} />
                         </Stack>
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>{alert.description}</Typography>
                         <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 0.8 }}>
@@ -200,32 +191,8 @@ export const AiDailyCareerBrief: React.FC<AiDailyCareerBriefProps> = ({ context,
                         </Button>
                       </CardContent>
                     </Card>
-                  ))}
+                  )) : <Typography variant="body2" color="text.secondary">No activity-based alerts today.</Typography>}
                 </Stack>
-              </CardContent>
-            </Card>
-
-            <Card className="ai-brief-action-card" sx={{ borderRadius: 3, border: (theme) => `1px solid ${theme.palette.divider}`, mb: 1.4 }}>
-              <CardContent>
-                <Typography variant="h6" sx={{ fontWeight: 800, mb: 1 }}>Quick AI Actions</Typography>
-                <Grid container spacing={1}>
-                  {brief.quickActions.map((quick) => (
-                    <Grid item xs={12} sm={6} key={quick.id}>
-                      <Button fullWidth variant="outlined" onClick={() => onAction(quick.actionKey)}>{quick.label}</Button>
-                    </Grid>
-                  ))}
-                </Grid>
-              </CardContent>
-            </Card>
-
-            <Card className="ai-brief-motivation-card" sx={{ borderRadius: 3, border: (theme) => `1px solid ${theme.palette.divider}` }}>
-              <CardContent>
-                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.8 }}>
-                  <RocketIcon color="warning" />
-                  <Typography variant="h6" sx={{ fontWeight: 800 }}>Motivational Signal</Typography>
-                </Stack>
-                <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>{brief.motivationalTitle}</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>{brief.motivationalSubtitle}</Typography>
               </CardContent>
             </Card>
           </Grid>

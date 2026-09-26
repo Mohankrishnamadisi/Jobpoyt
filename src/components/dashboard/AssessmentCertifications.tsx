@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { jsPDF } from 'jspdf';
 import QRCode from 'qrcode';
 import {
-  Alert, Box, Button, Card, CardContent, Chip, CircularProgress, Dialog, DialogActions, DialogContent, Divider,
+  Alert, Box, Button, Card, CardContent, Chip, CircularProgress, Dialog, DialogActions, DialogContent,
   DialogTitle, FormControl, Grid, InputLabel, LinearProgress, MenuItem, Paper, Select, Stack, Typography,
 } from '@mui/material';
 import {
@@ -11,6 +11,7 @@ import {
   VisibilityOutlined as ViewIcon,
 } from '@mui/icons-material';
 import { candidateAssessmentService, type AssessmentCertificate, type CandidateAssessmentDifficulty } from '@services/candidateAssessments';
+import { CertificateArtwork } from '@components/dashboard/CertificateArtwork';
 
 const verificationUrl = (verificationId: string) => `${window.location.origin}/verify-certificate/${encodeURIComponent(verificationId)}`;
 const safeName = (value: string) => value.replace(/[^a-z0-9]+/gi, '_').replace(/^_+|_+$/g, '') || 'Candidate';
@@ -19,100 +20,122 @@ const getDetails = (certificate: AssessmentCertificate) => certificate.scorecard
 const getCompetencies = (certificate: AssessmentCertificate) => certificate.scorecard?.competencyScores || certificate.competencyScores || [];
 const getInsights = (certificate: AssessmentCertificate) => certificate.scorecard?.insights || certificate.insights || { strengths: [], improvements: [], nextStep: '' };
 
-const drawCertificate = async (certificate: AssessmentCertificate, candidateName: string) => {
+const loadBrandImage = async (src: string) => {
+  try {
+    const image = new Image();
+    image.src = src;
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const context = canvas.getContext('2d');
+    if (!context) return null;
+    context.drawImage(image, 0, 0);
+    return { data: canvas.toDataURL('image/png'), ratio: image.naturalWidth / image.naturalHeight };
+  } catch {
+    return null;
+  }
+};
+
+const loadBrandLogo = () => loadBrandImage('/Jobpoyt.png');
+const loadAchievementBadge = () => loadBrandImage('/images/achivement.png');
+
+const drawCertificate = async (certificate: AssessmentCertificate) => {
   const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4', compress: true });
-  const qr = await QRCode.toDataURL(verificationUrl(certificate.verificationId), { errorCorrectionLevel: 'M', margin: 1, width: 180, color: { dark: '#17365D', light: '#FFFFFF' } });
+  const qr = await QRCode.toDataURL(verificationUrl(certificate.verificationId), { errorCorrectionLevel: 'M', margin: 1, width: 200, color: { dark: '#0F172A', light: '#FFFFFF' } });
+  const [logo, badge] = await Promise.all([loadBrandLogo(), loadAchievementBadge()]);
   const width = pdf.internal.pageSize.getWidth();
   const height = pdf.internal.pageSize.getHeight();
-  const navy = '#17365D';
-  const blue = '#2563EB';
+  const navy = '#0F172A';
+  const purple = '#7C3AED';
   const muted = '#64748B';
+  const score = Number(certificate.score) || 0;
+  const maxScore = Number(certificate.maxScore) || 0;
+  const percentage = maxScore > 0 ? `${Math.round((score / maxScore) * 100)}% achieved` : '';
 
-  pdf.setFillColor('#FCFCFA');
+  pdf.setFillColor('#F8FAFC');
   pdf.rect(0, 0, width, height, 'F');
+  pdf.setFillColor('#FFFFFF');
+  pdf.rect(7, 7, width - 14, height - 14, 'F');
   pdf.setDrawColor(navy);
-  pdf.setLineWidth(0.8);
-  pdf.roundedRect(9, 9, width - 18, height - 18, 1.5, 1.5, 'S');
-  pdf.setDrawColor('#A9C2E4');
-  pdf.setLineWidth(0.25);
-  pdf.roundedRect(12, 12, width - 24, height - 24, 1, 1, 'S');
-  pdf.setFillColor(navy);
-  pdf.rect(14, 14, width - 28, 1.8, 'F');
+  pdf.setLineWidth(0.75);
+  pdf.rect(7, 7, width - 14, height - 14, 'S');
+  pdf.setDrawColor(purple);
+  pdf.setLineWidth(0.3);
+  pdf.rect(10, 10, width - 20, height - 20, 'S');
 
-  pdf.setTextColor(navy);
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(12);
-  pdf.text('JOBPOYT', width / 2, 29, { align: 'center' });
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(7.5);
+  if (logo) {
+    const logoWidth = 43;
+    pdf.addImage(logo.data, 'PNG', 19, 15, logoWidth, logoWidth / logo.ratio);
+  } else {
+    pdf.setTextColor(navy);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(15);
+    pdf.text('JOBPOYT', 19, 24);
+  }
   pdf.setTextColor(muted);
-  pdf.text('FIND. APPLY. GROW.', width / 2, 34, { align: 'center' });
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(6.5);
+  pdf.text('FIND. APPLY. GROW.', 19, 33);
 
-  pdf.setDrawColor('#B9CCE4');
-  pdf.setLineWidth(0.25);
-  pdf.line(54, 39, width - 54, 39);
-  pdf.setTextColor(navy);
+  if (badge) pdf.addImage(badge.data, 'PNG', width - 48, 13, 28, 28);
+
+  pdf.setTextColor(purple);
   pdf.setFont('times', 'bold');
   pdf.setFontSize(25);
-  pdf.text('CERTIFICATE OF ACHIEVEMENT', width / 2, 52, { align: 'center' });
-  pdf.setTextColor(muted);
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(10);
+  pdf.text('CERTIFICATE OF ACHIEVEMENT', width / 2, 51, { align: 'center', maxWidth: width - 80 });
+  pdf.setTextColor(muted); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(11);
   pdf.text('This certificate is proudly presented to', width / 2, 64, { align: 'center' });
 
-  pdf.setTextColor(navy);
-  pdf.setFont('times', 'bold');
-  pdf.setFontSize(candidateName.length > 34 ? 23 : 29);
-  pdf.text(candidateName.toUpperCase(), width / 2, 79, { align: 'center', maxWidth: width - 100 });
-  pdf.setDrawColor(blue);
-  pdf.setLineWidth(0.55);
-  pdf.line(width / 2 - 30, 84, width / 2 + 30, 84);
-  pdf.setTextColor(muted);
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(10);
-  pdf.text('for successfully completing', width / 2, 94, { align: 'center' });
+  const candidateLines = pdf.splitTextToSize(certificate.candidateName, width - 76).slice(0, 2);
+  pdf.setTextColor(navy); pdf.setFont('times', 'bold'); pdf.setFontSize(candidateLines.length > 1 ? 27 : 32);
+  pdf.text(candidateLines, width / 2, 79, { align: 'center', lineHeightFactor: 1.05 });
+  pdf.setTextColor(muted); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(10);
+  pdf.text('for successfully completing the', width / 2, 96, { align: 'center' });
 
-  pdf.setTextColor(navy);
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(certificate.assessmentTitle.length > 45 ? 15 : 18);
-  pdf.text(certificate.assessmentTitle.toUpperCase(), width / 2, 105, { align: 'center', maxWidth: width - 65 });
-  pdf.setTextColor(muted);
-  pdf.setFont('helvetica', 'normal');
-  pdf.setFontSize(9);
-  pdf.text(`${certificate.assessmentCategory}  ·  ${certificate.difficulty} Difficulty`, width / 2, 112, { align: 'center' });
+  const assessmentLines = pdf.splitTextToSize(certificate.assessmentTitle, width - 86).slice(0, 2);
+  pdf.setTextColor('#312E81'); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(assessmentLines.length > 1 ? 16 : 19);
+  pdf.text(assessmentLines, width / 2, 107, { align: 'center', lineHeightFactor: 1.05 });
+  pdf.setTextColor(muted); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(10);
+  pdf.text(`${certificate.assessmentCategory}  |  ${certificate.difficulty} difficulty`, width / 2, 119, { align: 'center' });
 
-  pdf.setFillColor('#F0F5FB');
-  pdf.roundedRect(width / 2 - 34, 119, 68, 28, 2, 2, 'F');
-  pdf.setTextColor(muted);
-  pdf.setFont('helvetica', 'bold');
-  pdf.setFontSize(7);
-  pdf.text('FINAL ASSESSMENT SCORE', width / 2, 126, { align: 'center' });
-  pdf.setTextColor(blue);
-  pdf.setFontSize(22);
-  pdf.text(`${certificate.score} / ${certificate.maxScore}`, width / 2, 140, { align: 'center' });
+  const scoreX = width / 2;
+  pdf.setFillColor('#FFFFFF'); pdf.setDrawColor('#CBD5E1'); pdf.setLineWidth(0.4);
+  pdf.roundedRect(scoreX - 42, 125, 84, 31, 1.5, 1.5, 'FD');
+  pdf.setTextColor(muted); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8);
+  pdf.text('FINAL ASSESSMENT SCORE', scoreX, 132, { align: 'center' });
+  pdf.setTextColor(navy); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(19);
+  pdf.text(`${score} / ${maxScore}`, scoreX, 143, { align: 'center' });
+  if (percentage) { pdf.setTextColor(muted); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8); pdf.text(percentage, scoreX, 151, { align: 'center' }); }
 
-  pdf.setDrawColor('#D8E1EC');
-  pdf.line(40, 156, width - 40, 156);
-  pdf.setFont('helvetica', 'normal');
-  pdf.setTextColor(muted);
-  pdf.setFontSize(8);
-  pdf.text(`Completed: ${formatDate(certificate.completionDate)}`, width / 2 - 63, 165, { align: 'center' });
-  pdf.text(`Issued: ${formatDate(certificate.issueDate)}`, width / 2 + 63, 165, { align: 'center' });
+  const metadata = [
+    { label: 'ASSESSMENT CATEGORY', value: certificate.assessmentCategory },
+    { label: 'DIFFICULTY', value: certificate.difficulty },
+    { label: 'COMPLETED', value: formatDate(certificate.completionDate) },
+    { label: 'ISSUED', value: formatDate(certificate.issueDate) },
+  ];
+  const metaY = 165;
+  const metaWidth = 220;
+  const cellWidth = metaWidth / metadata.length;
+  const metaStart = (width - metaWidth) / 2;
+  pdf.setDrawColor('#CBD5E1'); pdf.setLineWidth(0.3);
+  pdf.line(metaStart, metaY - 5, metaStart + metaWidth, metaY - 5);
+  pdf.line(metaStart, metaY + 7, metaStart + metaWidth, metaY + 7);
+  metadata.forEach((item, index) => {
+    const center = metaStart + (index * cellWidth) + (cellWidth / 2);
+    if (index > 0) pdf.line(metaStart + index * cellWidth, metaY - 4, metaStart + index * cellWidth, metaY + 6);
+    pdf.setTextColor(muted); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(7);
+    pdf.text(item.label, center, metaY - 0.5, { align: 'center', maxWidth: cellWidth - 3 });
+    pdf.setTextColor(navy); pdf.setFontSize(9);
+    pdf.text(item.value, center, metaY + 4.5, { align: 'center', maxWidth: cellWidth - 3 });
+  });
 
-  pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(navy);
-  pdf.setFontSize(9);
-  pdf.text('Issued by JobPoyt', 28, 184);
-  pdf.setFont('helvetica', 'normal');
-  pdf.setTextColor(muted);
-  pdf.setFontSize(7.5);
-  pdf.text('Assessment & Career Platform', 28, 189);
-  pdf.setFontSize(7);
-  pdf.text(`Certificate ID: ${certificate.certificateId}`, 28, 196);
-  pdf.addImage(qr, 'PNG', width - 39, 174, 18, 18);
-  pdf.setTextColor(muted);
-  pdf.setFontSize(6.5);
-  pdf.text('Verify at JobPoyt', width - 30, 195, { align: 'center' });
+  pdf.setDrawColor(navy); pdf.setLineWidth(0.35); pdf.line(22, 183, 50, 183);
+  pdf.setTextColor(navy); pdf.setFont('helvetica', 'bold'); pdf.setFontSize(7.5); pdf.text('JobPoyt', 22, 188);
+  pdf.setTextColor(muted); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(6); pdf.text('Authorized Issuer', 22, 193);
+  pdf.setFontSize(6.2); pdf.text(`Certificate ID: ${certificate.certificateId}`, width / 2, 193, { align: 'center', maxWidth: 120 });
+  pdf.addImage(qr, 'PNG', width - 44, 174, 22, 22);
+  pdf.setTextColor(muted); pdf.setFontSize(5.8); pdf.text('VERIFY THIS CERTIFICATE', width - 30, 175, { align: 'center' });
 
   return pdf;
 };
@@ -161,7 +184,7 @@ export const AssessmentCertifications: React.FC = () => {
     setDownloadingId(certificate.id);
     setError('');
     try {
-      const pdf = await drawCertificate(certificate, certificate.candidateName);
+      const pdf = await drawCertificate(certificate);
       pdf.save(`JobPoyt_Certificate_${safeName(certificate.assessmentTitle)}_${new Date(certificate.issueDate).getFullYear()}.pdf`);
     } catch (downloadError) {
       setError(downloadError instanceof Error ? downloadError.message : 'Unable to prepare this certificate. Please try again.');
@@ -173,7 +196,7 @@ export const AssessmentCertifications: React.FC = () => {
   const printCertificate = async (certificate: AssessmentCertificate) => {
     setDownloadingId(certificate.id);
     try {
-      const pdf = await drawCertificate(certificate, certificate.candidateName);
+      const pdf = await drawCertificate(certificate);
       const blobUrl = URL.createObjectURL(pdf.output('blob'));
       const frame = document.createElement('iframe');
       frame.style.position = 'fixed'; frame.style.width = '1px'; frame.style.height = '1px'; frame.style.opacity = '0'; frame.setAttribute('aria-hidden', 'true');
@@ -223,7 +246,7 @@ export const AssessmentCertifications: React.FC = () => {
       <Dialog open={Boolean(viewer)} onClose={() => setViewer(null)} maxWidth="lg" fullWidth PaperProps={{ sx: { borderRadius: 1.5, overflow: 'hidden' } }}>
         <DialogTitle sx={{ py: 1.1, fontWeight: 750 }}>Certificate of Achievement</DialogTitle>
         <DialogContent sx={{ bgcolor: '#F1F5F9', p: { xs: 1, sm: 2 } }}>
-          {viewer ? <Box sx={{ width: '100%', maxWidth: 920, aspectRatio: '297 / 210', mx: 'auto', p: { xs: 1.1, sm: 2.4, md: 3.2 }, position: 'relative', bgcolor: '#FCFCFA', color: '#17365D', border: '1px solid #A9C2E4', outline: { xs: 'none', sm: '1px solid #17365D' }, outlineOffset: '-8px', boxShadow: '0 10px 30px rgba(15,23,42,0.14)', overflow: 'hidden' }}><Box sx={{ borderTop: '2px solid #17365D', pt: { xs: 0.5, sm: 1 }, textAlign: 'center' }}><Typography sx={{ fontSize: { xs: 10, sm: 13 }, fontWeight: 800, letterSpacing: 1.2 }}>JOBPOYT</Typography><Typography sx={{ fontSize: { xs: 6, sm: 8 }, color: '#64748B' }}>FIND. APPLY. GROW.</Typography><Divider sx={{ maxWidth: '72%', mx: 'auto', my: { xs: 0.4, sm: 1 }, borderColor: '#B9CCE4' }} /><Typography sx={{ fontFamily: 'Georgia, serif', fontSize: { xs: 12, sm: 20, md: 25 }, fontWeight: 700, mt: { xs: 0.4, sm: 1 } }}>CERTIFICATE OF ACHIEVEMENT</Typography><Typography sx={{ fontSize: { xs: 6, sm: 10 }, color: '#64748B', mt: { xs: 0.3, sm: 0.8 } }}>This certificate is proudly presented to</Typography><Typography noWrap sx={{ maxWidth: '90%', mx: 'auto', fontFamily: 'Georgia, serif', fontSize: { xs: 11, sm: 19, md: 25 }, fontWeight: 700, mt: { xs: 0.35, sm: 1 }, color: '#17365D' }}>{viewer.candidateName}</Typography><Typography sx={{ fontSize: { xs: 6, sm: 10 }, color: '#64748B', mt: { xs: 0.2, sm: 0.6 } }}>for successfully completing</Typography><Typography noWrap sx={{ maxWidth: '92%', mx: 'auto', fontSize: { xs: 7, sm: 14, md: 17 }, fontWeight: 750, mt: { xs: 0.2, sm: 0.6 } }}>{viewer.assessmentTitle.toUpperCase()}</Typography><Typography sx={{ fontSize: { xs: 5, sm: 9 }, color: '#64748B' }}>{viewer.assessmentCategory} · {viewer.difficulty} Difficulty</Typography><Paper elevation={0} sx={{ width: { xs: 76, sm: 130 }, mx: 'auto', mt: { xs: 0.4, sm: 0.9 }, py: { xs: 0.2, sm: 0.6 }, bgcolor: '#F0F5FB' }}><Typography sx={{ fontSize: { xs: 5, sm: 7 }, color: '#64748B', fontWeight: 700 }}>FINAL ASSESSMENT SCORE</Typography><Typography sx={{ fontSize: { xs: 11, sm: 20 }, fontWeight: 800, color: '#2563EB' }}>{viewer.score} / {viewer.maxScore}</Typography></Paper><Stack direction="row" justifyContent="center" gap={{ xs: 1, sm: 4 }} sx={{ mt: { xs: 0.35, sm: 0.8 }, fontSize: { xs: 5, sm: 8 }, color: '#64748B' }}><Box>Completed: {formatDate(viewer.completionDate)}</Box><Box>Issued: {formatDate(viewer.issueDate)}</Box></Stack></Box><Stack direction="row" alignItems="flex-end" justifyContent="space-between" sx={{ position: 'absolute', left: { xs: 14, sm: 28 }, right: { xs: 14, sm: 28 }, bottom: { xs: 10, sm: 18 } }}><Box><Typography sx={{ fontSize: { xs: 6, sm: 9 }, fontWeight: 700 }}>Issued by JobPoyt</Typography><Typography sx={{ fontSize: { xs: 5, sm: 7 }, color: '#64748B' }}>Assessment & Career Platform</Typography><Typography sx={{ fontSize: { xs: 5, sm: 7 }, color: '#64748B' }}>{viewer.certificateId}</Typography></Box>{previewQr ? <Box component="img" alt="Certificate verification QR" src={previewQr} sx={{ width: { xs: 24, sm: 44 }, height: { xs: 24, sm: 44 }, bgcolor: '#FFFFFF', border: '1px solid #D8E1EC', p: 0.2 }} /> : null}</Stack></Box> : null}
+          {viewer ? <CertificateArtwork certificate={viewer} qrCode={previewQr} /> : null}
           {verification ? <Alert severity={verification.verified ? 'success' : 'error'} sx={{ mt: 1 }}>{verification.verified ? `Certificate ${verification.certificateId} is valid and issued by JobPoyt.` : 'Certificate could not be verified.'}</Alert> : null}
         </DialogContent>
         <DialogActions sx={{ p: 1.2, flexWrap: 'wrap' }}>{viewer ? <><Button size="small" onClick={() => void verifyCertificate(viewer)} disabled={Boolean(verifyingId)} startIcon={verifyingId === viewer.id ? <CircularProgress size={13} /> : <VerifiedIcon />}>Verify Certificate</Button><Button size="small" onClick={() => void printCertificate(viewer)} startIcon={<PrintIcon />}>Print</Button><Button size="small" variant="contained" onClick={() => void downloadPdf(viewer)} disabled={Boolean(downloadingId)} startIcon={downloadingId === viewer.id ? <CircularProgress size={13} color="inherit" /> : <DownloadIcon />}>Download PDF</Button></> : null}<Button size="small" onClick={() => setViewer(null)}>Close</Button></DialogActions>

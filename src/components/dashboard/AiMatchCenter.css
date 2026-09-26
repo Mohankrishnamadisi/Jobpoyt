@@ -48,6 +48,17 @@
   color: #b91c1c;
 }
 
+.ai-match-metric-card {
+  min-height: 104px;
+  background: rgba(255, 255, 255, 0.86);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ai-match-metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+}
+
 .ai-match-priority-high {
   border-left: 4px solid #dc2626;
 }
@@ -66,6 +77,7 @@
 
 .ai-match-card-hover:hover {
   transform: translateY(-3px);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
 }
 
 .ai-match-job-grid {

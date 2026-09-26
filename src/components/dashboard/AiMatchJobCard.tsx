@@ -59,10 +59,10 @@ export const AiMatchJobCard: React.FC<AiMatchJobCardProps> = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
-      className="ai-match-card-hover"
-      sx={{ borderRadius: 3, border: (theme) => `1px solid ${theme.palette.divider}` }}
+      className="ai-match-card-hover rounded-2xl bg-white shadow-sm"
+      sx={{ borderRadius: 3, border: (theme) => `1px solid ${theme.palette.divider}`, overflow: 'hidden' }}
     >
-      <CardContent>
+      <CardContent sx={{ p: { xs: 2, md: 2.4 } }}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} sx={{ mb: 1 }}>
           <Stack direction="row" spacing={1.1} alignItems="center">
             <Avatar src={item.companyLogo} alt={item.companyName} sx={{ width: 42, height: 42 }}>
@@ -166,12 +166,12 @@ export const AiMatchJobCard: React.FC<AiMatchJobCardProps> = ({
         </Grid>
 
         <Grid container spacing={0.8}>
-          <Grid item xs={12} sm={6} md={4}><Button fullWidth variant="contained" startIcon={<ApplyIcon />} onClick={() => onApplyNow(item.id)}>Apply Now</Button></Grid>
-          <Grid item xs={12} sm={6} md={4}><Button fullWidth variant="outlined" startIcon={<SaveIcon />} onClick={() => onSaveJob(item.id)}>Save Job</Button></Grid>
-          <Grid item xs={12} sm={6} md={4}><Button fullWidth variant="outlined" startIcon={<ImproveIcon />} onClick={() => onImproveMatch(item.id)}>Improve Match</Button></Grid>
-          <Grid item xs={12} sm={6} md={4}><Button fullWidth variant="outlined" startIcon={<ResumeIcon />} onClick={onResumeOptimizer}>AI Resume Optimizer</Button></Grid>
-          <Grid item xs={12} sm={6} md={4}><Button fullWidth variant="outlined" startIcon={<MockIcon />} onClick={onMockInterview}>Mock Interview</Button></Grid>
-          <Grid item xs={12} sm={6} md={4}><Button fullWidth variant="outlined" startIcon={<OpenIcon />} onClick={() => onViewDetails(item.id)}>View Details</Button></Grid>
+          <Grid item xs={12} sm={6} md={4}><Button fullWidth variant="contained" startIcon={<ApplyIcon />} onClick={() => onApplyNow(item.id)} sx={{ minHeight: 42, borderRadius: 2, fontWeight: 800 }}>Apply Now</Button></Grid>
+          <Grid item xs={12} sm={6} md={4}><Button fullWidth variant="outlined" startIcon={<SaveIcon />} onClick={() => onSaveJob(item.id)} sx={{ minHeight: 42, borderRadius: 2, fontWeight: 700 }}>Save Job</Button></Grid>
+          <Grid item xs={12} sm={6} md={4}><Button fullWidth variant="outlined" startIcon={<ImproveIcon />} onClick={() => onImproveMatch(item.id)} sx={{ minHeight: 42, borderRadius: 2, fontWeight: 700 }}>Improve Match</Button></Grid>
+          <Grid item xs={12} sm={6} md={4}><Button fullWidth variant="outlined" startIcon={<ResumeIcon />} onClick={onResumeOptimizer} sx={{ minHeight: 42, borderRadius: 2, fontWeight: 700 }}>AI Resume Optimizer</Button></Grid>
+          <Grid item xs={12} sm={6} md={4}><Button fullWidth variant="outlined" startIcon={<MockIcon />} onClick={onMockInterview} sx={{ minHeight: 42, borderRadius: 2, fontWeight: 700 }}>Mock Interview</Button></Grid>
+          <Grid item xs={12} sm={6} md={4}><Button fullWidth variant="outlined" startIcon={<OpenIcon />} onClick={() => onViewDetails(item.id)} sx={{ minHeight: 42, borderRadius: 2, fontWeight: 700 }}>View Details</Button></Grid>
         </Grid>
       </CardContent>
     </MotionCard>

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -28,6 +28,9 @@ import {
   AccessTime as AccessTimeIcon,
 } from '@mui/icons-material';
 import { useTheme } from '@mui/material/styles';
+import { supabase } from '@services/supabase';
+import { messagingService } from '@services/messaging';
+import { candidateInterviewInvitesService } from '@services/candidateInterviewInvites';
 
 import {
   recruiterActivityService,
@@ -38,18 +41,8 @@ import {
 } from '@services/recruiterActivity';
 import { formatDate } from '@utils/index';
 
-export type RecruiterActivityQuickAction =
-  | 'improve-profile'
-  | 'update-resume'
-  | 'take-assessment'
-  | 'browse-jobs'
-  | 'ai-career-hub'
-  | 'messages'
-  | 'applications';
-
 interface RecruiterActivityCenterProps {
   context: RecruiterActivityContext;
-  onQuickAction?: (action: RecruiterActivityQuickAction) => void;
 }
 
 const filters: Array<{ key: RecruiterActivityFilter; label: string }> = [
@@ -77,17 +70,7 @@ const overviewMeta: Array<{
   { key: 'interviewInvitations', label: 'Interview Invitations', icon: EventAvailableIcon },
   { key: 'searchAppearances', label: 'Search Appearances', icon: SearchIcon, premiumOnly: true },
   { key: 'shortlists', label: 'Shortlists', icon: CheckCircleIcon },
-  { key: 'bookmarks', label: 'Bookmarks', icon: BookmarkIcon },
-];
-
-const breakdownMeta: Array<{ key: keyof ReturnType<typeof recruiterActivityService.getInsights>['visibilityBreakdown']; label: string }> = [
-  { key: 'resumeQuality', label: 'Resume Quality' },
-  { key: 'profileCompletion', label: 'Profile Completion' },
-  { key: 'skills', label: 'Skills' },
-  { key: 'projects', label: 'Projects' },
-  { key: 'assessments', label: 'Assessments' },
-  { key: 'portfolio', label: 'Portfolio' },
-  { key: 'experience', label: 'Experience' },
+  { key: 'bookmarks', label: 'Recruiter Bookmarks', icon: BookmarkIcon },
 ];
 
 const eventIcon = (type: RecruiterActivityEvent['type']) => {
@@ -127,10 +110,73 @@ export const RecruiterActivityCenter: React.FC<RecruiterActivityCenterProps> = (
   const isDarkMode = theme.palette.mode === 'dark';
   const [filter, setFilter] = useState<RecruiterActivityFilter>('7d');
   const [trendRange, setTrendRange] = useState<TrendRange>('weekly');
+  const [liveEvents, setLiveEvents] = useState<RecruiterActivityEvent[]>([]);
+  const [activityLoading, setActivityLoading] = useState(true);
+
+  useEffect(() => {
+    if (!context.userId) {
+      setActivityLoading(false);
+      return undefined;
+    }
+    let active = true;
+    const loadActivityEvents = async () => {
+      setActivityLoading(true);
+      const since = new Date(Date.now() - 90 * 86400000).toISOString();
+      const [viewsResult, downloadsResult, conversationsResult, invitationsResult] = await Promise.allSettled([
+        supabase.from('profile_views').select('id, recruiter_id, viewed_at, created_at').eq('candidate_id', context.userId).gte('viewed_at', since).order('viewed_at', { ascending: false }).limit(500),
+        supabase.from('resume_unlocks').select('id, recruiter_id, unlocked_at').eq('candidate_id', context.userId).gte('unlocked_at', since).order('unlocked_at', { ascending: false }).limit(500),
+        messagingService.getConversations(context.userId),
+        candidateInterviewInvitesService.list(),
+      ]);
+      if (!active) return;
+      const events: RecruiterActivityEvent[] = [];
+      if (viewsResult.status === 'fulfilled' && !viewsResult.value.error) {
+        for (const row of viewsResult.value.data || []) {
+          const occurredAt = row.viewed_at || row.created_at;
+          if (!occurredAt) continue;
+          events.push({ id: `profile-view-${row.id}`, type: 'profile_viewed', title: 'Recruiter viewed your profile', subtitle: 'Your profile was opened by a recruiter.', occurredAt, status: 'completed', actionLabel: 'Improve profile', actionKey: 'improve-profile' });
+        }
+      } else if (viewsResult.status === 'rejected' || viewsResult.value?.error) {
+        console.warn('Recruiter Activity profile view events are unavailable.');
+      }
+      if (downloadsResult.status === 'fulfilled' && !downloadsResult.value.error) {
+        for (const row of downloadsResult.value.data || []) {
+          if (!row.unlocked_at) continue;
+          events.push({ id: `resume-download-${row.id}`, type: 'resume_downloaded', title: 'Resume accessed by recruiter', subtitle: 'A recruiter unlocked your resume.', occurredAt: row.unlocked_at, status: 'completed', actionLabel: 'View resume', actionKey: 'update-resume' });
+        }
+      } else if (downloadsResult.status === 'rejected' || downloadsResult.value?.error) {
+        console.warn('Recruiter Activity resume access events are unavailable.');
+      }
+      if (conversationsResult.status === 'fulfilled') {
+        for (const conversation of conversationsResult.value || []) {
+          for (const message of conversation.incomingMessages || []) {
+            if (!message.occurredAt) continue;
+            events.push({ id: `recruiter-message-${message.id}`, type: 'recruiter_message', title: 'Recruiter sent a message', subtitle: `Message from ${conversation.participantName || 'a recruiter'}.`, occurredAt: message.occurredAt, status: message.unread ? 'new' : 'completed', actionLabel: 'Open messages', actionKey: 'messages' });
+          }
+        }
+      } else {
+        console.warn('Recruiter Activity message events are unavailable.');
+      }
+      if (invitationsResult.status === 'fulfilled') {
+        for (const invite of invitationsResult.value.interviews) {
+          if (!invite.created_at) continue;
+          events.push({ id: `interview-invite-${invite.id}`, type: 'interview_invite', title: 'Interview invitation received', subtitle: `${invite.round || 'Interview'} · ${invite.job_title}${invite.company_name ? ` at ${invite.company_name}` : ''}`, occurredAt: invite.created_at, status: invite.candidate_response === 'pending' ? 'new' : invite.candidate_response === 'reschedule_requested' ? 'in_progress' : 'completed', actionLabel: 'View invitations', actionKey: 'interview-invites' });
+        }
+      } else {
+        console.warn('Recruiter Activity interview invite events are unavailable.');
+      }
+      setLiveEvents(events);
+      setActivityLoading(false);
+    };
+    void loadActivityEvents();
+    return () => { active = false; };
+  }, [context.userId]);
+
+  const activityContext = useMemo(() => ({ ...context, activityEvents: [...(context.activityEvents || []), ...liveEvents] }), [context, liveEvents]);
 
   const insights = useMemo(
-    () => recruiterActivityService.getInsights(context, filter),
-    [context, filter],
+    () => recruiterActivityService.getInsights(activityContext, filter),
+    [activityContext, filter],
   );
 
   const trendPoints = insights.trend[trendRange];
@@ -161,15 +207,15 @@ export const RecruiterActivityCenter: React.FC<RecruiterActivityCenterProps> = (
           <Stack direction="row" spacing={1} alignItems="center">
             <Chip
               icon={<InsightsIcon />}
-              label={`Visibility Score ${insights.visibilityScore}/100`}
-              color={insights.visibilityScore >= 72 ? 'success' : insights.visibilityScore >= 55 ? 'warning' : 'default'}
+              label={`Profile Completeness ${insights.visibilityBreakdown.profileCompletion}%`}
+              color={insights.visibilityBreakdown.profileCompletion >= 80 ? 'success' : insights.visibilityBreakdown.profileCompletion >= 55 ? 'warning' : 'default'}
               sx={{ fontWeight: 700 }}
             />
             {context.isPremium ? (
               <Chip
                 icon={<AutoAwesomeIcon />}
-                label={`Engagement ${insights.engagementScore}/100`}
-                color={insights.engagementScore >= 80 ? 'success' : 'warning'}
+                label={`${insights.engagementScore} tracked interactions`}
+                color={insights.engagementScore > 0 ? 'success' : 'default'}
                 sx={{ fontWeight: 700 }}
               />
             ) : null}
@@ -205,7 +251,7 @@ export const RecruiterActivityCenter: React.FC<RecruiterActivityCenterProps> = (
                       {item.label}
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 800, mt: 0.35 }}>
-                      {locked ? '--' : value}
+                      {locked ? '--' : value === null ? 'Not tracked' : value}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -221,7 +267,9 @@ export const RecruiterActivityCenter: React.FC<RecruiterActivityCenterProps> = (
                 <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1.1 }}>
                   Recent Activity Feed
                 </Typography>
-                {insights.timeline.length === 0 ? (
+                {activityLoading ? (
+                  <Box sx={{ py: 2 }}><LinearProgress /><Typography variant="caption" sx={{ mt: 0.8, display: 'block', color: 'text.secondary' }}>Loading recorded activity...</Typography></Box>
+                ) : insights.timeline.length === 0 ? (
                   <Box
                     sx={{
                       p: 1.6,
@@ -229,14 +277,8 @@ export const RecruiterActivityCenter: React.FC<RecruiterActivityCenterProps> = (
                       border: isDarkMode ? '1px dashed rgba(148,163,184,0.36)' : '1px dashed rgba(148,163,184,0.5)',
                     }}
                   >
-                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
-                      Complete profile to increase visibility.
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: 'text.secondary', mb: 0.5 }}>
-                      Upload resume to attract recruiters.
-                    </Typography>
                     <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                      Take assessments for better ranking.
+                      No recruiter activity was recorded in this date range.
                     </Typography>
                   </Box>
                 ) : (
@@ -292,35 +334,18 @@ export const RecruiterActivityCenter: React.FC<RecruiterActivityCenterProps> = (
             <Stack spacing={1.5}>
               <Card sx={{ borderRadius: 3, border: isDarkMode ? '1px solid rgba(148,163,184,0.2)' : '1px solid rgba(203,213,225,0.8)' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1.1 }}>
-                    Profile Visibility Breakdown
-                  </Typography>
-
-                  <Stack spacing={1.1}>
-                    {breakdownMeta.map((item) => {
-                      const value = insights.visibilityBreakdown[item.key];
-                      return (
-                        <Box key={item.key}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.4 }}>
-                            <Typography variant="caption" sx={{ fontWeight: 700 }}>{item.label}</Typography>
-                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>{value}%</Typography>
-                          </Box>
-                          <LinearProgress
-                            variant="determinate"
-                            value={value}
-                            sx={{
-                              height: 8,
-                              borderRadius: 10,
-                              bgcolor: isDarkMode ? 'rgba(148,163,184,0.24)' : 'rgba(203,213,225,0.5)',
-                              '& .MuiLinearProgress-bar': {
-                                borderRadius: 10,
-                              },
-                            }}
-                          />
-                        </Box>
-                      );
-                    })}
-                  </Stack>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1.1 }}>Profile details</Typography>
+                  <Box className="grid grid-cols-2 gap-1.2">
+                    {[
+                      ['Profile Completion', `${insights.visibilityBreakdown.profileCompletion}%`],
+                      ['Skills', `${insights.visibilityBreakdown.skillsCount} listed`],
+                      ['Projects', `${insights.visibilityBreakdown.projectCount} listed`],
+                      ['Assessments', `${insights.visibilityBreakdown.assessmentsCompleted} completed`],
+                      ['Resume', insights.visibilityBreakdown.hasResume ? 'On file' : 'Not added'],
+                      ['Experience', `${insights.visibilityBreakdown.experienceCount} entries`],
+                      ['Portfolio', insights.visibilityBreakdown.hasPortfolio ? 'Added' : 'Not added'],
+                    ].map(([label, value]) => <Box key={label} sx={{ minWidth: 0, p: 0.9, border: '1px solid', borderColor: isDarkMode ? 'rgba(148,163,184,0.2)' : 'rgba(203,213,225,0.7)', borderRadius: 1.5 }}><Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>{label}</Typography><Typography variant="body2" sx={{ mt: 0.2, fontWeight: 750 }}>{value}</Typography>{label === 'Profile Completion' ? <LinearProgress variant="determinate" value={insights.visibilityBreakdown.profileCompletion} sx={{ mt: 0.65, height: 5, borderRadius: 5 }} /> : null}</Box>)}
+                  </Box>
                 </CardContent>
               </Card>
 
@@ -337,8 +362,8 @@ export const RecruiterActivityCenter: React.FC<RecruiterActivityCenterProps> = (
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.4 }}>
                           <Typography variant="caption" sx={{ color: 'text.secondary' }}>This Week: {row.thisWeek}</Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary' }}>Last Week: {row.lastWeek}</Typography>
-                          <Typography variant="caption" sx={{ color: row.growth >= 0 ? 'success.main' : 'error.main', fontWeight: 700 }}>
-                            {row.growth >= 0 ? '+' : ''}{row.growth}%
+                          <Typography variant="caption" sx={{ color: row.growth === null ? 'text.disabled' : row.growth >= 0 ? 'success.main' : 'error.main', fontWeight: 700 }}>
+                            {row.growth === null ? 'Not enough prior data' : `${row.growth >= 0 ? '+' : ''}${row.growth}%`}
                           </Typography>
                         </Box>
                       </Box>
@@ -388,14 +413,14 @@ export const RecruiterActivityCenter: React.FC<RecruiterActivityCenterProps> = (
                   {context.isPremium ? 'AI Visibility Suggestions' : 'Basic Suggestions'}
                 </Typography>
                 <List sx={{ p: 0 }}>
-                  {insights.suggestions.map((item) => (
+                  {insights.suggestions.length ? insights.suggestions.map((item) => (
                     <ListItem key={item} sx={{ px: 0, py: 0.5 }}>
                       <ListItemText
                         primary={item}
                         primaryTypographyProps={{ variant: 'body2', fontWeight: 600 }}
                       />
                     </ListItem>
-                  ))}
+                  )) : <ListItem sx={{ px: 0, py: 0.5 }}><ListItemText primary="No profile improvements are suggested from the available profile data." primaryTypographyProps={{ variant: 'body2', color: 'text.secondary' }} /></ListItem>}
                 </List>
               </CardContent>
             </Card>
@@ -408,8 +433,9 @@ export const RecruiterActivityCenter: React.FC<RecruiterActivityCenterProps> = (
               <Card sx={{ borderRadius: 3, border: isDarkMode ? '1px solid rgba(148,163,184,0.2)' : '1px solid rgba(203,213,225,0.8)' }}>
                 <CardContent>
                   <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1.1 }}>
-                    Visibility Trend Chart
+                    Recruiter Activity Trend
                   </Typography>
+                  <Typography variant="caption" sx={{ display: 'block', mb: 1, color: 'text.secondary' }}>Recorded events per period</Typography>
 
                   <Stack direction="row" spacing={1} sx={{ mb: 1.2, flexWrap: 'wrap', rowGap: 1 }}>
                     {trendRanges.map((item) => (
@@ -425,20 +451,16 @@ export const RecruiterActivityCenter: React.FC<RecruiterActivityCenterProps> = (
                   </Stack>
 
                   <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1, minHeight: 120 }}>
-                    {trendPoints.map((point) => (
-                      <Box key={point.label} sx={{ flex: 1, textAlign: 'center' }}>
-                        <Box
-                          sx={{
-                            height: `${Math.max(18, point.score)}px`,
-                            borderRadius: 1,
-                            background: 'linear-gradient(180deg, #0EA5E9, #1D4ED8)',
-                            mb: 0.5,
-                          }}
-                        />
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>{point.label}</Typography>
-                        <Typography variant="caption" sx={{ fontWeight: 700 }}>{point.score}</Typography>
-                      </Box>
-                    ))}
+                    {(() => {
+                      const maxCount = Math.max(1, ...trendPoints.map((point) => point.score));
+                      return trendPoints.map((point) => (
+                        <Box key={point.label} sx={{ flex: 1, textAlign: 'center' }}>
+                          <Typography variant="caption" sx={{ fontWeight: 700 }}>{point.score}</Typography>
+                          <Box sx={{ height: `${Math.max(8, (point.score / maxCount) * 76)}px`, borderRadius: 1, bgcolor: point.score ? '#174A7C' : '#E2E8F0', mt: 0.35, mb: 0.5 }} />
+                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>{point.label}</Typography>
+                        </Box>
+                      ));
+                    })()}
                   </Box>
                 </CardContent>
               </Card>
@@ -447,26 +469,20 @@ export const RecruiterActivityCenter: React.FC<RecruiterActivityCenterProps> = (
             <Grid item xs={12} lg={3.5}>
               <Card sx={{ borderRadius: 3, border: isDarkMode ? '1px solid rgba(148,163,184,0.2)' : '1px solid rgba(203,213,225,0.8)' }}>
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-                    Profile Ranking
-                  </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 800, mt: 0.6 }}>
-                    {insights.profileRankingPercentile}th
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1.2 }}>
-                    percentile in recruiter discovery
-                  </Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>Recruiter Ranking</Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 800, mt: 0.8 }}>Not tracked</Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1.2 }}>JobPoyt does not currently store a candidate ranking percentile.</Typography>
 
                   <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 0.7 }}>
                     Recruiter Interest Categories
                   </Typography>
                   <Stack spacing={0.8}>
-                    {insights.interestCategories.map((item) => (
+                    {insights.interestCategories.length ? insights.interestCategories.map((item) => (
                       <Box key={item.category} sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
                         <Typography variant="caption" sx={{ fontWeight: 700 }}>{item.category}</Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>{item.level}</Typography>
                       </Box>
-                    ))}
+                    )) : <Typography variant="caption" color="text.secondary">Recruiter interest categories are not tracked yet.</Typography>}
                   </Stack>
                 </CardContent>
               </Card>
@@ -476,26 +492,21 @@ export const RecruiterActivityCenter: React.FC<RecruiterActivityCenterProps> = (
               <Card sx={{ borderRadius: 3, border: isDarkMode ? '1px solid rgba(148,163,184,0.2)' : '1px solid rgba(203,213,225,0.8)' }}>
                 <CardContent>
                   <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1 }}>
-                    Recruiter Engagement Score
+                    Tracked Recruiter Interactions
                   </Typography>
                   <Typography variant="h4" sx={{ fontWeight: 800 }}>
-                    {insights.engagementScore}/100
+                    {insights.engagementScore}
                   </Typography>
 
                   <Stack spacing={0.9} sx={{ mt: 1.2 }}>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Messages, downloads, searches, profile opens and shortlists drive this score.</Typography>
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 700 }}>Messages</Typography>
-                      <LinearProgress variant="determinate" value={Math.min(100, insights.overview.recruiterMessages * 12)} sx={{ mt: 0.3, height: 7, borderRadius: 10 }} />
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 700 }}>Downloads</Typography>
-                      <LinearProgress variant="determinate" value={Math.min(100, insights.overview.resumeDownloads * 16)} sx={{ mt: 0.3, height: 7, borderRadius: 10 }} />
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ fontWeight: 700 }}>Searches</Typography>
-                      <LinearProgress variant="determinate" value={Math.min(100, insights.overview.searchAppearances)} sx={{ mt: 0.3, height: 7, borderRadius: 10 }} />
-                    </Box>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>Counted from recorded profile views, resume accesses, unread recruiter messages, interview invitations, and shortlists.</Typography>
+                    {[
+                      ['Profile views', insights.overview.profileViews],
+                      ['Resume downloads', insights.overview.resumeDownloads],
+                      ['Unread recruiter messages', insights.overview.recruiterMessages],
+                      ['Interview invitations', insights.overview.interviewInvitations],
+                      ['Shortlists', insights.overview.shortlists],
+                    ].map(([label, value]) => <Box key={String(label)} sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}><Typography variant="caption" sx={{ color: 'text.secondary' }}>{label}</Typography><Typography variant="caption" sx={{ fontWeight: 750 }}>{value}</Typography></Box>)}
                   </Stack>
                 </CardContent>
               </Card>
@@ -503,18 +514,6 @@ export const RecruiterActivityCenter: React.FC<RecruiterActivityCenterProps> = (
           </Grid>
         ) : null}
 
-        <Box sx={{ mt: 2.2 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1 }}>
-            Quick Actions
-          </Typography>
-          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
-            <Button variant="outlined" onClick={() => onQuickAction?.('improve-profile')} sx={{ fontWeight: 700 }}>Improve Profile</Button>
-            <Button variant="outlined" onClick={() => onQuickAction?.('update-resume')} sx={{ fontWeight: 700 }}>Update Resume</Button>
-            <Button variant="outlined" onClick={() => onQuickAction?.('take-assessment')} sx={{ fontWeight: 700 }}>Take Assessment</Button>
-            <Button variant="outlined" onClick={() => onQuickAction?.('browse-jobs')} sx={{ fontWeight: 700 }}>Browse Jobs</Button>
-            <Button variant="outlined" onClick={() => onQuickAction?.('ai-career-hub')} sx={{ fontWeight: 700 }}>AI Career Hub</Button>
-          </Stack>
-        </Box>
       </CardContent>
     </Card>
   );
