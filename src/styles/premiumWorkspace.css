@@ -91,3 +91,141 @@
     flex: 1 1 100%;
   }
 }
+
+/* Mobile-only compact layout for all premium workspace popups */
+@media (max-width: 599.98px) {
+  .premium-tool-dialog .MuiDialogContent-root,
+  .premium-mobile-dialog .MuiDialogContent-root {
+    padding-left: 12px;
+    padding-right: 12px;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .premium-tool-dialog .MuiDialogContent-root *,
+  .premium-mobile-dialog .MuiDialogContent-root * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .premium-tool-dialog .MuiDialogContent-root :is(img, video, canvas, svg:not(.MuiSvgIcon-root)),
+  .premium-mobile-dialog .MuiDialogContent-root :is(img, video, canvas, svg:not(.MuiSvgIcon-root)) {
+    height: auto;
+  }
+
+  .premium-tool-dialog .MuiGrid-item,
+  .premium-tool-dialog .MuiStack-root > *,
+  .premium-mobile-dialog .MuiGrid-item {
+    min-width: 0;
+  }
+
+  .premium-tool-dialog :is(h1, h2, .MuiTypography-h1, .MuiTypography-h2, .MuiTypography-h3),
+  .premium-mobile-dialog :is(h1, h2, .MuiTypography-h1, .MuiTypography-h2, .MuiTypography-h3) {
+    font-size: 1.35rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .premium-tool-dialog :is(.MuiTypography-h4, .MuiTypography-h5),
+  .premium-mobile-dialog :is(.MuiTypography-h4, .MuiTypography-h5) {
+    font-size: 1.1rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .premium-tool-dialog .MuiTypography-h6,
+  .premium-mobile-dialog .MuiTypography-h6 {
+    font-size: 1rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .premium-tool-dialog .MuiDialogContent-root :is(.MuiTypography-root, p, span, li, td, th),
+  .premium-mobile-dialog .MuiDialogContent-root :is(.MuiTypography-root, p, span, li, td, th) {
+    overflow-wrap: anywhere;
+  }
+
+  .premium-tool-dialog .MuiDialogContent-root .MuiCard-root,
+  .premium-tool-dialog .MuiDialogContent-root .MuiPaper-root:not(.MuiMenu-paper),
+  .premium-mobile-dialog .MuiDialogContent-root .MuiCard-root {
+    border-radius: 14px;
+  }
+
+  .premium-tool-dialog .MuiCardContent-root,
+  .premium-mobile-dialog .MuiCardContent-root {
+    padding: 12px !important;
+  }
+
+  .premium-tool-dialog .premium-workspace-panel {
+    border-radius: 14px;
+  }
+
+  .premium-tool-dialog .MuiButton-root,
+  .premium-mobile-dialog .MuiButton-root {
+    min-height: 38px;
+    font-size: 13px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .premium-tool-dialog .MuiDialogTitle-root .MuiButton-root {
+    min-height: 32px;
+    font-size: 12px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .premium-tool-dialog .MuiChip-root,
+  .premium-mobile-dialog .MuiChip-root {
+    height: auto;
+    min-height: 26px;
+    font-size: 11.5px;
+  }
+
+  .premium-tool-dialog .MuiChip-label,
+  .premium-mobile-dialog .MuiChip-label {
+    white-space: normal;
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+
+  /* Prevents iOS Safari auto-zoom on input focus */
+  .premium-tool-dialog .MuiInputBase-input,
+  .premium-mobile-dialog .MuiInputBase-input {
+    font-size: 16px;
+  }
+
+  .premium-tool-dialog .MuiOutlinedInput-root {
+    min-height: 42px;
+  }
+
+  .premium-tool-dialog .MuiTabs-scroller,
+  .premium-mobile-dialog .MuiTabs-scroller {
+    overflow-x: auto !important;
+    scrollbar-width: none;
+  }
+
+  .premium-tool-dialog .MuiTabs-scroller::-webkit-scrollbar {
+    display: none;
+  }
+
+  .premium-tool-dialog .MuiTab-root {
+    min-width: auto;
+    min-height: 40px;
+    padding: 8px 12px;
+    font-size: 12.5px;
+  }
+
+  .premium-tool-dialog .MuiTableContainer-root,
+  .premium-tool-dialog table,
+  .premium-mobile-dialog table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .premium-tool-dialog .MuiListItem-root,
+  .premium-tool-dialog .MuiListItemButton-root {
+    align-items: flex-start;
+  }
+
+  .premium-tool-dialog .premium-workspace-action-row {
+    gap: 8px;
+  }
+}

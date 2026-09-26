@@ -24,8 +24,10 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  Paper,
   Typography,
   TextField,
+  useMediaQuery,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import {
@@ -267,6 +269,7 @@ export const PremiumDashboard: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isDarkMode = theme.palette.mode === 'dark';
+  const isMobileView = useMediaQuery(theme.breakpoints.down('sm'));
   const [profileMenuAnchorEl, setProfileMenuAnchorEl] = useState<null | HTMLElement>(null);
 
   const [applicationCount, setApplicationCount] = useState(0);
@@ -1052,13 +1055,15 @@ export const PremiumDashboard: React.FC = () => {
           onClose={() => setPremiumToolPopup(null)}
           maxWidth="lg"
           fullWidth
+          fullScreen={isMobileView}
           PaperProps={{
             sx: {
-              width: premiumToolPopup?.label === 'Skill Test' || premiumToolPopup?.label === 'Interview Preparation' ? 'calc(100vw - 20px)' : 'calc(100vw - 32px)',
+              width: { xs: '100%', sm: premiumToolPopup?.label === 'Skill Test' || premiumToolPopup?.label === 'Interview Preparation' ? 'calc(100vw - 20px)' : 'calc(100vw - 32px)' },
               maxWidth: 'none',
-              height: premiumToolPopup?.label === 'Skill Test' ? 'min(calc(100dvh - 20px), 900px)' : premiumToolPopup?.label === 'Interview Preparation' ? 'calc(100dvh - 24px)' : 'calc(100vh - 32px)',
-              maxHeight: premiumToolPopup?.label === 'Skill Test' ? 900 : 'none',
-              borderRadius: { xs: 3, md: 4 },
+              height: { xs: '100dvh', sm: premiumToolPopup?.label === 'Skill Test' ? 'min(calc(100dvh - 20px), 900px)' : premiumToolPopup?.label === 'Interview Preparation' ? 'calc(100dvh - 24px)' : 'calc(100vh - 32px)' },
+              maxHeight: { xs: '100dvh', sm: premiumToolPopup?.label === 'Skill Test' ? 900 : 'none' },
+              m: { xs: 0 },
+              borderRadius: { xs: 0, sm: 3, md: 4 },
               overflow: 'hidden',
               background: isDarkMode ? '#0B1220' : '#F8FAFC',
             },
@@ -1071,36 +1076,37 @@ export const PremiumDashboard: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: 2,
-              px: { xs: 2, md: 3.5 },
-              py: { xs: 1.5, md: 2 },
+              gap: { xs: 1, sm: 2 },
+              px: { xs: 1.5, sm: 2, md: 3.5 },
+              py: { xs: 1.1, sm: 1.5, md: 2 },
+              pt: { xs: 'max(9px, env(safe-area-inset-top))', sm: 1.5, md: 2 },
               color: '#FFFFFF',
               background: `linear-gradient(115deg, #071D35 0%, #0B3558 62%, ${premiumToolPopup?.accent || '#126B8F'} 100%)`,
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0, flex: 1 }}>
-              <Box sx={{ width: 40, height: 40, borderRadius: 2, display: 'grid', placeItems: 'center', bgcolor: 'rgba(255,255,255,0.14)', color: '#F7D774' }}>
-                <AutoAwesomeIcon sx={{ fontSize: 20 }} />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, minWidth: 0, flex: 1 }}>
+              <Box sx={{ width: { xs: 32, sm: 40 }, height: { xs: 32, sm: 40 }, flexShrink: 0, borderRadius: 2, display: 'grid', placeItems: 'center', bgcolor: 'rgba(255,255,255,0.14)', color: '#F7D774' }}>
+                <AutoAwesomeIcon sx={{ fontSize: { xs: 17, sm: 20 } }} />
               </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontSize: { xs: 10, md: 11 }, letterSpacing: 1.5, fontWeight: 900, color: '#F7D774', textTransform: 'uppercase' }}>
+                <Typography sx={{ fontSize: { xs: 9, sm: 10, md: 11 }, letterSpacing: { xs: 1, sm: 1.5 }, fontWeight: 900, color: '#F7D774', textTransform: 'uppercase' }}>
                   Premium workspace
                 </Typography>
-                <Typography sx={{ fontSize: { xs: 18, md: 25 }, fontWeight: 900, lineHeight: 1.15 }}>
+                <Typography noWrap={isMobileView} sx={{ fontSize: { xs: 16, sm: 18, md: 25 }, fontWeight: 900, lineHeight: 1.15 }}>
                   {premiumToolPopup?.label === 'Resume Builder' ? 'AI Resume Builder' : premiumToolPopup?.label}
                 </Typography>
-                {premiumToolPopup?.label === 'Skill Test' ? <Typography variant="body2" sx={{ mt: 0.25, color: 'rgba(255,255,255,0.78)' }}>AI-generated assessments based on your JobPoyt skills.</Typography> : null}
-                {premiumToolPopup?.label === 'Resume Builder' ? <Typography variant="body2" sx={{ mt: 0.25, color: 'rgba(255,255,255,0.78)' }}>Build an ATS-friendly resume powered by your JobPoyt profile and AI.</Typography> : null}
+                {premiumToolPopup?.label === 'Skill Test' ? <Typography variant="body2" sx={{ mt: 0.25, display: { xs: 'none', sm: 'block' }, color: 'rgba(255,255,255,0.78)' }}>AI-generated assessments based on your JobPoyt skills.</Typography> : null}
+                {premiumToolPopup?.label === 'Resume Builder' ? <Typography variant="body2" sx={{ mt: 0.25, display: { xs: 'none', sm: 'block' }, color: 'rgba(255,255,255,0.78)' }}>Build an ATS-friendly resume powered by your JobPoyt profile and AI.</Typography> : null}
               </Box>
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1 }, flexShrink: 0 }}>
               {premiumToolPopup?.label === 'Skill Test' && skillTestHeaderState.available ? (
                 <Button
                   size="small"
                   variant="contained"
                   disabled={skillTestHeaderState.disabled}
                   onClick={() => skillTestHeaderActionRef.current?.()}
-                  sx={{ minHeight: 36, px: 1.5, borderRadius: 1.5, bgcolor: '#2563EB', color: '#FFFFFF', textTransform: 'none', fontWeight: 700, whiteSpace: 'nowrap', '&:hover': { bgcolor: '#1D4ED8' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.75)', bgcolor: 'rgba(255,255,255,0.16)' } }}
+                  sx={{ minHeight: { xs: 32, sm: 36 }, px: { xs: 1, sm: 1.5 }, fontSize: { xs: 12, sm: 14 }, borderRadius: 1.5, bgcolor: '#2563EB', color: '#FFFFFF', textTransform: 'none', fontWeight: 700, whiteSpace: 'nowrap', '&:hover': { bgcolor: '#1D4ED8' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.75)', bgcolor: 'rgba(255,255,255,0.16)' } }}
                 >
                   {skillTestHeaderState.completed ? <><Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Today's Skill Test Completed</Box><Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>Completed Today</Box></> : 'Start New Test'}
                 </Button>
@@ -1111,17 +1117,17 @@ export const PremiumDashboard: React.FC = () => {
                   variant="contained"
                   startIcon={<StickyNote2Icon sx={{ fontSize: 16 }} />}
                   onClick={() => freeNotesNewNoteHandler?.()}
-                  sx={{ minHeight: 32, px: 1.2, borderRadius: 1.5, bgcolor: '#2563EB', color: '#FFFFFF', textTransform: 'none', fontWeight: 800, '&:hover': { bgcolor: '#1D4ED8' } }}
+                  sx={{ minHeight: 32, px: { xs: 1, sm: 1.2 }, fontSize: { xs: 12, sm: 14 }, borderRadius: 1.5, bgcolor: '#2563EB', color: '#FFFFFF', textTransform: 'none', fontWeight: 800, '&:hover': { bgcolor: '#1D4ED8' } }}
                 >
                   New Note
                 </Button>
               ) : null}
-              <IconButton aria-label="Close premium tool" onClick={() => setPremiumToolPopup(null)} sx={{ width: 40, height: 40, color: '#FFFFFF', bgcolor: '#DC2626', '&:hover': { bgcolor: '#B91C1C' } }}>
+              <IconButton aria-label="Close premium tool" onClick={() => setPremiumToolPopup(null)} sx={{ width: { xs: 34, sm: 40 }, height: { xs: 34, sm: 40 }, color: '#FFFFFF', bgcolor: '#DC2626', '&:hover': { bgcolor: '#B91C1C' } }}>
                 <CloseIcon fontSize="small" />
               </IconButton>
             </Box>
           </DialogTitle>
-          <DialogContent key={premiumToolPopup?.label} className="premium-workspace-dialog-content" dividers sx={{ minHeight: 0, px: { xs: 2, md: 4 }, py: { xs: 2, md: 3 }, background: isDarkMode ? 'linear-gradient(180deg, #0F1B2D 0%, #0B1220 100%)' : 'linear-gradient(180deg, #F8FAFC 0%, #EEF4F8 100%)' }}>
+          <DialogContent key={premiumToolPopup?.label} className="premium-workspace-dialog-content" dividers sx={{ minHeight: 0, px: { xs: 1.5, sm: 2, md: 4 }, py: { xs: 1.5, sm: 2, md: 3 }, pb: { xs: 'calc(16px + env(safe-area-inset-bottom))', sm: 2, md: 3 }, overflowX: { xs: 'hidden', sm: 'auto' }, background: isDarkMode ? 'linear-gradient(180deg, #0F1B2D 0%, #0B1220 100%)' : 'linear-gradient(180deg, #F8FAFC 0%, #EEF4F8 100%)' }}>
             {premiumToolPopup?.label === 'Saved Jobs' ? (
               savedJobs.length > 0 ? (
                 <Box className="w-full min-w-0" sx={{ maxWidth: 1040, mx: 'auto' }}>
@@ -1488,8 +1494,23 @@ export const PremiumDashboard: React.FC = () => {
           </DialogContent>
         </Dialog>
 
-        <Dialog open={subscriptionDialogOpen} onClose={() => setSubscriptionDialogOpen(false)} maxWidth="md" fullWidth>
-          <DialogContent sx={{ p: { xs: 1.5, md: 2 } }}>
+        <Dialog
+          open={subscriptionDialogOpen}
+          onClose={() => setSubscriptionDialogOpen(false)}
+          maxWidth="md"
+          fullWidth
+          fullScreen={isMobileView}
+          PaperProps={{ className: 'premium-mobile-dialog' }}
+        >
+          {isMobileView ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, px: 1.5, py: 1.1, pt: 'max(9px, env(safe-area-inset-top))', color: '#FFFFFF', background: 'linear-gradient(115deg, #071D35 0%, #0B3558 62%, #F59E0B 100%)' }}>
+              <Typography sx={{ fontSize: 16, fontWeight: 900 }}>My Subscription</Typography>
+              <IconButton aria-label="Close subscription" onClick={() => setSubscriptionDialogOpen(false)} sx={{ width: 34, height: 34, color: '#FFFFFF', bgcolor: '#DC2626', '&:hover': { bgcolor: '#B91C1C' } }}>
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          ) : null}
+          <DialogContent sx={{ p: { xs: 1.25, sm: 1.5, md: 2 }, pb: { xs: 'calc(16px + env(safe-area-inset-bottom))', sm: 1.5, md: 2 }, overflowX: { xs: 'hidden', sm: 'visible' } }}>
             <SubscriptionSummaryCard
               subscription={subscription}
               loading={subscriptionLoading}
@@ -1864,7 +1885,7 @@ export const PremiumDashboard: React.FC = () => {
 
             <Grid container spacing={2} sx={{ position: 'relative', zIndex: 1, px: { xs: 2, md: 3 }, pb: { xs: 3, md: 3 } }}>
               <Grid item xs={12}>
-                <Grid container spacing={2} sx={{ alignItems: 'stretch' }}>
+                <Grid container spacing={{ xs: 1, sm: 2 }} sx={{ alignItems: 'stretch' }}>
                   {[
                     {
                       label: 'Saved Jobs',
@@ -1989,7 +2010,7 @@ export const PremiumDashboard: React.FC = () => {
                       ? 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/applications3.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9hcHBsaWNhdGlvbnMzLmdpZiIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA0MTcyNjEsImV4cCI6MjQyMTEzNzI2MX0.FlXX8RPlL6jHFIjQIggf1laZTPJ4iQr-2xKOrljS69Y'
                       : configuredToolGif;
                     return (
-                      <Grid item xs={12} sm={6} md={3} key={tool.label} sx={{ display: 'flex', order: premiumToolOrder[tool.label] ?? 99 }}>
+                      <Grid item xs={4} sm={6} md={3} key={tool.label} sx={{ display: 'flex', order: premiumToolOrder[tool.label] ?? 99 }}>
                         <MotionCard
                           whileHover={{ y: -4 }}
                           transition={{ duration: 0.25 }}
@@ -2005,8 +2026,8 @@ export const PremiumDashboard: React.FC = () => {
                           sx={{
                             width: '100%',
                             height: '100%',
-                            minHeight: 128,
-                            borderRadius: 3,
+                            minHeight: { xs: 96, sm: 128 },
+                            borderRadius: { xs: 2, sm: 3 },
                             border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(226,232,240,0.9)',
                             bgcolor: isDarkMode ? '#050608' : 'rgba(255,255,255,0.94)',
                             backdropFilter: 'blur(10px)',
@@ -2015,7 +2036,7 @@ export const PremiumDashboard: React.FC = () => {
                             flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            p: 1.4,
+                            p: { xs: 0.75, sm: 1.4 },
                             cursor: 'pointer',
                             '&:hover': {
                               boxShadow: isDarkMode ? '0 18px 34px rgba(0,0,0,0.38)' : '0 16px 32px rgba(15,23,42,0.12)',
@@ -2024,8 +2045,8 @@ export const PremiumDashboard: React.FC = () => {
                         >
                           <Box
                             sx={{
-                              width: toolGif ? 58 : 42,
-                              height: toolGif ? 58 : 42,
+                              width: toolGif ? { xs: 42, sm: 58 } : { xs: 34, sm: 42 },
+                              height: toolGif ? { xs: 42, sm: 58 } : { xs: 34, sm: 42 },
                               borderRadius: toolGif ? 1.5 : 2.5,
                               bgcolor: tool.iconGradient,
                               display: 'grid',
@@ -2038,7 +2059,7 @@ export const PremiumDashboard: React.FC = () => {
                             <ToolIcon sx={{ fontSize: 19, color: tool.accent }} />
                             {toolGif ? <Box component="img" src={toolGif} alt={`${tool.label} animation`} loading="lazy" onError={(event) => { event.currentTarget.style.display = 'none'; }} sx={{ position: 'absolute', inset: 0, display: 'block', width: '100%', height: '100%', objectFit: 'contain' }} /> : null}
                           </Box>
-                          <Typography variant="subtitle1" sx={{ mt: 1.2, fontWeight: 800, fontSize: { xs: 13, md: 14 }, color: isDarkMode ? '#F8FAFC' : '#0F172A', textAlign: 'center', lineHeight: 1.2 }}>
+                          <Typography variant="subtitle1" sx={{ mt: { xs: 0.75, sm: 1.2 }, fontWeight: 800, fontSize: { xs: 11, sm: 13, md: 14 }, wordBreak: 'break-word', color: isDarkMode ? '#F8FAFC' : '#0F172A', textAlign: 'center', lineHeight: 1.2 }}>
                             {tool.label}
                           </Typography>
                         </MotionCard>

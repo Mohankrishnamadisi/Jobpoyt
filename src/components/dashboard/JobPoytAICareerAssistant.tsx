@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import {
   Avatar,
   Box,
@@ -13,7 +13,9 @@ import {
   Tooltip,
   Typography,
   Zoom,
+  useMediaQuery,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import {
   AutoAwesome as AutoAwesomeIcon,
   Close as CloseIcon,
@@ -45,6 +47,26 @@ I can help you with jobs, career planning, resumes, interviews, technology quest
 
 const formatSalary = (job: CareerAssistantJob) => job.salary || 'Salary not listed';
 
+const FAB_SIZE_MOBILE = 52;
+const FAB_EDGE_GAP = 10;
+const FAB_POSITION_KEY = 'jobpoyt-ai-fab-position';
+
+type FabPosition = { x: number; y: number };
+
+const clampFabPosition = ({ x, y }: FabPosition): FabPosition => ({
+  x: Math.min(Math.max(x, FAB_EDGE_GAP), window.innerWidth - FAB_SIZE_MOBILE - FAB_EDGE_GAP),
+  y: Math.min(Math.max(y, FAB_EDGE_GAP), window.innerHeight - FAB_SIZE_MOBILE - FAB_EDGE_GAP),
+});
+
+const readStoredFabPosition = (): FabPosition | null => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(FAB_POSITION_KEY) || 'null');
+    return typeof parsed?.x === 'number' && typeof parsed?.y === 'number' ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
 export const JobPoytAICareerAssistant = () => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
@@ -55,6 +77,71 @@ export const JobPoytAICareerAssistant = () => {
   const sendingRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [fabPosition, setFabPosition] = useState<FabPosition | null>(() => readStoredFabPosition());
+  const [draggingFab, setDraggingFab] = useState(false);
+  const dragStateRef = useRef<{ pointerId: number; startX: number; startY: number; originX: number; originY: number; moved: boolean } | null>(null);
+  const suppressClickRef = useRef(false);
+
+  useEffect(() => {
+    if (!isMobile) return;
+    const handleResize = () => setFabPosition((current) => (current ? clampFabPosition(current) : current));
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMobile]);
+
+  const handleFabPointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (!isMobile) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    dragStateRef.current = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, originX: rect.left, originY: rect.top, moved: false };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleFabPointerMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const drag = dragStateRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    // Small threshold so a normal tap still opens the chat
+    if (!drag.moved && Math.hypot(dx, dy) < 6) return;
+    if (!drag.moved) {
+      drag.moved = true;
+      setDraggingFab(true);
+    }
+    setFabPosition(clampFabPosition({ x: drag.originX + dx, y: drag.originY + dy }));
+  };
+
+  const handleFabPointerUp = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const drag = dragStateRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    dragStateRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    if (!drag.moved) return;
+    suppressClickRef.current = true;
+    setDraggingFab(false);
+    setFabPosition((current) => {
+      if (!current) return current;
+      const snapped = clampFabPosition({
+        x: current.x + FAB_SIZE_MOBILE / 2 < window.innerWidth / 2 ? FAB_EDGE_GAP : window.innerWidth - FAB_SIZE_MOBILE - FAB_EDGE_GAP,
+        y: current.y,
+      });
+      localStorage.setItem(FAB_POSITION_KEY, JSON.stringify(snapped));
+      return snapped;
+    });
+  };
+
+  const handleFabClick = () => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+    if (open) setOpen(false);
+    else openChat();
+  };
+
+  const useCustomFabPosition = isMobile && fabPosition !== null;
 
   useEffect(() => {
     if (open) inputRef.current?.focus();
@@ -128,11 +215,17 @@ export const JobPoytAICareerAssistant = () => {
       <Tooltip title="JobPoyt AI Assistant" placement="left">
         <Fab
           aria-label={open ? 'Close JobPoyt AI Assistant' : 'Open JobPoyt AI Assistant'}
-          onClick={() => (open ? setOpen(false) : openChat())}
+          onClick={handleFabClick}
+          onPointerDown={handleFabPointerDown}
+          onPointerMove={handleFabPointerMove}
+          onPointerUp={handleFabPointerUp}
+          onPointerCancel={handleFabPointerUp}
           sx={{
             position: 'fixed',
-            right: { xs: 16, sm: 24 },
-            bottom: { xs: 16, sm: 24 },
+            ...(useCustomFabPosition
+              ? { left: fabPosition.x, top: fabPosition.y, right: 'auto', bottom: 'auto' }
+              : { right: { xs: 16, sm: 24 }, bottom: { xs: 'calc(104px + env(safe-area-inset-bottom))', sm: 24 } }),
+            touchAction: { xs: 'none', sm: 'auto' },
             zIndex: (theme) => theme.zIndex.tooltip + 2,
             width: { xs: 52, sm: 56 },
             height: { xs: 52, sm: 56 },
@@ -140,7 +233,8 @@ export const JobPoytAICareerAssistant = () => {
             color: '#fff',
             background: 'linear-gradient(145deg, #172554 0%, #4c1d95 100%)',
             boxShadow: '0 8px 24px rgba(15,23,42,0.3)',
-            transition: 'transform 160ms ease, box-shadow 160ms ease',
+            transition: draggingFab ? 'none' : 'transform 160ms ease, box-shadow 160ms ease, left 220ms ease, top 220ms ease',
+            ...(draggingFab ? { transform: 'scale(1.08)', boxShadow: '0 14px 32px rgba(76,29,149,0.45)' } : {}),
             '&:hover': { background: 'linear-gradient(145deg, #1e3a8a 0%, #6d28d9 100%)', transform: 'scale(1.06)', boxShadow: '0 12px 28px rgba(76,29,149,0.35)' },
             '&:focus-visible': { outline: '3px solid #c4b5fd', outlineOffset: 3 },
           }}
@@ -166,14 +260,14 @@ export const JobPoytAICareerAssistant = () => {
           sx={{
             position: 'fixed',
             right: { xs: 10, sm: 24 },
-            bottom: { xs: 78, sm: 92 },
+            bottom: { xs: 'calc(166px + env(safe-area-inset-bottom))', sm: 92 },
             zIndex: (theme) => theme.zIndex.tooltip + 1,
             display: 'flex',
             flexDirection: 'column',
             width: { xs: 'calc(100vw - 20px)', sm: 380 },
             maxWidth: 'calc(100vw - 20px)',
             height: { xs: '70dvh', sm: 520 },
-            maxHeight: { xs: 600, sm: 'calc(100dvh - 110px)' },
+            maxHeight: { xs: 'min(600px, calc(100dvh - 186px - env(safe-area-inset-bottom)))', sm: 'calc(100dvh - 110px)' },
             minHeight: 300,
             overflow: 'hidden',
             borderRadius: 3,
