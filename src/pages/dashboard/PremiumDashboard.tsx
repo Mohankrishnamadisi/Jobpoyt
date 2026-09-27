@@ -2240,7 +2240,7 @@ export const PremiumDashboard: React.FC = () => {
           </DialogActions>
         </Dialog>
       </Box>
-      <JobPoytAICareerAssistant />
+      <JobPoytAICareerAssistant onOpenResumeBuilder={() => openPremiumTool('Resume Builder', 'Build, edit, tailor, and download an ATS-frinedly resume.', '#7C3AED')} />
     </Layout>
   );
 };

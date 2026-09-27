@@ -67,7 +67,11 @@ const readStoredFabPosition = (): FabPosition | null => {
   }
 };
 
-export const JobPoytAICareerAssistant = () => {
+type JobPoytAICareerAssistantProps = {
+  onOpenResumeBuilder?: () => void;
+};
+
+export const JobPoytAICareerAssistant = ({ onOpenResumeBuilder }: JobPoytAICareerAssistantProps = {}) => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -206,6 +210,10 @@ export const JobPoytAICareerAssistant = () => {
 
   const goToAction = (route: string) => {
     setOpen(false);
+    if (route.startsWith('/dashboard/resume-builder') && onOpenResumeBuilder) {
+      onOpenResumeBuilder();
+      return;
+    }
     navigate(route);
   };
 

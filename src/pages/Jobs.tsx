@@ -22,7 +22,7 @@ import {
   IconButton,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@store/index';
 import { useSubscription } from '@hooks/index';
@@ -44,7 +44,7 @@ import { HorizontalJobListItem } from '@components/jobs/HorizontalJobListItem';
 import { JobListSkeleton } from '@components/common/LoadingSkeleton';
 import { Error } from '@components/common/Error';
 import { applicationService, companyService, jobService } from '@services/api';
-import { EMPLOYMENT_TYPES, WORK_MODES, EDUCATION_OPTIONS, FRESHNESS_OPTIONS, INDIAN_CITIES } from '@constants/index';
+import { EMPLOYMENT_TYPES, WORK_MODES, EDUCATION_OPTIONS, FRESHNESS_OPTIONS, INDIAN_CITIES, USER_ROLES, ROUTES } from '@constants/index';
 import { JOB_SEARCH_SUGGESTION_GROUPS } from '@constants/jobSearchSuggestions';
 import type { Job } from '../types';
 import { SEO } from '@components/seo/SEO';
@@ -62,9 +62,11 @@ const getMultiValues = (params: URLSearchParams, key: string, fallback: string[]
 
 export const Jobs: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuthStore();
-  const { subscription } = useSubscription(user?.id || null);
+  const { subscription, loading: subscriptionLoading } = useSubscription(user?.id || null);
+  const hasStandardCandidateAdLayout = user?.role === USER_ROLES.JOB_SEEKER && !subscriptionLoading && !subscription;
   const [jobs, setJobs] = useState<Job[]>([]);
   const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -102,6 +104,7 @@ export const Jobs: React.FC = () => {
   const [debouncedKeyword, setDebouncedKeyword] = useState(searchParams.get('keyword') || '');
   const [keywordDraft, setKeywordDraft] = useState('');
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [expandedSuggestionGroups, setExpandedSuggestionGroups] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     let isActive = true;
@@ -256,7 +259,6 @@ export const Jobs: React.FC = () => {
       if (filters.jobType.length > 0) params.jobType = filters.jobType;
       if (filters.workMode.length > 0) params.workMode = filters.workMode;
       if (filters.category.length > 0) params.category = filters.category;
-
       const { data, total: count } = await jobService.getJobs(params, page, 12, {
         includeTotal: !isBackgroundRefresh,
         signal: controller.signal,
@@ -462,7 +464,7 @@ export const Jobs: React.FC = () => {
   };
 
   return (
-    <Layout>
+    <Layout stickyContent>
       <SEO title="Jobs in India, Abroad & Remote | JobPoyt" description="Search current jobs in India, abroad and remote roles on JobPoyt. Filter opportunities by role, location, experience, job type and work mode." canonical={`${siteConfig.url}/jobs`} />
       <Container maxWidth="xl" className="find-jobs-page" sx={{ py: { xs: 1.5, md: 3 }, backgroundColor: 'transparent' }}>
         <MotionPaper
@@ -658,11 +660,12 @@ export const Jobs: React.FC = () => {
           </IconButton>
         </Box>
 
-        <Grid container spacing={3}>
+        <Grid container spacing={3} columnSpacing={hasStandardCandidateAdLayout ? 1.5 : 3}>
           <Grid
             item
             xs={12}
             md={3}
+            lg={hasStandardCandidateAdLayout ? 2.5 : 3}
             sx={{
               display: { xs: showFilters ? 'block' : 'none', md: 'block' },
               ...(showFilters && {
@@ -782,7 +785,7 @@ export const Jobs: React.FC = () => {
                               addKeywordTerms([keywordDraft]);
                             }
                           }}
-                          placeholder={keywordValues.length > 0 ? 'Add another keyword' : 'Press ENTER - Job title or skill'}
+                          placeholder={keywordValues.length > 0 ? 'Add another keyword' : 'Job title or skill'}
                           style={{ border: 0, outline: 0, flex: 1, minWidth: 160, height: 36, font: 'inherit', color: '#1e293b', background: 'transparent' }}
                         />
                       </Box>
@@ -813,9 +816,10 @@ export const Jobs: React.FC = () => {
                               top: '50%',
                               left: '50%',
                               transform: 'translate(-50%, -50%)',
-                              width: 'min(1320px, calc(100vw - 48px))',
-                              maxWidth: 'calc(100vw - 32px)',
-                              height: 'min(720px, calc(100vh - 40px))',
+                              width: { xs: 'calc(100vw - 24px)', sm: 'min(760px, calc(100vw - 40px))', lg: 'min(1040px, calc(100vw - 64px))' },
+                              maxWidth: 'calc(100vw - 24px)',
+                              height: 'auto',
+                              maxHeight: 'min(680px, calc(100vh - 40px))',
                               display: 'flex',
                               flexDirection: 'column',
                               overflow: 'hidden',
@@ -910,23 +914,36 @@ export const Jobs: React.FC = () => {
                                 Search
                               </Button>
                             </Box>
-                            <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', pr: 0.5 }}>
+                            <Box sx={{ flex: '0 1 auto', minHeight: 0, maxHeight: 'min(480px, 58vh)', overflowY: 'auto', pr: 0.5 }}>
                               <Box sx={{ columnCount: { xs: 1, sm: 2, md: 5 }, columnGap: { xs: 1, md: 0.9 } }}>
                                 {filteredSuggestionGroups.map((group) => (
                                   <Box key={group.label} sx={{ display: 'inline-block', width: '100%', mb: { xs: 1, md: 0.9 }, p: 0.75, border: '1px solid #e2e8f0', borderRadius: 1.25, background: '#f8fafc', breakInside: 'avoid' }}>
-                                  <Typography sx={{ display: 'block', px: 0.7, py: 0.45, mb: 0.55, color: '#164e9b', fontSize: '0.66rem', fontWeight: 800, letterSpacing: 0.35, textTransform: 'uppercase', background: 'linear-gradient(135deg, #dbeafe, #e0f2fe)', border: '1px solid #bfdbfe', borderRadius: 0.9, boxShadow: '0 2px 6px rgba(37, 99, 235, 0.08)' }}>
-                                    {group.label}
-                                  </Typography>
-                                  {group.options.map((option) => (
                                     <Button
-                                      key={option}
                                       fullWidth
-                                      onClick={() => addKeywordTerms([option])}
-                                      sx={{ justifyContent: 'flex-start', px: 0.45, py: 0.18, minHeight: 25, color: 'text.primary', textTransform: 'none', fontSize: '0.7rem', lineHeight: 1.2, fontWeight: 500, textAlign: 'left', '&:hover': { background: 'rgba(37, 99, 235, 0.1)' } }}
+                                      aria-expanded={expandedSuggestionGroups.has(group.label)}
+                                      onClick={() => setExpandedSuggestionGroups((current) => {
+                                        const next = new Set(current);
+                                        if (next.has(group.label)) next.delete(group.label);
+                                        else next.add(group.label);
+                                        return next;
+                                      })}
+                                      sx={{ display: 'flex', justifyContent: 'space-between', px: 0.7, py: 0.45, minHeight: 30, color: '#164e9b', fontSize: '0.66rem', fontWeight: 800, textTransform: 'uppercase', textAlign: 'left', background: 'linear-gradient(135deg, #dbeafe, #e0f2fe)', border: '1px solid #bfdbfe', borderRadius: 0.9, boxShadow: '0 2px 6px rgba(37, 99, 235, 0.08)', '&:hover': { background: 'linear-gradient(135deg, #bfdbfe, #dbeafe)' } }}
                                     >
-                                      {option}
+                                      {group.label}
+                                      {expandedSuggestionGroups.has(group.label) ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
                                     </Button>
-                                  ))}
+                                    <Collapse in={expandedSuggestionGroups.has(group.label)}>
+                                      {group.options.map((option) => (
+                                        <Button
+                                          key={option}
+                                          fullWidth
+                                          onClick={() => addKeywordTerms([option])}
+                                          sx={{ justifyContent: 'flex-start', px: 0.45, py: 0.18, minHeight: 25, color: 'text.primary', textTransform: 'none', fontSize: '0.7rem', lineHeight: 1.2, fontWeight: 500, textAlign: 'left', '&:hover': { background: 'rgba(37, 99, 235, 0.1)' } }}
+                                        >
+                                          {option}
+                                        </Button>
+                                      ))}
+                                    </Collapse>
                                   </Box>
                                 ))}
                               </Box>
@@ -1256,7 +1273,7 @@ export const Jobs: React.FC = () => {
             </MotionPaper>
           </Grid>
 
-          <Grid item xs={12} md={9}>
+          <Grid item xs={12} md={9} lg={hasStandardCandidateAdLayout ? 7.5 : 9}>
             {loading ? (
               <JobListSkeleton count={6} />
             ) : jobs.length === 0 ? (
@@ -1305,6 +1322,7 @@ export const Jobs: React.FC = () => {
                     <HorizontalJobListItem
                       key={job.id}
                       job={job}
+                      isCompact={hasStandardCandidateAdLayout}
                       isPremiumUser={!!subscription}
                       isApplied={appliedJobIds.has(String(job.id).trim().toLowerCase())}
                     />
@@ -1324,6 +1342,54 @@ export const Jobs: React.FC = () => {
               </>
             )}
           </Grid>
+
+          {hasStandardCandidateAdLayout ? (
+            <Grid item xs={12} lg={2} sx={{ display: { xs: 'none', lg: 'block' } }}>
+              <Box sx={{ position: 'sticky', top: 88 }}>
+                <Box
+                  component="video"
+                  src="https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/ads.mp4?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9hZHMubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDUyMjk0NywiZXhwIjoyNDIxMjQyOTQ3fQ.EJFRs34f-J_a7ZdRHsMdnyOReit5s348B3qJhJjQT-k"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="auto"
+                  aria-label="Advertisement"
+                  sx={{
+                    display: 'block',
+                    width: '100%',
+                    height: 'min(72vh, 700px)',
+                    objectFit: 'cover',
+                    borderRadius: 1.5,
+                    backgroundColor: '#0f172a',
+                  }}
+                />
+                <Box
+                  component="img"
+                  src="https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/adsImg.png?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9hZHNJbWcucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDUyNjgyNywiZXhwIjoyNDIxMjQ2ODI3fQ.128wetCdWqPcvhXvEuBK66nfARpZ-HGc1oizZNlhCUk"
+                  alt="Advertisement"
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => navigate(ROUTES.PRICING)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      navigate(ROUTES.PRICING);
+                    }
+                  }}
+                  sx={{
+                    display: 'block',
+                    width: '100%',
+                    height: 'min(11vh, 90px)',
+                    mt: 1.5,
+                    objectFit: 'cover',
+                    borderRadius: 1.5,
+                    cursor: 'pointer',
+                  }}
+                />
+              </Box>
+            </Grid>
+          ) : null}
         </Grid>
       </Container>
     </Layout>

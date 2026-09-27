@@ -22,6 +22,7 @@ import type { Job } from '../../types';
 
 interface HorizontalJobListItemProps {
   job: Job;
+  isCompact?: boolean;
   isPremiumUser?: boolean;
   isApplied?: boolean;
 }
@@ -58,6 +59,7 @@ const companyLogoAliases: Record<string, string> = {
 
 export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
   job,
+  isCompact = false,
   isPremiumUser = false,
   isApplied = false,
 }) => {
@@ -138,8 +140,8 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
         sx={{
           display: 'flex',
           alignItems: 'flex-start',
-          gap: { xs: 1, sm: 2.5 },
-          p: { xs: 1.2, sm: 2.5 },
+          gap: { xs: 1, sm: 2.5, lg: isCompact ? 1.5 : 2.5 },
+          p: { xs: 1.2, sm: 2.5, lg: isCompact ? 1.5 : 2.5 },
           bgcolor: isDarkMode ? (isHovered ? '#172033' : '#111827') : (isHovered ? 'rgba(241, 248, 255, 0.98)' : undefined),
           background: isDarkMode
             ? (isHovered ? 'linear-gradient(180deg, #172033, #111827)' : 'linear-gradient(180deg, #111827, #0F172A)')
@@ -233,13 +235,13 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
             variant="h6"
             sx={{
               fontWeight: 900,
-              fontSize: { xs: '0.9rem', sm: '1.2rem' },
+              fontSize: { xs: '0.9rem', sm: '1.2rem', lg: isCompact ? '1.05rem' : '1.2rem' },
               lineHeight: 1.25,
               color: isDarkMode ? '#FFFFFF' : '#0f172a',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               display: '-webkit-box',
-              WebkitLineClamp: 1,
+              WebkitLineClamp: { xs: 1, lg: isCompact ? 2 : 1 },
               WebkitBoxOrient: 'vertical',
               letterSpacing: '-0.3px',
             }}
@@ -253,7 +255,7 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
             sx={{
               color: isDarkMode ? '#60A5FA' : '#2563eb',
               fontWeight: 700,
-              fontSize: { xs: '0.75rem', sm: '0.95rem' },
+              fontSize: { xs: '0.75rem', sm: '0.95rem', lg: isCompact ? '0.82rem' : '0.95rem' },
               display: 'flex',
               alignItems: 'center',
               gap: 0.6,
@@ -442,7 +444,7 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
             alignItems: { xs: 'flex-start', sm: 'flex-end' },
             justifyContent: 'flex-start',
             pointerEvents: 'auto',
-            minWidth: { xs: 'auto', sm: 120 },
+            minWidth: { xs: 'auto', sm: 120, lg: isCompact ? 88 : 120 },
             gap: { xs: 0.3, sm: 1 },
           }}
         >
@@ -456,7 +458,7 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
               fontWeight: 700,
               borderRadius: 1,
               fontSize: { xs: '0.72rem', sm: '0.95rem' },
-              px: { xs: 1.2, sm: 2.5 },
+              px: { xs: 1.2, sm: 2.5, lg: isCompact ? 1.2 : 2.5 },
               py: { xs: 0.45, sm: 0.75 },
               minWidth: { xs: 0, sm: 64 },
               minHeight: { xs: 30, sm: 'auto' },

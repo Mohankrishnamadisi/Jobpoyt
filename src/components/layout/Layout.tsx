@@ -7,9 +7,10 @@ import { useTheme } from '@mui/material/styles';
 interface LayoutProps {
   children: React.ReactNode;
   footer?: boolean;
+  stickyContent?: boolean;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, footer = true }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, footer = true, stickyContent = false }) => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
 
@@ -22,7 +23,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, footer = true }) => {
         background: isDarkMode
           ? 'linear-gradient(180deg, #111827 0%, #0b1120 42%, #111827 100%)'
           : 'linear-gradient(180deg, rgba(248,250,252,1) 0%, rgba(241,245,249,0.85) 40%, rgba(255,255,255,0.95) 100%)',
-        overflowX: 'hidden',
+        overflowX: stickyContent ? 'clip' : 'hidden',
       }}
     >
       <Navbar />
