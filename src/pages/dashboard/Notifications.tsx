@@ -47,7 +47,7 @@ export const NotificationsPage: React.FC<{ embedded?: boolean }> = ({ embedded =
         <Box className="flex flex-wrap items-center justify-between gap-3" sx={{ mb: 1.2, p: { xs: 1.5, md: 1.8 }, borderRadius: 3, background: 'linear-gradient(115deg, #071D35 0%, #0B3558 58%, #126B8F 100%)', boxShadow: '0 10px 24px rgba(7,29,53,0.16)', position: 'relative', overflow: 'hidden', '&::after': { content: '""', position: 'absolute', width: 180, height: 180, borderRadius: '50%', right: -70, top: -100, background: 'rgba(214,167,58,0.2)' } }}>
           <Box sx={{ position: 'relative', zIndex: 1 }}>
             <Chip label="CAREER PULSE" size="small" sx={{ mb: 0.6, height: 21, bgcolor: 'rgba(255,255,255,0.14)', color: '#F7D774', fontWeight: 900, letterSpacing: 1, borderRadius: 1.2, fontSize: 10 }} />
-            <Typography variant="h4" sx={{ fontWeight: 900, color: '#fff', fontSize: { xs: 23, md: 28 }, lineHeight: 1.05, letterSpacing: '-0.03em' }}>Notifications</Typography>
+            <Typography variant="h4" sx={{ fontWeight: 850, color: '#fff', fontSize: embedded ? { xs: 19, md: 21 } : { xs: 23, md: 28 }, lineHeight: 1.15, letterSpacing: 0 }}>Notifications</Typography>
             <Typography variant="body2" sx={{ mt: 0.3, color: 'rgba(255,255,255,0.76)', fontSize: { xs: 12, md: 13.5 } }}>Stay close to every recruiter signal, application update, and opportunity.</Typography>
           </Box>
           <Button
@@ -105,7 +105,7 @@ export const NotificationsPage: React.FC<{ embedded?: boolean }> = ({ embedded =
                       </Box>
                       <ListItemText
                         sx={{ my: 0, minWidth: 0 }}
-                        primary={<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7, flexWrap: 'wrap', mb: 0.35 }}><Typography sx={{ fontWeight: 900, color: '#0B2745', fontSize: 14 }}>{notification.title}</Typography><Chip label={getNotificationVisual(notification.type).label} size="small" sx={{ height: 19, bgcolor: getNotificationVisual(notification.type).background, color: getNotificationVisual(notification.type).color, fontWeight: 800, fontSize: 9.5 }} /></Box>}
+                        primary={<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7, flexWrap: 'wrap', mb: 0.35 }}><Typography sx={{ fontWeight: embedded ? 650 : 900, color: '#0B2745', fontSize: embedded ? 12.5 : 14, lineHeight: 1.3 }}>{notification.title}</Typography><Chip label={getNotificationVisual(notification.type).label} size="small" sx={{ height: 19, bgcolor: getNotificationVisual(notification.type).background, color: getNotificationVisual(notification.type).color, fontWeight: 800, fontSize: 9.5 }} /></Box>}
                         secondary={
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5, flexWrap: 'wrap', pt: 0.15 }}>
                             <Typography component="span" variant="body2" sx={{ color: 'text.secondary', fontSize: 12.5, lineHeight: 1.25, flex: 1, minWidth: 0 }}>

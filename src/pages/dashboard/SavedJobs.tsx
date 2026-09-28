@@ -55,11 +55,11 @@ export const SavedJobsPage: React.FC<{ embedded?: boolean }> = ({ embedded = fal
 
   return (
     <Shell>
-      <Container maxWidth="xl" sx={{ py: { xs: 1.5, md: 2.2 }, px: { xs: 1.2, sm: 2, md: 3 } }}>
+      <Container maxWidth="xl" sx={{ py: embedded ? { xs: 1, md: 1.4 } : { xs: 1.5, md: 2.2 }, px: embedded ? { xs: 0.7, sm: 1, md: 1.2 } : { xs: 1.2, sm: 2, md: 3 } }}>
         <Card
           sx={{
-            mb: 2,
-            borderRadius: 3.5,
+            mb: embedded ? 1.2 : 2,
+            borderRadius: embedded ? 2.5 : 3.5,
             border: 'none',
             background: 'linear-gradient(115deg, #071D35 0%, #0B3558 58%, #126B8F 100%)',
             color: '#fff',
@@ -69,14 +69,14 @@ export const SavedJobsPage: React.FC<{ embedded?: boolean }> = ({ embedded = fal
             '&::after': { content: '""', position: 'absolute', width: 220, height: 220, borderRadius: '50%', right: -80, top: -120, background: 'rgba(214,167,58,0.2)' },
           }}
         >
-          <CardContent sx={{ p: { xs: 2, md: 2.6 }, position: 'relative', zIndex: 1 }}>
+          <CardContent sx={{ p: embedded ? { xs: 1.2, md: 1.6 } : { xs: 2, md: 2.6 }, position: 'relative', zIndex: 1 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
               <Box>
-                <Chip label="CAREER WATCHLIST" size="small" sx={{ mb: 1, bgcolor: 'rgba(255,255,255,0.14)', color: '#F7D774', fontWeight: 900, letterSpacing: 1, borderRadius: 1.2 }} />
-                <Typography variant="h4" sx={{ fontWeight: 900, lineHeight: 1.08, mb: 0.6, fontSize: { xs: 26, md: 32 }, letterSpacing: '-0.035em' }}>
+                <Chip label="CAREER WATCHLIST" size="small" sx={{ mb: embedded ? 0.5 : 1, height: embedded ? 20 : undefined, fontSize: embedded ? 9 : undefined, bgcolor: 'rgba(255,255,255,0.14)', color: '#F7D774', fontWeight: 900, letterSpacing: 1, borderRadius: 1.2 }} />
+                <Typography variant="h4" sx={{ fontWeight: 900, lineHeight: 1.08, mb: 0.5, fontSize: embedded ? { xs: 20, md: 23 } : { xs: 26, md: 32 }, letterSpacing: '-0.035em' }}>
                   Saved Jobs
                 </Typography>
-                <Typography sx={{ color: 'rgba(255,255,255,0.76)', fontSize: { xs: 13, md: 15 } }}>
+                <Typography sx={{ color: 'rgba(255,255,255,0.76)', fontSize: embedded ? { xs: 11, md: 12 } : { xs: 13, md: 15 } }}>
                   Keep the roles that matter close and come back when the moment is right.
                 </Typography>
               </Box>
@@ -84,14 +84,16 @@ export const SavedJobsPage: React.FC<{ embedded?: boolean }> = ({ embedded = fal
                 component={RouterLink}
                 to={ROUTES.JOBS}
                 variant="outlined"
+                size={embedded ? 'small' : 'medium'}
                 sx={{
                   border: 'none',
                   bgcolor: '#D6A73A',
                   color: '#071D35',
                   fontWeight: 900,
                   borderRadius: 2,
-                  px: 2.2,
-                  py: 1.1,
+                  px: embedded ? 1.2 : 2.2,
+                  py: embedded ? 0.6 : 1.1,
+                  fontSize: embedded ? 11 : undefined,
                   boxShadow: '0 8px 18px rgba(0,0,0,0.16)',
                   '&:hover': {
                     bgcolor: '#F0C75E',
@@ -104,7 +106,7 @@ export const SavedJobsPage: React.FC<{ embedded?: boolean }> = ({ embedded = fal
           </CardContent>
         </Card>
 
-        <Grid container spacing={1.2} sx={{ mb: 2 }}>
+        <Grid container spacing={embedded ? 0.8 : 1.2} sx={{ mb: embedded ? 1.2 : 2 }}>
           {[
             { label: 'Total Saved', value: stats.total, color: '#0B2745' },
             { label: 'Remote Roles', value: stats.remote, color: '#0284C7' },
@@ -112,9 +114,9 @@ export const SavedJobsPage: React.FC<{ embedded?: boolean }> = ({ embedded = fal
             { label: 'With Location', value: stats.withLocation, color: '#0EA5A0' },
           ].map((item, index) => (
             <Grid item xs={6} md={3} key={item.label}>
-              <Box sx={{ minHeight: 92, px: 1.6, py: 1.35, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid', borderColor: isDarkMode ? 'rgba(148,163,184,0.24)' : '#DCE6F2', borderRadius: 2.5, bgcolor: isDarkMode ? '#0F172A' : '#fff', boxShadow: '0 8px 20px rgba(15,35,63,0.045)', borderTop: `3px solid ${index === 0 ? '#0B2745' : item.color}`, transition: 'transform 0.18s ease, box-shadow 0.18s ease', '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 14px 26px rgba(15,35,63,0.1)' } }}>
-                <Typography variant="caption" sx={{ color: isDarkMode ? '#CBD5E1' : '#64748B', fontWeight: 800, lineHeight: 1.25 }}>{item.label}</Typography>
-                <Typography sx={{ mt: 0.6, fontWeight: 900, color: isDarkMode ? '#F8FAFC' : item.color, fontSize: 26, lineHeight: 1 }}>{item.value}</Typography>
+              <Box sx={{ minHeight: embedded ? 68 : 92, px: embedded ? 1.1 : 1.6, py: embedded ? 0.8 : 1.35, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid', borderColor: isDarkMode ? 'rgba(148,163,184,0.24)' : '#DCE6F2', borderRadius: embedded ? 1.8 : 2.5, bgcolor: isDarkMode ? '#0F172A' : '#fff', boxShadow: '0 8px 20px rgba(15,35,63,0.045)', borderTop: `3px solid ${index === 0 ? '#0B2745' : item.color}`, transition: 'transform 0.18s ease, box-shadow 0.18s ease', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 14px 26px rgba(15,35,63,0.1)' } }}>
+                <Typography variant="caption" sx={{ color: isDarkMode ? '#CBD5E1' : '#64748B', fontSize: embedded ? 10 : undefined, fontWeight: 800, lineHeight: 1.25 }}>{item.label}</Typography>
+                <Typography sx={{ mt: 0.45, fontWeight: 900, color: isDarkMode ? '#F8FAFC' : item.color, fontSize: embedded ? 21 : 26, lineHeight: 1 }}>{item.value}</Typography>
               </Box>
             </Grid>
           ))}
@@ -141,7 +143,7 @@ export const SavedJobsPage: React.FC<{ embedded?: boolean }> = ({ embedded = fal
             </CardContent>
           </Card>
         ) : (
-          <Grid container spacing={1.6}>
+          <Grid container spacing={embedded ? 1 : 1.6}>
             {savedJobs.map((item) => {
               const isRemote = String(item.jobs?.location || '').toLowerCase().includes('remote');
 
@@ -150,7 +152,7 @@ export const SavedJobsPage: React.FC<{ embedded?: boolean }> = ({ embedded = fal
                   <Card
                     sx={{
                       height: '100%',
-                      borderRadius: 3,
+                      borderRadius: embedded ? 2 : 3,
                       border: isDarkMode ? '1px solid rgba(148,163,184,0.24)' : '1px solid #DCE6F2',
                       background: isDarkMode ? 'linear-gradient(160deg, rgba(15,23,42,0.97), rgba(30,41,59,0.92))' : '#FFFFFF',
                       boxShadow: isDarkMode ? '0 10px 24px rgba(2,6,23,0.34)' : '0 10px 24px rgba(15,35,63,0.07)',
@@ -169,30 +171,30 @@ export const SavedJobsPage: React.FC<{ embedded?: boolean }> = ({ embedded = fal
                       transition: 'transform 0.18s ease, box-shadow 0.18s ease',
                     }}
                   >
-                    <CardContent sx={{ pl: 2.4, p: 2.4 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1.1, mb: 1.1 }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 900, lineHeight: 1.25, color: isDarkMode ? '#F8FAFC' : '#0B2745' }}>
+                    <CardContent sx={{ pl: embedded ? 1.8 : 2.4, p: embedded ? 1.7 : 2.4 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 0.8, mb: 0.8 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 850, lineHeight: 1.25, fontSize: embedded ? 13 : undefined, color: isDarkMode ? '#F8FAFC' : '#0B2745' }}>
                           {item.jobs?.title || 'Role unavailable'}
                         </Typography>
                         <Chip label="Saved" size="small" sx={{ fontWeight: 800, bgcolor: '#FFF4D6', color: '#9A7017', borderRadius: 1.2 }} />
                       </Box>
 
-                      <Typography variant="body2" sx={{ fontWeight: 700, color: isDarkMode ? '#CBD5E1' : '#334155', mb: 0.4 }}>
+                      <Typography variant="body2" sx={{ fontSize: embedded ? 11.5 : undefined, fontWeight: 700, color: isDarkMode ? '#CBD5E1' : '#334155', mb: 0.35 }}>
                         {item.jobs?.company_name || 'Company unavailable'}
                       </Typography>
 
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8, mt: 1.2, mb: 1.4 }}>
-                        <Chip size="small" variant="outlined" label={item.jobs?.location || 'Location not specified'} sx={{ fontWeight: 700, borderColor: '#C9D8E6', color: '#526B82' }} />
-                        <Chip size="small" variant="outlined" label={item.created_at ? `Saved ${formatDate(item.created_at)}` : 'Saved recently'} sx={{ fontWeight: 700, borderColor: '#C9D8E6', color: '#526B82' }} />
-                        {isRemote ? <Chip size="small" label="Remote" sx={{ fontWeight: 800, bgcolor: '#E0F2FE', color: '#075985' }} /> : null}
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: embedded ? 0.5 : 0.8, mt: embedded ? 0.8 : 1.2, mb: embedded ? 1 : 1.4 }}>
+                        <Chip size="small" variant="outlined" label={item.jobs?.location || 'Location not specified'} sx={{ height: embedded ? 21 : undefined, fontSize: embedded ? 10 : undefined, fontWeight: 700, borderColor: '#C9D8E6', color: '#526B82' }} />
+                        <Chip size="small" variant="outlined" label={item.created_at ? `Saved ${formatDate(item.created_at)}` : 'Saved recently'} sx={{ height: embedded ? 21 : undefined, fontSize: embedded ? 10 : undefined, fontWeight: 700, borderColor: '#C9D8E6', color: '#526B82' }} />
+                        {isRemote ? <Chip size="small" label="Remote" sx={{ height: embedded ? 21 : undefined, fontSize: embedded ? 10 : undefined, fontWeight: 800, bgcolor: '#E0F2FE', color: '#075985' }} /> : null}
                       </Box>
 
                       {item.jobs?.id ? (
-                        <Button component={RouterLink} to={ROUTES.JOB_DETAILS.replace(':id', item.jobs.id)} fullWidth variant="contained" sx={{ fontWeight: 800, borderRadius: 2, bgcolor: '#0B2745', '&:hover': { bgcolor: '#123B5D' } }}>
+                        <Button size={embedded ? 'small' : 'medium'} component={RouterLink} to={ROUTES.JOB_DETAILS.replace(':id', item.jobs.id)} fullWidth variant="contained" sx={{ minHeight: embedded ? 32 : undefined, fontSize: embedded ? 11 : undefined, fontWeight: 800, borderRadius: embedded ? 1.5 : 2, bgcolor: '#0B2745', '&:hover': { bgcolor: '#123B5D' } }}>
                           View Job
                         </Button>
                       ) : (
-                        <Button fullWidth variant="outlined" disabled sx={{ fontWeight: 700 }}>
+                        <Button size={embedded ? 'small' : 'medium'} fullWidth variant="outlined" disabled sx={{ minHeight: embedded ? 32 : undefined, fontSize: embedded ? 11 : undefined, fontWeight: 700 }}>
                           Job Unavailable
                         </Button>
                       )}

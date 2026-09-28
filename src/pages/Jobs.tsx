@@ -44,7 +44,7 @@ import { HorizontalJobListItem } from '@components/jobs/HorizontalJobListItem';
 import { JobListSkeleton } from '@components/common/LoadingSkeleton';
 import { Error } from '@components/common/Error';
 import { applicationService, companyService, jobService } from '@services/api';
-import { EMPLOYMENT_TYPES, WORK_MODES, EDUCATION_OPTIONS, FRESHNESS_OPTIONS, INDIAN_CITIES, USER_ROLES, ROUTES } from '@constants/index';
+import { EMPLOYMENT_TYPES, WORK_MODES, EDUCATION_OPTIONS, FRESHNESS_OPTIONS, INDIAN_CITIES, USER_ROLES, ROUTES, JOB_FILTER_CATEGORIES } from '@constants/index';
 import { JOB_SEARCH_SUGGESTION_GROUPS } from '@constants/jobSearchSuggestions';
 import type { Job } from '../types';
 import { SEO } from '@components/seo/SEO';
@@ -80,8 +80,7 @@ export const Jobs: React.FC = () => {
   const [allJobsTotal, setAllJobsTotal] = useState(0);
   const [companyTotal, setCompanyTotal] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categories, setCategories] = useState<string[]>(JOB_FILTER_CATEGORIES);
   const [openSections, setOpenSections] = useState({
     search: true,
     profile: true,
@@ -102,6 +101,7 @@ export const Jobs: React.FC = () => {
     category: [] as string[],
   });
   const [debouncedKeyword, setDebouncedKeyword] = useState(searchParams.get('keyword') || '');
+  const [companyDraft, setCompanyDraft] = useState(searchParams.get('company') || '');
   const [keywordDraft, setKeywordDraft] = useState('');
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [expandedSuggestionGroups, setExpandedSuggestionGroups] = useState<Set<string>>(new Set());
@@ -135,14 +135,18 @@ export const Jobs: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        setCategoriesLoading(true);
         const fetchedCategories = await jobService.getCategories();
-        setCategories(fetchedCategories);
+        const categoryMap = new Map<string, string>();
+        [...JOB_FILTER_CATEGORIES, ...fetchedCategories].forEach((category) => {
+          const normalizedCategory = String(category || '').trim();
+          if (normalizedCategory && !categoryMap.has(normalizedCategory.toLowerCase())) {
+            categoryMap.set(normalizedCategory.toLowerCase(), normalizedCategory);
+          }
+        });
+        setCategories(Array.from(categoryMap.values()).sort((first, second) => first.localeCompare(second)));
       } catch (err) {
         console.error('Failed to fetch categories:', err);
-        setCategories([]);
-      } finally {
-        setCategoriesLoading(false);
+        setCategories(JOB_FILTER_CATEGORIES);
       }
     };
 
@@ -205,6 +209,24 @@ export const Jobs: React.FC = () => {
     return () => window.clearTimeout(debounceTimer);
   }, [filters.keyword]);
 
+  useEffect(() => {
+    const debounceTimer = window.setTimeout(() => {
+      const normalizedCompany = companyDraft.trim();
+      setFilters((current) => current.company === normalizedCompany
+        ? current
+        : { ...current, company: normalizedCompany });
+      setSearchParams((previous) => {
+        if ((previous.get('company') || '') === normalizedCompany) return previous;
+        const params = new URLSearchParams(previous);
+        params.delete('company');
+        if (normalizedCompany) params.set('company', normalizedCompany);
+        return params;
+      });
+    }, 450);
+
+    return () => window.clearTimeout(debounceTimer);
+  }, [companyDraft, setSearchParams]);
+
   const syncKeywordToUrl = useCallback((nextKeyword: string) => {
     const normalizedKeyword = nextKeyword.trim();
 
@@ -222,9 +244,11 @@ export const Jobs: React.FC = () => {
   }, [setSearchParams]);
 
   useEffect(() => {
+    const companyFromUrl = searchParams.get('company') || '';
+    setCompanyDraft((current) => current === companyFromUrl ? current : companyFromUrl);
     setFilters(() => ({
       keyword: searchParams.get('keyword') || '',
-      company: searchParams.get('company') || '',
+      company: companyFromUrl,
       location: getMultiValues(searchParams, 'location'),
       experience: searchParams.get('experience') || '',
       education: searchParams.get('education') || '',
@@ -324,6 +348,12 @@ export const Jobs: React.FC = () => {
   }, [fetchJobs]);
 
   const handleFilterChange = (filterName: string, value: unknown) => {
+    if (filterName === 'company') {
+      setCompanyDraft(String(value ?? ''));
+      setPage(1);
+      return;
+    }
+
     setFilters((prev) => ({ ...prev, [filterName]: value }));
     setPage(1);
 
@@ -383,6 +413,7 @@ export const Jobs: React.FC = () => {
 
   const clearFilters = () => {
     setDebouncedKeyword('');
+    setCompanyDraft('');
     setFilters({
       keyword: '',
       company: '',
@@ -794,7 +825,7 @@ export const Jobs: React.FC = () => {
                         fullWidth
                         aria-label="Search company"
                         placeholder="Company name"
-                        value={filters.company}
+                        value={companyDraft}
                         onChange={(event) => handleFilterChange('company', event.target.value)}
                         InputProps={{ startAdornment: <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} /> }}
                         sx={{
@@ -1213,11 +1244,7 @@ export const Jobs: React.FC = () => {
                           gap: 1.1,
                         }}
                       >
-                        {categoriesLoading ? (
-                          <Typography variant="body2" sx={{ color: 'text.secondary', py: 2 }}>
-                            Loading categories...
-                          </Typography>
-                        ) : categories.length === 0 ? (
+                        {categories.length === 0 ? (
                           <Typography variant="body2" sx={{ color: 'text.secondary', py: 2 }}>
                             No categories available
                           </Typography>

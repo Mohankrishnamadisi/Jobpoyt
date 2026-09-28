@@ -144,6 +144,7 @@ const premiumSidebarFeatures = new Set([
 ]);
 
 const embeddedDashboardViews = new Set(['Notifications', 'Applications', 'Saved Jobs', 'Security Settings', 'Help & Support']);
+const adEnabledEmbeddedViews = new Set(['Applications', 'Saved Jobs', 'Notifications']);
 
 
 export const Dashboard: React.FC = () => {
@@ -480,6 +481,8 @@ export const Dashboard: React.FC = () => {
 
   const recruiterActionCount = Math.max(0, (profileViewCount ?? 0) + (resumeDownloadCount ?? 0));
   const searchAppearanceCount = Math.max(0, profileViewCount ?? 0);
+  const showDashboardVideoAd = !isMobile && (!embeddedView || adEnabledEmbeddedViews.has(embeddedView)) && !premiumFeature;
+  const pinDashboardVideoAd = !isMobile && Boolean(embeddedView && adEnabledEmbeddedViews.has(embeddedView)) && !premiumFeature;
 
   const recruiterInsightFeed = useMemo(() => {
     const feed = [
@@ -760,15 +763,25 @@ export const Dashboard: React.FC = () => {
   );
 
   return (
-    <Layout>
-      <Box className={footerVisible ? 'dashboard-page candidate-dashboard footer-visible' : 'dashboard-page candidate-dashboard'} sx={{ background: '#F5F7FA', minHeight: '100vh', px: { xs: 1.5, md: 2.5 }, py: { xs: 2, md: 3 } }}>
+    <Layout stickyContent>
+      <Box className={footerVisible ? 'dashboard-page candidate-dashboard footer-visible' : 'dashboard-page candidate-dashboard'} sx={{ background: '#F5F7FA', minHeight: '100vh', px: { xs: 1.5, md: 2.5 }, py: { xs: 2, md: 3 }, position: pinDashboardVideoAd ? 'relative' : undefined }}>
         <Drawer anchor="left" open={mobileNavOpen} onClose={() => setMobileNavOpen(false)}>
           <Box sx={{ width: 280, height: '100%', background: '#fff' }}>{renderSidebar({ drawerMode: true })}</Box>
         </Drawer>
 
         {!isMobile && renderSidebar()}
 
-        <Box className="dashboard-content">
+        <Box
+          sx={{
+            flex: '1 1 auto',
+            minWidth: 0,
+            display: 'grid',
+            gridTemplateColumns: showDashboardVideoAd ? 'minmax(0, 4.2fr) minmax(0, 1fr)' : 'minmax(0, 1fr)',
+            alignItems: 'start',
+            gap: 1,
+          }}
+        >
+        <Box className="dashboard-content" sx={{ width: '100%', maxWidth: showDashboardVideoAd ? 'none' : undefined }}>
           {embeddedView ? (
             <Box sx={{ width: '100%', minWidth: 0, '& > .MuiContainer-root': { maxWidth: 'none', px: { xs: 0, md: 1 } } }}>
               {embeddedView === 'Notifications' && <NotificationsPage embedded />}
@@ -994,7 +1007,7 @@ export const Dashboard: React.FC = () => {
                         </Stack>
                       </Box>
 
-                      <Grid container spacing={1.6} sx={{ mb: 2.2 }}>
+                      <Grid container spacing={1.2} sx={{ mb: 1.8 }}>
                         {[
                           {
                             key: 'all' as const,
@@ -1040,11 +1053,11 @@ export const Dashboard: React.FC = () => {
                                 sx={{
                                   width: '100%',
                                   height: '100%',
-                                  minHeight: 138,
+                                  minHeight: 120,
                                   textAlign: 'left',
                                   justifyContent: 'flex-start',
                                   borderRadius: 3,
-                                  p: 1.6,
+                                  p: 1.25,
                                   border: '1px solid',
                                   borderColor: isActive ? 'rgba(214,167,58,0.55)' : '#E5EAF0',
                                   borderLeft: isActive ? '4px solid #D6A73A' : '1px solid #E5EAF0',
@@ -1061,11 +1074,11 @@ export const Dashboard: React.FC = () => {
                               >
                                 <Box sx={{ width: '100%' }}>
                                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-                                    <Typography sx={{ fontWeight: 800, fontSize: 13.5 }}>{item.label}</Typography>
+                                    <Typography sx={{ fontWeight: 750, fontSize: 12.5, lineHeight: 1.25 }}>{item.label}</Typography>
                                     <Box
                                       sx={{
-                                        width: 30,
-                                        height: 30,
+                                        width: 27,
+                                        height: 27,
                                         borderRadius: 2,
                                         display: 'grid',
                                         placeItems: 'center',
@@ -1074,23 +1087,27 @@ export const Dashboard: React.FC = () => {
                                         flexShrink: 0,
                                       }}
                                     >
-                                      <item.icon sx={{ fontSize: 17 }} />
+                                      <item.icon sx={{ fontSize: 15 }} />
                                     </Box>
                                   </Box>
                                   <Typography
                                     sx={{
-                                      fontSize: item.key === 'subscription' ? { xs: 16, sm: 18, md: 20 } : 26,
+                                      fontSize: item.key === 'subscription' ? 14 : 22,
                                       fontWeight: 800,
-                                      lineHeight: 1.15,
-                                      mt: 0.4,
-                                      whiteSpace: 'nowrap',
+                                      lineHeight: 1.2,
+                                      mt: 0.55,
+                                      whiteSpace: item.key === 'subscription' ? 'normal' : 'nowrap',
                                       overflow: 'hidden',
-                                      textOverflow: 'ellipsis',
+                                      display: item.key === 'subscription' ? '-webkit-box' : 'block',
+                                      WebkitBoxOrient: item.key === 'subscription' ? 'vertical' : undefined,
+                                      WebkitLineClamp: item.key === 'subscription' ? 2 : undefined,
+                                      textOverflow: item.key === 'subscription' ? 'clip' : 'ellipsis',
+                                      overflowWrap: 'anywhere',
                                     }}
                                   >
                                     {item.value}
                                   </Typography>
-                                  <Typography sx={{ fontSize: 12, color: '#64748B', fontWeight: 600, minHeight: 18 }}>
+                                  <Typography sx={{ fontSize: 11, color: '#64748B', fontWeight: 550, lineHeight: 1.35, minHeight: 28 }}>
                                     {item.subtitle}
                                   </Typography>
                                 </Box>
@@ -1202,9 +1219,9 @@ export const Dashboard: React.FC = () => {
                             ))}
                           </Grid>
                         ) : (
-                          <Box sx={{ border: '1px dashed rgba(148,163,184,0.32)', borderRadius: 3, p: 3, textAlign: 'center', background: 'linear-gradient(135deg, rgba(248,250,252,0.9), rgba(239,246,255,0.8))' }}>
+                          <Box sx={{ border: '1px dashed rgba(148,163,184,0.32)', borderRadius: 3, p: { xs: 1.8, md: 2.2 }, textAlign: 'center', background: 'linear-gradient(135deg, rgba(248,250,252,0.9), rgba(239,246,255,0.8))' }}>
                             <Box sx={{ display: 'grid', placeItems: 'center', mb: 1 }}>
-                              <Avatar sx={{ bgcolor: '#e0e7ff', color: '#4338ca', width: 46, height: 46 }}>
+                              <Avatar sx={{ bgcolor: '#e0e7ff', color: '#4338ca', width: 40, height: 40 }}>
                                 <TimelineIcon />
                               </Avatar>
                             </Box>
@@ -1214,9 +1231,9 @@ export const Dashboard: React.FC = () => {
                             <Typography sx={{ color: '#64748B', fontSize: 13, mt: 0.5 }}>
                               Complete your profile and keep applying to see more recruiter signals.
                             </Typography>
-                            <Stack direction="row" spacing={1} justifyContent="center" sx={{ mt: 1.8 }}>
+                            <Stack direction="row" spacing={0.8} justifyContent="center" sx={{ mt: 1.4 }}>
                               {activeRecruiterFilter !== 'all' && (
-                                <Button size="small" variant="outlined" onClick={() => setActiveRecruiterFilter('all')} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}>
+                                <Button size="small" variant="outlined" onClick={() => setActiveRecruiterFilter('all')} sx={{ minHeight: 32, px: 1.2, fontSize: 12, textTransform: 'none', fontWeight: 700, borderRadius: 1.5 }}>
                                   Show all activity
                                 </Button>
                               )}
@@ -1224,7 +1241,7 @@ export const Dashboard: React.FC = () => {
                                 size="small"
                                 variant="contained"
                                 onClick={() => navigate(ROUTES.DASHBOARD_PROFILE)}
-                                sx={{ textTransform: 'none', fontWeight: 800, borderRadius: 2, background: '#D6A73A', color: '#071D35', boxShadow: 'none', '&:hover': { background: '#F0C75E', boxShadow: 'none' } }}
+                                sx={{ minHeight: 32, px: 1.4, fontSize: 12, textTransform: 'none', fontWeight: 750, borderRadius: 1.5, background: '#D6A73A', color: '#071D35', boxShadow: 'none', '&:hover': { background: '#F0C75E', boxShadow: 'none' } }}
                               >
                                 Improve profile
                               </Button>
@@ -1778,6 +1795,66 @@ export const Dashboard: React.FC = () => {
             </Box>
           </Box>
           )}
+        </Box>
+
+        {showDashboardVideoAd ? (
+          <Box
+            component="aside"
+            aria-label="Advertisement"
+            sx={{
+              position: pinDashboardVideoAd ? (footerVisible ? 'absolute' : 'fixed') : 'sticky',
+              top: pinDashboardVideoAd ? (footerVisible ? 'auto' : 88) : 88,
+              bottom: pinDashboardVideoAd && footerVisible ? 24 : undefined,
+              right: pinDashboardVideoAd ? 20 : undefined,
+              width: pinDashboardVideoAd ? 'clamp(170px, calc(19.23vw - 58px), 260px)' : '100%',
+              minWidth: 0,
+              alignSelf: 'start',
+              zIndex: pinDashboardVideoAd ? 2 : undefined,
+            }}
+          >
+            <Box
+              component="video"
+              src="https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/ads.mp4?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9hZHMubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDUyMjk0NywiZXhwIjoyNDIxMjQyOTQ3fQ.EJFRs34f-J_a7ZdRHsMdnyOReit5s348B3qJhJjQT-k"
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
+              aria-label="JobPoyt advertisement video"
+              sx={{
+                display: 'block',
+                width: '100%',
+                height: 'min(72vh, 700px)',
+                objectFit: 'cover',
+                borderRadius: 1.5,
+                backgroundColor: '#0f172a',
+              }}
+            />
+            <Box
+              component="img"
+              src="https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/adsImg.png?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9hZHNJbWcucG5nIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDUyNjgyNywiZXhwIjoyNDIxMjQ2ODI3fQ.128wetCdWqPcvhXvEuBK66nfARpZ-HGc1oizZNlhCUk"
+              alt="Advertisement"
+              role="link"
+              tabIndex={0}
+              onClick={() => navigate(ROUTES.PRICING)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  navigate(ROUTES.PRICING);
+                }
+              }}
+              sx={{
+                display: 'block',
+                width: '100%',
+                height: 'min(11vh, 90px)',
+                mt: 1.5,
+                objectFit: 'cover',
+                borderRadius: 1.5,
+                cursor: 'pointer',
+              }}
+            />
+          </Box>
+        ) : null}
         </Box>
 
         <Menu anchorEl={profileMenuAnchorEl} open={Boolean(profileMenuAnchorEl)} onClose={closeProfileMenu} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} transformOrigin={{ vertical: 'top', horizontal: 'right' }}>

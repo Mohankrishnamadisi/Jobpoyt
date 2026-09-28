@@ -368,7 +368,20 @@ export const JobPoytAICareerAssistant = ({ onOpenResumeBuilder }: JobPoytAICaree
             {messages.length === 1 && messages[0]?.content === welcomeMessage && (
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.7, pl: 3.7 }}>
                 {suggestions.map((suggestion) => (
-                  <Chip key={suggestion.label} clickable label={suggestion.label} onClick={() => void submitMessage(suggestion.prompt)} sx={{ maxWidth: '100%', fontSize: 11.5 }} />
+                  <Chip
+                    key={suggestion.label}
+                    clickable
+                    label={suggestion.label}
+                    onClick={() => {
+                      if (suggestion.label.includes('Improve Resume') && onOpenResumeBuilder) {
+                        setOpen(false);
+                        onOpenResumeBuilder();
+                        return;
+                      }
+                      void submitMessage(suggestion.prompt);
+                    }}
+                    sx={{ maxWidth: '100%', fontSize: 11.5 }}
+                  />
                 ))}
                 <Chip clickable label="🌐 Ask Anything" onClick={() => inputRef.current?.focus()} sx={{ fontSize: 11.5 }} />
               </Box>

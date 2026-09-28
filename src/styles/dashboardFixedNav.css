@@ -1,7 +1,7 @@
 /* Fixed dashboard sidebar stays expanded so labels and navigation remain visible. */
 :root {
   --dash-expanded: 244px;
-  --dash-gap: 24px;
+  --dash-gap: 12px;
   --dash-left: 16px;
   --sidebar-width: var(--dash-expanded);
 }

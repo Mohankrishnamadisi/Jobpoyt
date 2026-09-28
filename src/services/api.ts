@@ -60,6 +60,15 @@ const matchesExperienceYears = (jobExperience: unknown, years: number): boolean 
   const experienceText = String(jobExperience ?? '').trim().toLowerCase();
   if (!experienceText) return false;
 
+  if (
+    experienceText.includes('any experience')
+    || experienceText.includes('no experience required')
+    || experienceText.includes('experience not required')
+    || experienceText.includes('not specified')
+  ) {
+    return true;
+  }
+
   if (experienceText.includes('fresher')) {
     return years === 0;
   }
@@ -507,14 +516,24 @@ export const jobService = {
     }
 
     const pageStart = Math.max(page - 1, 0) * safeLimit;
-    const orderedQuery = query.order('created_at', { ascending: false });
-    const response = await (options.signal ? orderedQuery.abortSignal(options.signal) : orderedQuery)
-      .range(pageStart, Math.min(pageStart + 99, pageStart + safeLimit * 8 - 1));
-    const { data, error } = response;
+    const batchSize = 1000;
+    const jobRows: Record<string, any>[] = [];
+    let offset = 0;
+    let databaseCount: number | null = null;
 
-    if (error) throw error;
+    while (true) {
+      const orderedQuery = query.order('created_at', { ascending: false });
+      const response = await (options.signal ? orderedQuery.abortSignal(options.signal) : orderedQuery)
+        .range(offset, offset + batchSize - 1);
+      if (response.error) throw response.error;
+      const batch = response.data || [];
+      jobRows.push(...batch);
+      databaseCount = response.count;
+      offset += batch.length;
+      if (batch.length < batchSize || (databaseCount !== null && offset >= databaseCount)) break;
+    }
 
-    let normalizedJobs = (data || []).map(normalizeJob);
+    let normalizedJobs = jobRows.map(normalizeJob);
 
     if (numericExperienceYears !== null) {
       normalizedJobs = normalizedJobs.filter((job) =>
@@ -543,8 +562,7 @@ export const jobService = {
 
     const diversified = diversifyJobsByCompany(rankedJobs);
 
-    const startIndex = Math.max(page - 1, 0) * safeLimit;
-    const paginatedJobs = diversified.slice(startIndex, startIndex + safeLimit);
+    const paginatedJobs = diversified.slice(pageStart, pageStart + safeLimit);
 
     return { data: paginatedJobs, total: diversified.length };
   },

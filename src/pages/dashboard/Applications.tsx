@@ -320,7 +320,7 @@ export const ApplicationsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
 
   const controlSx = {
     '& .MuiOutlinedInput-root': {
-      minHeight: 50,
+      minHeight: embedded ? 38 : 50,
       borderRadius: 2.2,
       bgcolor: isDarkMode ? '#0F172A' : '#FFFFFF',
       color: isDarkMode ? '#F8FAFC' : '#17324D',
@@ -328,7 +328,7 @@ export const ApplicationsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
       '&:hover fieldset': { borderColor: '#7EA4C5' },
       '&.Mui-focused fieldset': { borderColor: '#D6A73A', borderWidth: 2 },
     },
-    '& .MuiInputBase-input': { fontSize: 15, fontWeight: 600 },
+    '& .MuiInputBase-input': { fontSize: embedded ? 12.5 : 15, fontWeight: 600 },
     '& .MuiSelect-select': { display: 'flex', alignItems: 'center', fontWeight: 700 },
     '& .MuiSvgIcon-root': { color: '#607D96' },
   };
@@ -361,7 +361,22 @@ export const ApplicationsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
 
   return (
     <Shell>
-      <Container maxWidth="xl" sx={{ py: { xs: 1.5, md: 2.2 }, px: { xs: 1.2, sm: 2, md: 3 } }}>
+      <Container
+        className={embedded ? 'applications-page applications-page-embedded' : 'applications-page'}
+        maxWidth="xl"
+        sx={{
+          py: embedded ? { xs: 1, md: 1.4 } : { xs: 1.5, md: 2.2 },
+          px: embedded ? { xs: 0.7, sm: 1, md: 1.2 } : { xs: 1.2, sm: 2, md: 3 },
+          ...(embedded ? {
+            '& .MuiTypography-h6': { fontSize: '1rem !important', lineHeight: '1.25 !important' },
+            '& .MuiTypography-body1': { fontSize: '0.82rem !important' },
+            '& .MuiTypography-body2': { fontSize: '0.74rem !important' },
+            '& .MuiTypography-caption': { fontSize: '0.66rem !important' },
+            '& .MuiButton-root': { minHeight: 32, px: 1.2, py: 0.5, fontSize: '0.74rem' },
+            '& .MuiChip-root': { height: 22, fontSize: '0.64rem' },
+          } : {}),
+        }}
+      >
         {!embedded ? <Box
           sx={{
             mb: 2,
@@ -390,12 +405,12 @@ export const ApplicationsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
           </Button>
         </Box> : null}
 
-        <Grid container spacing={1.2} sx={{ mb: 1.8 }}>
+          <Grid container spacing={embedded ? 0.75 : 1.2} sx={{ mb: embedded ? 1.2 : 1.8 }}>
           {summaryItems.map(([label, value, color], index) => (
             <Grid item xs={6} sm={4} md={2} key={label}>
-              <Box sx={{ minHeight: 92, px: 1.6, py: 1.35, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid', borderColor: isDarkMode ? 'rgba(148,163,184,0.24)' : '#DCE6F2', borderRadius: 2.5, bgcolor: isDarkMode ? '#0F172A' : '#fff', boxShadow: '0 8px 20px rgba(15,35,63,0.045)', borderTop: `3px solid ${index === 0 ? '#0B2745' : color}`, transition: 'transform 0.18s ease, box-shadow 0.18s ease', '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 14px 26px rgba(15,35,63,0.1)' } }}>
-                <Typography variant="caption" sx={{ color: isDarkMode ? '#CBD5E1' : '#64748B', fontWeight: 800, lineHeight: 1.25 }}>{label}</Typography>
-                <Typography sx={{ mt: 0.6, fontWeight: 900, color: isDarkMode ? '#F8FAFC' : color, fontSize: 26, lineHeight: 1 }}>{value}</Typography>
+              <Box sx={{ minHeight: embedded ? 70 : 92, px: embedded ? 1.1 : 1.6, py: embedded ? 0.9 : 1.35, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', border: '1px solid', borderColor: isDarkMode ? 'rgba(148,163,184,0.24)' : '#DCE6F2', borderRadius: embedded ? 1.8 : 2.5, bgcolor: isDarkMode ? '#0F172A' : '#fff', boxShadow: '0 8px 20px rgba(15,35,63,0.045)', borderTop: `3px solid ${index === 0 ? '#0B2745' : color}`, transition: 'transform 0.18s ease, box-shadow 0.18s ease', '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 14px 26px rgba(15,35,63,0.1)' } }}>
+                <Typography variant="caption" sx={{ color: isDarkMode ? '#CBD5E1' : '#64748B', fontSize: embedded ? 10.5 : undefined, fontWeight: 800, lineHeight: 1.25 }}>{label}</Typography>
+                <Typography sx={{ mt: 0.45, fontWeight: 900, color: isDarkMode ? '#F8FAFC' : color, fontSize: embedded ? 21 : 26, lineHeight: 1 }}>{value}</Typography>
               </Box>
             </Grid>
           ))}
@@ -403,24 +418,24 @@ export const ApplicationsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
 
         {remoteFilter ? <Chip label="Remote filter active" size="small" sx={{ mb: 1.5, fontWeight: 800, bgcolor: '#E8F1FA', color: '#0F6B9A' }} /> : null}
 
-        <Card sx={{ borderRadius: 3.5, border: '1px solid', borderColor: isDarkMode ? 'rgba(148,163,184,0.24)' : '#DCE6F2', boxShadow: '0 18px 42px rgba(15,35,63,0.08)', overflow: 'hidden' }}>
-          <Box sx={{ px: { xs: 1.4, md: 2.2 }, py: 1.35, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', borderBottom: '1px solid', borderColor: isDarkMode ? 'rgba(148,163,184,0.2)' : '#E7EEF5', background: isDarkMode ? '#111D30' : 'linear-gradient(180deg, #FBFDFF 0%, #F5F9FC 100%)' }}>
-            <Typography sx={{ mr: { md: 1 }, color: isDarkMode ? '#F8FAFC' : '#0B2745', fontWeight: 900, fontSize: 15 }}>Find an application</Typography>
-            <TextField size="small" placeholder="Search title or company" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} sx={{ ...controlSx, minWidth: { xs: '100%', sm: 230 }, flex: { sm: 1 } }} InputProps={{ startAdornment: <InputAdornment position="start"><Search sx={{ color: '#607D96', fontSize: 21 }} /></InputAdornment> }} />
-            <Select size="small" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as 'all' | StatusKey)} sx={{ ...controlSx, minWidth: 145 }} MenuProps={menuProps}>
+          <Card sx={{ borderRadius: embedded ? 2.5 : 3.5, border: '1px solid', borderColor: isDarkMode ? 'rgba(148,163,184,0.24)' : '#DCE6F2', boxShadow: '0 18px 42px rgba(15,35,63,0.08)', overflow: 'hidden' }}>
+            <Box sx={{ px: embedded ? { xs: 1, md: 1.4 } : { xs: 1.4, md: 2.2 }, py: embedded ? 0.8 : 1.35, display: 'flex', alignItems: 'center', gap: embedded ? 0.7 : 1, flexWrap: 'wrap', borderBottom: '1px solid', borderColor: isDarkMode ? 'rgba(148,163,184,0.2)' : '#E7EEF5', background: isDarkMode ? '#111D30' : 'linear-gradient(180deg, #FBFDFF 0%, #F5F9FC 100%)' }}>
+              <Typography sx={{ mr: { md: 1 }, color: isDarkMode ? '#F8FAFC' : '#0B2745', fontWeight: 900, fontSize: embedded ? 12.5 : 15 }}>Find an application</Typography>
+            <TextField size="small" placeholder="Search title or company" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} sx={{ ...controlSx, minWidth: { xs: '100%', sm: embedded ? 190 : 230 }, flex: { sm: 1 } }} InputProps={{ startAdornment: <InputAdornment position="start"><Search sx={{ color: '#607D96', fontSize: embedded ? 17 : 21 }} /></InputAdornment> }} />
+            <Select size="small" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as 'all' | StatusKey)} sx={{ ...controlSx, minWidth: embedded ? 118 : 145 }} MenuProps={menuProps}>
               <MenuItem sx={menuItemSx} value="all">All statuses</MenuItem><MenuItem sx={menuItemSx} value="applied">Applied</MenuItem><MenuItem sx={menuItemSx} value="under_review">Under Review</MenuItem><MenuItem sx={menuItemSx} value="shortlisted">Shortlisted</MenuItem><MenuItem sx={menuItemSx} value="accepted">Accepted</MenuItem><MenuItem sx={menuItemSx} value="rejected">Rejected</MenuItem>
             </Select>
-            <Select size="small" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as 'all' | 'internal' | 'external')} sx={{ ...controlSx, minWidth: 120 }} MenuProps={menuProps}>
+            <Select size="small" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as 'all' | 'internal' | 'external')} sx={{ ...controlSx, minWidth: embedded ? 98 : 120 }} MenuProps={menuProps}>
               <MenuItem sx={menuItemSx} value="all">All types</MenuItem><MenuItem sx={menuItemSx} value="internal">Internal</MenuItem><MenuItem sx={menuItemSx} value="external">External</MenuItem>
             </Select>
-            <Select size="small" value={sortBy} onChange={(event) => setSortBy(event.target.value as 'latest' | 'activity')} sx={{ ...controlSx, minWidth: 135 }} MenuProps={menuProps}><MenuItem sx={menuItemSx} value="latest">Latest applied</MenuItem><MenuItem sx={menuItemSx} value="activity">Latest activity</MenuItem></Select>
+            <Select size="small" value={sortBy} onChange={(event) => setSortBy(event.target.value as 'latest' | 'activity')} sx={{ ...controlSx, minWidth: embedded ? 112 : 135 }} MenuProps={menuProps}><MenuItem sx={menuItemSx} value="latest">Latest applied</MenuItem><MenuItem sx={menuItemSx} value="activity">Latest activity</MenuItem></Select>
           </Box>
 
-          {loading ? <Box sx={{ minHeight: 360, display: 'grid', placeItems: 'center' }}><Stack alignItems="center" spacing={1}><CircularProgress size={28} /><Typography color="text.secondary">Loading applications...</Typography></Stack></Box> : error ? <Box sx={{ p: 3 }}><Alert severity="error">{error}</Alert></Box> : visibleApplications.length === 0 ? <Box sx={{ p: 5, textAlign: 'center' }}><Typography variant="h6" sx={{ fontWeight: 800 }}>No applications found</Typography><Typography color="text.secondary" sx={{ mt: 0.6, mb: 2 }}>Try changing your filters or apply to a job to start tracking your progress.</Typography><Button component={RouterLink} to={ROUTES.JOBS} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, borderRadius: 2, bgcolor: '#0B2745' }}>Explore Jobs</Button></Box> : <Box sx={{ display: { xs: 'block', md: 'grid' }, gridTemplateColumns: 'minmax(280px, 38%) minmax(0, 1fr)', minHeight: { md: 820 }, background: isDarkMode ? '#0B1220' : '#F7FAFD' }}>
-            <Box sx={{ display: { xs: mobileDetailOpen ? 'none' : 'block', md: 'block' }, p: { xs: 0.8, md: 1.2 }, borderRight: { md: '1px solid' }, borderColor: isDarkMode ? 'rgba(148,163,184,0.2)' : '#E1EAF3', maxHeight: { md: 820 }, overflowY: { md: 'auto' } }}>
+          {loading ? <Box sx={{ minHeight: embedded ? 250 : 360, display: 'grid', placeItems: 'center' }}><Stack alignItems="center" spacing={1}><CircularProgress size={embedded ? 22 : 28} /><Typography variant={embedded ? 'body2' : 'body1'} color="text.secondary">Loading applications...</Typography></Stack></Box> : error ? <Box sx={{ p: embedded ? 1.5 : 3 }}><Alert severity="error">{error}</Alert></Box> : visibleApplications.length === 0 ? <Box sx={{ p: embedded ? 2.5 : 5, textAlign: 'center' }}><Typography variant="h6" sx={{ fontWeight: 800 }}>No applications found</Typography><Typography color="text.secondary" sx={{ mt: 0.6, mb: 2 }}>Try changing your filters or apply to a job to start tracking your progress.</Typography><Button component={RouterLink} to={ROUTES.JOBS} variant="contained" sx={{ textTransform: 'none', fontWeight: 800, borderRadius: 2, bgcolor: '#0B2745' }}>Explore Jobs</Button></Box> : <Box sx={{ display: { xs: 'block', md: 'grid' }, gridTemplateColumns: 'minmax(260px, 38%) minmax(0, 1fr)', minHeight: { md: embedded ? 620 : 820 }, background: isDarkMode ? '#0B1220' : '#F7FAFD' }}>
+            <Box sx={{ display: { xs: mobileDetailOpen ? 'none' : 'block', md: 'block' }, p: { xs: 0.55, md: embedded ? 0.8 : 1.2 }, borderRight: { md: '1px solid' }, borderColor: isDarkMode ? 'rgba(148,163,184,0.2)' : '#E1EAF3', maxHeight: { md: embedded ? 620 : 820 }, overflowY: { md: 'auto' } }}>
               {visibleApplications.map((application) => { const status = normalizeStatus(application.status); const external = isExternalApplication(application); const selected = application.id === selectedId; return <Box key={application.id} component="button" onClick={() => selectApplication(application)} sx={{ width: '100%', textAlign: 'left', border: '1px solid', borderColor: selected ? '#BBD4ED' : (isDarkMode ? 'rgba(148,163,184,0.22)' : '#DCE6F2'), borderLeft: selected ? '4px solid #D6A73A' : '4px solid transparent', borderRadius: 2.2, mb: 1, bgcolor: selected ? (isDarkMode ? 'rgba(37,99,235,0.18)' : '#FFFFFF') : (isDarkMode ? 'rgba(15,23,42,0.52)' : 'rgba(255,255,255,0.86)'), px: { xs: 1.2, md: 1.5 }, py: 1.45, cursor: 'pointer', transition: 'all 0.18s ease', boxShadow: selected ? '0 8px 18px rgba(15,35,63,0.08)' : '0 3px 10px rgba(15,35,63,0.035)', '&:hover': { bgcolor: isDarkMode ? 'rgba(37,99,235,0.12)' : '#FFFFFF', borderColor: '#BBD4ED', transform: 'translateY(-1px)', boxShadow: '0 8px 18px rgba(15,35,63,0.07)' } }}><Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, alignItems: 'flex-start' }}><Box sx={{ minWidth: 0 }}><Typography noWrap sx={{ fontWeight: 850, color: isDarkMode ? '#F8FAFC' : '#0B2745' }}>{application.jobs?.title || 'Job title unavailable'}</Typography><Typography noWrap variant="body2" sx={{ color: isDarkMode ? '#CBD5E1' : '#64748B', mt: 0.25 }}>{application.jobs?.company_name || 'Company unavailable'}</Typography></Box><Stack direction="row" spacing={0.5} flexWrap="wrap" justifyContent="flex-end">{renderStatus(status)}{external ? <Chip label="External" size="small" sx={{ color: '#075985', bgcolor: '#E0F2FE', fontWeight: 800, borderRadius: 1.2 }} /> : null}</Stack></Box><Stack direction="row" spacing={1} sx={{ mt: 1, color: isDarkMode ? '#94A3B8' : '#7A8EA3' }}><Typography variant="caption" noWrap>{application.jobs?.location || 'Location unavailable'}</Typography><Typography variant="caption">·</Typography><Typography variant="caption" noWrap>{application.applied_at ? formatDate(application.applied_at) : 'Date unavailable'}</Typography></Stack></Box>; })}
             </Box>
-            <Box sx={{ display: { xs: mobileDetailOpen ? 'block' : 'none', md: 'block' }, p: { xs: 1.2, md: 1.8 }, alignSelf: 'stretch', overflow: 'visible' }}>
+            <Box sx={{ display: { xs: mobileDetailOpen ? 'block' : 'none', md: 'block' }, p: embedded ? { xs: 0.7, md: 1 } : { xs: 1.2, md: 1.8 }, alignSelf: 'stretch', overflow: 'visible' }}>
               <Button onClick={() => setMobileDetailOpen(false)} startIcon={<ArrowBack />} sx={{ display: { xs: 'inline-flex', md: 'none' }, mb: 1, textTransform: 'none', fontWeight: 800 }}>Back to Applications</Button>
               {selectedApplication ? renderDetails(selectedApplication) : <Typography color="text.secondary">Select an application to view its details.</Typography>}
             </Box>
