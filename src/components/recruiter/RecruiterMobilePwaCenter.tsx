@@ -30,6 +30,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { RecruiterPageHero } from './RecruiterPageHero';
 import {
   Apps as AppsIcon,
   CloudDone as CloudDoneIcon,
@@ -341,23 +342,16 @@ export const RecruiterMobilePwaCenter: React.FC = () => {
 
   return (
     <MotionBox initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.28 }}>
-      <Card sx={{ borderRadius: 3, border: '1px solid #e2e8f0', mb: 2, background: 'linear-gradient(110deg, #0f172a 0%, #155e75 52%, #0ea5e9 100%)', color: '#f8fafc' }}>
-        <CardContent>
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
-            <Box>
-              <Typography variant="h4" sx={{ fontWeight: 800 }}>Mobile & PWA</Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9 }}>
-                Complete mobile-first and advanced progressive web app ecosystem for recruiter and candidate workflows.
-              </Typography>
-            </Box>
-            <Stack direction="row" spacing={0.8} flexWrap="wrap">
-              <Chip label={status.isOnline ? 'Online' : 'Offline'} color={status.isOnline ? 'success' : 'warning'} />
-              <Chip label={status.isInstalled ? 'Installed' : 'Web Mode'} color={status.isInstalled ? 'primary' : 'default'} />
-              <Chip label={`Device: ${status.deviceType}`} />
-            </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
+      <RecruiterPageHero
+        eyebrow="Account"
+        title="Mobile & PWA"
+        description="Complete mobile-first and advanced progressive web app ecosystem for recruiter and candidate workflows."
+        stats={[
+          { label: 'Connection', value: status.isOnline ? 'Online' : 'Offline', tone: status.isOnline ? 'ok' : 'warn' },
+          { label: 'App mode', value: status.isInstalled ? 'Installed' : 'Web' },
+          { label: 'Device', value: status.deviceType },
+        ]}
+      />
 
       <Paper sx={{ border: '1px solid #e2e8f0', borderRadius: 2, mb: 2 }}>
         <Tabs value={tab} onChange={(_, value: HubTab) => setTab(value)} variant={isTablet ? 'scrollable' : 'scrollable'} scrollButtons="auto" allowScrollButtonsMobile sx={{ minHeight: 54, px: 0.5, '& .MuiTabs-scroller': { overflowX: 'auto !important' }, '& .MuiTabs-scrollButtons': { width: 34, borderRadius: 1, mx: 0.5 }, '& .MuiTab-root': { textTransform: 'none', whiteSpace: 'nowrap', minHeight: 54, minWidth: 'max-content', px: 1.8, fontWeight: 700, fontSize: '0.82rem' } }}>

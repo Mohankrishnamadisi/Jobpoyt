@@ -27,6 +27,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { RecruiterPageHero } from './RecruiterPageHero';
 import {
   AdminPanelSettings as SecurityIcon,
   ContentCopy as CopyIcon,
@@ -250,15 +251,13 @@ export const RecruiterSecurityCenter: React.FC<RecruiterSecurityCenterProps> = (
 
   return (
     <MotionBox initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1.2, mb: 2, flexWrap: 'wrap' }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: themeColors.text.primary }}>Security Center, Compliance & Audit Logs</Typography>
-          <Typography variant="body2" sx={{ color: themeColors.text.secondary, mt: 0.5 }}>
-            Centralized security posture, audit visibility, session/device control, API security, and compliance operations.
-          </Typography>
-        </Box>
-        <Chip icon={<SecurityIcon />} color={ctx.canManageSecurity ? 'success' : 'warning'} label={ctx.canManageSecurity ? 'Manage Access: Owner/Security Admin' : 'Recruiter: Own Session & Settings Only'} />
-      </Box>
+      <RecruiterPageHero
+        eyebrow="Account"
+        icon={<SecurityIcon />}
+        title="Security Center, Compliance & Audit Logs"
+        description="Centralized security posture, audit visibility, session/device control, API security, and compliance operations."
+        actions={<Chip icon={<SecurityIcon />} color={ctx.canManageSecurity ? 'success' : 'warning'} label={ctx.canManageSecurity ? 'Manage Access: Owner/Security Admin' : 'Recruiter: Own Session & Settings Only'} />}
+      />
 
       {!ctx.canManageSecurity && (
         <Alert severity="info" sx={{ mb: 2 }}>

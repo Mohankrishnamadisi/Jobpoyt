@@ -34,7 +34,8 @@ import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { subscriptionService } from '@services/api';
 import { billingSubscriptionService, type RecruiterPlanDuration } from '@services/billingSubscription';
-import { getRecruiterWelcomeUsage } from '@utils/recruiterWelcomeBenefits';
+import { getRecruiterCreditStatus, FREE_RECRUITER_CREDITS, JOB_POST_CREDIT_COST, type RecruiterCreditStatus } from '@services/recruiterCredits';
+import { supabase } from '@services/supabase';
 import { PaymentModal } from '@components/payments/PaymentModal';
 
 interface RecruiterBillingSubscriptionProps {
@@ -92,131 +93,6 @@ interface UsageData {
   isFree: boolean;
 }
 
-const getUsageWarningLevel = (used: number, total: number): 'normal' | 'running_low' | 'almost_exhausted' | 'limit_reached' => {
-  if (total === 0) return 'normal';
-  const percentage = (used / total) * 100;
-  if (percentage >= 100) return 'limit_reached';
-  if (percentage >= 90) return 'almost_exhausted';
-  if (percentage >= 70) return 'running_low';
-  return 'normal';
-};
-
-const UsageCard: React.FC<{
-  label: string;
-  emoji?: string;
-  used: number;
-  total: number;
-  remaining: number;
-}> = ({ label, emoji = '📊', used, total, remaining }) => {
-  const warningLevel = getUsageWarningLevel(used, total);
-  const percentage = total > 0 ? (used / total) * 100 : 0;
-
-  let warningText = '';
-  let warningColor = 'transparent';
-
-  if (warningLevel === 'running_low') {
-    warningText = "You're running low";
-    warningColor = 'rgba(217, 119, 6, 0.08)';
-  } else if (warningLevel === 'almost_exhausted') {
-    warningText = 'Almost exhausted';
-    warningColor = 'rgba(220, 38, 38, 0.08)';
-  } else if (warningLevel === 'limit_reached') {
-    warningText = 'Limit reached';
-    warningColor = 'rgba(220, 38, 38, 0.12)';
-  }
-
-  return (
-    <Card
-      sx={{
-        borderRadius: 3,
-        border: '1px solid #E5E7EB',
-        background: warningColor || 'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%)',
-        height: '100%',
-      }}
-    >
-      <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 1.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography sx={{ fontSize: 24 }}>{emoji}</Typography>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1F2937' }}>
-              {label}
-            </Typography>
-          </Box>
-          {warningText && (
-            <Chip
-              label={warningText}
-              size="small"
-              variant="filled"
-              sx={{
-                backgroundColor:
-                  warningLevel === 'limit_reached'
-                    ? '#DC2626'
-                    : warningLevel === 'almost_exhausted'
-                      ? '#F97316'
-                      : '#D97706',
-                color: 'white',
-                fontWeight: 700,
-                height: 24,
-                fontSize: '0.65rem',
-              }}
-            />
-          )}
-        </Box>
-
-        <Grid container spacing={1} sx={{ mb: 1.5 }}>
-          <Grid item xs={6}>
-            <Typography variant="caption" sx={{ color: '#6B7280', display: 'block' }}>
-              Used
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 800, color: '#1F2937' }}>
-              {used.toLocaleString()}
-            </Typography>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="caption" sx={{ color: '#6B7280', display: 'block' }}>
-              Remaining
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 800, color: '#10B981' }}>
-              {Math.max(remaining, 0).toLocaleString()}
-            </Typography>
-          </Grid>
-        </Grid>
-
-        <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-            <Typography variant="caption" sx={{ color: '#6B7280' }}>
-              {used} / {total}
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#6B7280', fontWeight: 700 }}>
-              {Math.round(percentage)}%
-            </Typography>
-          </Box>
-          <LinearProgress
-            variant="determinate"
-            value={Math.min(percentage, 100)}
-            sx={{
-              height: 6,
-              borderRadius: 3,
-              backgroundColor: '#E5E7EB',
-              '& .MuiLinearProgress-bar': {
-                borderRadius: 3,
-                background:
-                  warningLevel === 'limit_reached'
-                    ? '#DC2626'
-                    : warningLevel === 'almost_exhausted'
-                      ? '#F97316'
-                      : warningLevel === 'running_low'
-                        ? '#D97706'
-                        : 'linear-gradient(90deg, #10B981 0%, #059669 100%)',
-              },
-            }}
-          />
-        </Box>
-      </CardContent>
-    </Card>
-  );
-};
-
 export const RecruiterBillingSubscription: React.FC<RecruiterBillingSubscriptionProps> = ({
   ownerId,
 }) => {
@@ -227,11 +103,13 @@ export const RecruiterBillingSubscription: React.FC<RecruiterBillingSubscription
   const [invoiceList, setInvoiceList] = useState<any[]>([]);
   const [paymentHistory, setPaymentHistory] = useState<any[]>([]);
   const [usageSnapshot, setUsageSnapshot] = useState<any>(null);
+  const [freeCredits, setFreeCredits] = useState({ used: 0, total: FREE_RECRUITER_CREDITS, remaining: FREE_RECRUITER_CREDITS });
+  const [creditStatus, setCreditStatus] = useState<RecruiterCreditStatus | null>(null);
   const [generatedInvoice, setGeneratedInvoice] = useState<any>(null);
   const [usage, setUsage] = useState<UsageData>({
     jobPostsUsed: 0,
-    jobPostsTotal: 15,
-    jobPostsRemaining: 15,
+    jobPostsTotal: 2,
+    jobPostsRemaining: 2,
     resumeUnlocksUsed: 0,
     resumeUnlocksTotal: 150,
     resumeUnlocksRemaining: 150,
@@ -243,9 +121,10 @@ export const RecruiterBillingSubscription: React.FC<RecruiterBillingSubscription
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [sub, welcomeUsage, overview, snapshot, invoices, payments] = await Promise.all([
+        const [sub, creditStatus, ledger, overview, snapshot, invoices, payments] = await Promise.all([
           subscriptionService.getUserSubscription(ownerId),
-          getRecruiterWelcomeUsage(ownerId).catch(() => null),
+          getRecruiterCreditStatus().catch(() => null),
+          supabase.from('recruiter_credit_transactions').select('reason').eq('recruiter_id', ownerId).then(({ data }) => data || [], () => []),
           billingSubscriptionService.getBillingOverview(ownerId, ownerId).catch(() => null),
           billingSubscriptionService.getUsageSnapshot(ownerId).catch(() => null),
           Promise.resolve(billingSubscriptionService.getInvoices(ownerId)),
@@ -253,19 +132,24 @@ export const RecruiterBillingSubscription: React.FC<RecruiterBillingSubscription
         ]);
 
         setCurrentSubscription(sub);
+        setCreditStatus(creditStatus);
         setBillingOverview(overview);
         setUsageSnapshot(snapshot);
         setInvoiceList(invoices || []);
         setPaymentHistory(payments || []);
 
-        if (welcomeUsage) {
+        if (creditStatus && !creditStatus.unlimited) {
+          const jobPostsUsed = ledger.filter((row: { reason: string }) => row.reason === 'job_post').length;
+          const unlocksUsed = ledger.filter((row: { reason: string }) => row.reason === 'candidate_unlock').length;
+          const jobPostsLeft = Math.floor(creditStatus.availableCredits / JOB_POST_CREDIT_COST);
+          setFreeCredits({ used: creditStatus.usedCredits, total: FREE_RECRUITER_CREDITS, remaining: creditStatus.availableCredits });
           setUsage({
-            jobPostsUsed: welcomeUsage.freeJobPostsUsed || 0,
-            jobPostsTotal: welcomeUsage.freeJobPostsTotal || 15,
-            jobPostsRemaining: welcomeUsage.freeJobPostsRemaining || 15,
-            resumeUnlocksUsed: welcomeUsage.freeResumeViewsUsed || 0,
-            resumeUnlocksTotal: welcomeUsage.freeResumeViewsTotal || 150,
-            resumeUnlocksRemaining: welcomeUsage.freeResumeViewsRemaining || 150,
+            jobPostsUsed,
+            jobPostsTotal: jobPostsUsed + jobPostsLeft,
+            jobPostsRemaining: jobPostsLeft,
+            resumeUnlocksUsed: unlocksUsed,
+            resumeUnlocksTotal: unlocksUsed + creditStatus.availableCredits,
+            resumeUnlocksRemaining: creditStatus.availableCredits,
             isFree: true,
           });
         }
@@ -277,13 +161,20 @@ export const RecruiterBillingSubscription: React.FC<RecruiterBillingSubscription
     loadData();
   }, [ownerId]);
 
-  const isFreeRecruiter = currentSubscription?.plan === 'free' || !currentSubscription?.plan;
+  const planState = creditStatus?.planState;
+  const isFreeRecruiter = planState ? planState !== 'active' : currentSubscription?.plan === 'free' || !currentSubscription?.plan;
+  const isProActive = planState === 'active';
 
-  const currentPlanLabel = currentSubscription?.plan === 'Jobpoyt_recruiter_pro' ? 'Jobpoyt Recruiter Pro' : 'Free Onboarding';
-  const planAmount = currentSubscription?.amount || billingOverview?.monthlySpend || 0;
+  const currentPlanLabel = isProActive
+    ? 'Jobpoyt Recruiter Pro'
+    : planState === 'expired' ? 'Recruiter Pro (Expired)' : 'Free Plan';
+  const planAmount = isProActive ? Number(currentSubscription?.amount || 0) : 0;
   const planStart = currentSubscription?.start_date || currentSubscription?.created_at || new Date().toISOString();
-  const planExpiry = currentSubscription?.end_date || currentSubscription?.expiry_date || billingOverview?.nextBillingDate || 'Not set';
-  const nextBillingDate = billingOverview?.nextBillingDate || planExpiry;
+  const planExpiry = creditStatus?.planEndDate || currentSubscription?.end_date || currentSubscription?.expiry_date || 'Not set';
+  const nextBillingDate = isProActive && creditStatus?.planEndDate
+    ? new Date(creditStatus.planEndDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+    : '—';
+  const availableBalanceLabel = creditStatus?.unlimited ? 'Unlimited' : String(creditStatus?.availableCredits ?? freeCredits.remaining);
 
   const handleGenerateInvoice = () => {
     const generated = {
@@ -323,28 +214,28 @@ export const RecruiterBillingSubscription: React.FC<RecruiterBillingSubscription
         <Paper sx={{ p: 2.5, borderRadius: 3, border: '1px solid #E5E7EB', height: '100%' }}>
           <Typography variant="caption" sx={{ color: '#6B7280', display: 'block', mb: 1 }}>Current Plan</Typography>
           <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827' }}>{currentPlanLabel}</Typography>
-          <Typography variant="body2" sx={{ color: '#4B5563', mt: 0.5 }}>{currentSubscription?.status || 'active'}</Typography>
+          <Typography variant="body2" sx={{ color: '#4B5563', mt: 0.5 }}>{isProActive ? 'active' : planState === 'expired' ? 'expired' : `${FREE_RECRUITER_CREDITS} one-time credits`}</Typography>
         </Paper>
       </Grid>
       <Grid item xs={12} sm={6} md={3}>
         <Paper sx={{ p: 2.5, borderRadius: 3, border: '1px solid #E5E7EB', height: '100%' }}>
           <Typography variant="caption" sx={{ color: '#6B7280', display: 'block', mb: 1 }}>Monthly Spend</Typography>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827' }}>{formatMoney(billingOverview?.monthlySpend || planAmount)}</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827' }}>{formatMoney(planAmount)}</Typography>
           <Typography variant="body2" sx={{ color: '#4B5563', mt: 0.5 }}>This month</Typography>
         </Paper>
       </Grid>
       <Grid item xs={12} sm={6} md={3}>
         <Paper sx={{ p: 2.5, borderRadius: 3, border: '1px solid #E5E7EB', height: '100%' }}>
-          <Typography variant="caption" sx={{ color: '#6B7280', display: 'block', mb: 1 }}>Next Billing</Typography>
+          <Typography variant="caption" sx={{ color: '#6B7280', display: 'block', mb: 1 }}>{isProActive ? 'Plan Ends' : 'Next Billing'}</Typography>
           <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827' }}>{nextBillingDate}</Typography>
-          <Typography variant="body2" sx={{ color: '#4B5563', mt: 0.5 }}>Auto-renewal</Typography>
+          <Typography variant="body2" sx={{ color: '#4B5563', mt: 0.5 }}>{isProActive ? 'Renew to continue' : 'No active subscription'}</Typography>
         </Paper>
       </Grid>
       <Grid item xs={12} sm={6} md={3}>
         <Paper sx={{ p: 2.5, borderRadius: 3, border: '1px solid #E5E7EB', height: '100%' }}>
           <Typography variant="caption" sx={{ color: '#6B7280', display: 'block', mb: 1 }}>Available Balance</Typography>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827' }}>{billingOverview?.creditsRemaining ?? 0}</Typography>
-          <Typography variant="body2" sx={{ color: '#4B5563', mt: 0.5 }}>Credits left</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 800, color: '#111827' }}>{availableBalanceLabel}</Typography>
+          <Typography variant="body2" sx={{ color: '#4B5563', mt: 0.5 }}>{creditStatus?.unlimited ? 'With Recruiter Pro' : `of ${FREE_RECRUITER_CREDITS} free credits left`}</Typography>
         </Paper>
       </Grid>
 
@@ -353,7 +244,7 @@ export const RecruiterBillingSubscription: React.FC<RecruiterBillingSubscription
           <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>Billing Summary</Typography>
           <Stack spacing={2}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}><Typography>Plan Value</Typography><Typography sx={{ fontWeight: 700 }}>{formatMoney(planAmount)}</Typography></Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}><Typography>Resume Unlocks Used</Typography><Typography sx={{ fontWeight: 700 }}>{billingOverview?.resumeUnlocks ?? usage.resumeUnlocksUsed}</Typography></Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}><Typography>Resume Unlocks Used</Typography><Typography sx={{ fontWeight: 700 }}>{usage.resumeUnlocksUsed}</Typography></Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}><Typography>Jobs Posted</Typography><Typography sx={{ fontWeight: 700 }}>{billingOverview?.jobsPosted ?? usage.jobPostsUsed}</Typography></Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}><Typography>AI Requests</Typography><Typography sx={{ fontWeight: 700 }}>{billingOverview?.aiRequestsUsed ?? usageSnapshot?.aiUsage ?? 0}</Typography></Box>
           </Stack>
@@ -425,7 +316,7 @@ export const RecruiterBillingSubscription: React.FC<RecruiterBillingSubscription
             <Typography variant="caption" sx={{ color: '#6B7280' }}>Validity</Typography>
             <Typography variant="body2" sx={{ mt: 0.5, color: '#111827' }}><strong>Started:</strong> {new Date(planStart).toLocaleDateString()}</Typography>
             <Typography variant="body2" sx={{ mt: 0.5, color: '#111827' }}><strong>Expires:</strong> {String(planExpiry).includes('Invalid') ? 'Not available' : new Date(planExpiry).toLocaleDateString()}</Typography>
-            <Typography variant="body2" sx={{ mt: 0.5, color: '#111827' }}><strong>Next billing:</strong> {new Date(nextBillingDate).toLocaleDateString()}</Typography>
+            <Typography variant="body2" sx={{ mt: 0.5, color: '#111827' }}><strong>Next billing:</strong> {nextBillingDate}</Typography>
           </Box>
         </Grid>
       </Grid>
@@ -556,8 +447,8 @@ export const RecruiterBillingSubscription: React.FC<RecruiterBillingSubscription
                 Billing & Subscription
               </Typography>
               <Typography variant="body1" sx={{ color: 'rgba(226, 232, 240, 0.9)', maxWidth: 600, lineHeight: 1.6 }}>
-                Simple, transparent recruiter plans built for every hiring stage. Start free with 15 job posts and
-                150 resume unlocks, then upgrade to unlimited when you're ready.
+                Simple, transparent recruiter plans built for every hiring stage. Start free with {FREE_RECRUITER_CREDITS} credits,
+                then upgrade to unlimited job posts and candidate unlocks when you're ready.
               </Typography>
             </Grid>
 
@@ -582,8 +473,10 @@ export const RecruiterBillingSubscription: React.FC<RecruiterBillingSubscription
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'rgba(226, 232, 240, 0.85)' }}>
                   {isFreeRecruiter
-                    ? 'Welcome benefits active'
-                    : `Active until ${new Date(currentSubscription?.expiry_date || Date.now()).toLocaleDateString()}`}
+                    ? planState === 'expired'
+                      ? 'Subscription expired — renew to continue'
+                      : `${freeCredits.remaining} of ${FREE_RECRUITER_CREDITS} free credits left`
+                    : `Active until ${new Date(creditStatus?.planEndDate || currentSubscription?.end_date || Date.now()).toLocaleDateString()}`}
                 </Typography>
                 {!isFreeRecruiter && currentSubscription?.team_member_limit && (
                   <Typography variant="caption" sx={{ color: 'rgba(226, 232, 240, 0.8)', display: 'block', mt: 1 }}>
@@ -619,98 +512,6 @@ export const RecruiterBillingSubscription: React.FC<RecruiterBillingSubscription
           </Tabs>
           <Box sx={{ p: 3 }}>{renderTabContent()}</Box>
         </Paper>
-
-        {/* FREE Plan Status Section */}
-        {isFreeRecruiter && (
-          <MotionBox
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <Paper
-              sx={{
-                mb: 4,
-                p: { xs: 2.5, md: 3 },
-                borderRadius: 4,
-                border: '2px solid rgba(16, 185, 129, 0.3)',
-                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(14, 165, 233, 0.06) 100%)',
-              }}
-            >
-              <Grid container spacing={2} alignItems="flex-start">
-                <Grid item xs={12} md={8}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                    <Typography sx={{ fontSize: 26, lineHeight: 1 }}>🎁</Typography>
-                    <Typography variant="h5" sx={{ fontWeight: 900, color: '#065F46', lineHeight: 1.2 }}>
-                      Welcome Hiring Benefits
-                    </Typography>
-                  </Box>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      color: '#374151',
-                      maxWidth: 680,
-                      lineHeight: 1.5,
-                      fontWeight: 500,
-                    }}
-                  >
-                    You received complimentary hiring benefits to get started. These are available one-time only.
-                  </Typography>
-                </Grid>
-
-                <Grid
-                  item
-                  xs={12}
-                  md={4}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: { xs: 'flex-start', md: 'flex-end' },
-                    pt: { xs: 0, md: 1.5 },
-                  }}
-                >
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      color: '#374151',
-                      fontWeight: 500,
-                      textAlign: { xs: 'left', md: 'right' },
-                      lineHeight: 1.4,
-                      maxWidth: 280,
-                    }}
-                  >
-                    Upgrade to Recruiter Pro and get
-                    <Box component="span" sx={{ display: 'block' }}>
-                      unlimited everything
-                    </Box>
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <UsageCard
-                        label="Free Job Posts"
-                        emoji="📝"
-                        used={usage.jobPostsUsed}
-                        total={usage.jobPostsTotal}
-                        remaining={usage.jobPostsRemaining}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <UsageCard
-                        label="Resume Unlocks"
-                        emoji="📄"
-                        used={usage.resumeUnlocksUsed}
-                        total={usage.resumeUnlocksTotal}
-                        remaining={usage.resumeUnlocksRemaining}
-                      />
-                    </Grid>
-                  </Grid>
-                </Grid>
-              </Grid>
-            </Paper>
-          </MotionBox>
-        )}
 
         {/* Paid Plans Section */}
         <MotionBox

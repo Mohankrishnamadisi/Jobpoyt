@@ -26,6 +26,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { RecruiterPageHero } from './RecruiterPageHero';
 import {
   AutoAwesome as AiIcon,
   Download as DownloadIcon,
@@ -321,18 +322,18 @@ export const RecruiterMarketIntelligence: React.FC<RecruiterMarketIntelligencePr
 
   return (
     <MotionBox initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1.2, mb: 2, flexWrap: 'wrap' }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: themeColors.text.primary }}>AI Hiring Market Intelligence & Salary Insights</Typography>
-          <Typography variant="body2" sx={{ color: themeColors.text.secondary, mt: 0.4 }}>
-            Market demand, compensation benchmarks, talent supply, competitor insights, forecasting, and AI optimization.
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={0.6}>
-          <Chip icon={<InsightsIcon />} label="Plan: Eligible" color="success" />
-          <Chip icon={<AiIcon />} label="AI Driven" color="info" />
-        </Stack>
-      </Box>
+      <RecruiterPageHero
+        eyebrow="Intelligence"
+        icon={<InsightsIcon />}
+        title="Market Intelligence & Salary Insights"
+        description="Market demand, compensation benchmarks, talent supply, competitor insights, forecasting, and AI optimization."
+        actions={(
+          <>
+            <Chip icon={<InsightsIcon />} label="Plan: Eligible" color="success" />
+            <Chip icon={<AiIcon />} label="AI Driven" />
+          </>
+        )}
+      />
 
       <Card sx={{ borderRadius: 2, border: `1px solid ${themeColors.border}`, mb: 2 }}>
         <CardContent>

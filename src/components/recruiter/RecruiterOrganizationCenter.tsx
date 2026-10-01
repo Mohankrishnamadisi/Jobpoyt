@@ -27,6 +27,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { RecruiterPageHero } from './RecruiterPageHero';
 import {
   Apartment as OrgIcon,
   CloudUpload as ImportIcon,
@@ -242,18 +243,16 @@ export const RecruiterOrganizationCenter: React.FC<RecruiterOrganizationCenterPr
 
   return (
     <MotionBox initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1.2, mb: 2, flexWrap: 'wrap' }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: themeColors.text.primary }}>White-label Multi-Tenant Organization Platform</Typography>
-          <Typography variant="body2" sx={{ color: themeColors.text.secondary, mt: 0.5 }}>
-            Organization controls, tenant isolation, white-label branding, domain, API, billing, security, analytics, and super-admin architecture.
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={0.7}>
-          <Chip icon={<OrgIcon />} label={`Tenant: ${tenantId}`} color="info" />
-          <Chip icon={<IsolationIcon />} label={`Isolation Score: ${isolation.score}`} color="success" />
-        </Stack>
-      </Box>
+      <RecruiterPageHero
+        eyebrow="Company"
+        icon={<OrgIcon />}
+        title="Organization Platform"
+        description="Organization controls, tenant isolation, white-label branding, domain, API, billing, security, analytics, and super-admin architecture."
+        stats={[
+          { label: 'Tenant', value: tenantId },
+          { label: 'Isolation score', value: isolation.score, tone: 'ok' },
+        ]}
+      />
 
       <Paper sx={{ borderRadius: 2, border: `1px solid ${themeColors.border}`, mb: 2 }}>
         <Tabs value={tab} onChange={(_, value: OrgTab) => setTab(value)} variant={isTablet ? 'scrollable' : 'scrollable'} scrollButtons="auto" allowScrollButtonsMobile sx={{ minHeight: 54, px: 0.5, '& .MuiTabs-scroller': { overflowX: 'auto !important' }, '& .MuiTabs-scrollButtons': { width: 34, borderRadius: 1, mx: 0.5 }, '& .MuiTab-root': { textTransform: 'none', whiteSpace: 'nowrap', minHeight: 54, minWidth: 'max-content', px: 1.8, fontWeight: 700, fontSize: '0.82rem' } }}>

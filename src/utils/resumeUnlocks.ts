@@ -7,13 +7,7 @@ import type {
   ResumeUnlockResult,
   Subscription,
 } from '@types';
-import {
-  ensureRecruiterWelcomeBenefit,
-  reserveRecruiterWelcomeResumeView,
-  restoreRecruiterWelcomeResumeView,
-} from '@utils/recruiterWelcomeBenefits';
-
-const DEFAULT_CREDITS = 100;
+import { describeCreditError, getRecruiterCreditStatus } from '@services/recruiterCredits';
 
 export async function getRecruiterCredits(recruiterId: string): Promise<RecruiterCredits | null> {
   const { data, error } = await supabase
@@ -26,32 +20,17 @@ export async function getRecruiterCredits(recruiterId: string): Promise<Recruite
   return data || null;
 }
 
+// available_credits is -1 while a recruiter subscription is active (unlimited).
 export async function ensureRecruiterCredits(recruiterId: string): Promise<RecruiterCredits> {
-  const subscription = await getActiveRecruiterSubscription(recruiterId);
-  const isUnlimited = isUnlimitedPlan(subscription?.plan);
-  const existing = await getRecruiterCredits(recruiterId);
-  if (existing) {
-    if (isUnlimited && existing.available_credits !== -1) {
-      const { data, error } = await supabase
-        .from('recruiter_credits')
-        .update({ available_credits: -1 })
-        .eq('recruiter_id', recruiterId)
-        .select('*')
-        .single();
-      if (error) throw error;
-      return data;
-    }
-    return existing;
-  }
-
-  const { data, error } = await supabase
-    .from('recruiter_credits')
-    .insert({ recruiter_id: recruiterId, available_credits: isUnlimited ? -1 : DEFAULT_CREDITS, used_credits: 0 })
-    .select('*')
-    .single();
-
-  if (error) throw error;
-  return data;
+  const status = await getRecruiterCreditStatus();
+  return {
+    id: recruiterId,
+    recruiter_id: recruiterId,
+    available_credits: status.unlimited ? -1 : status.availableCredits,
+    used_credits: status.usedCredits,
+    created_at: '',
+    updated_at: '',
+  };
 }
 
 export async function getResumeUnlock(
@@ -310,46 +289,11 @@ export async function unlockCandidateContact(
   jobId?: string | null,
   recruiterIdOverride?: string | null
 ): Promise<ResumeUnlockResult> {
-  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const { data: userData } = await supabase.auth.getUser();
   const recruiterId = recruiterIdOverride || userData?.user?.id || null;
 
   if (!recruiterId) {
     throw new Error('Recruiter session is required to unlock contact details.');
-  }
-
-  const activeSub = await getActiveRecruiterSubscription(recruiterId).catch(() => null);
-  const isUnlimited = isUnlimitedPlan(activeSub?.plan);
-
-  if (!isUnlimited) {
-    const benefit = await ensureRecruiterWelcomeBenefit(recruiterId).catch(() => null);
-    const freeViewsRemaining = benefit ? Math.max(0, Number(benefit.free_resume_views_total || 0) - Number(benefit.free_resume_views_used || 0)) : 0;
-
-    if (benefit && freeViewsRemaining > 0) {
-      const reservation = await reserveRecruiterWelcomeResumeView(recruiterId);
-      if (!reservation.allowed) {
-        throw new Error('Your complimentary resume access has been used.');
-      }
-
-      try {
-        const { data, error } = await supabase.rpc('unlock_candidate_contact', {
-          p_candidate_id: candidateId,
-          p_job_id: jobId || null,
-        });
-        if (error) {
-          await restoreRecruiterWelcomeResumeView(recruiterId, 1).catch(() => undefined);
-          throw error;
-        }
-        const row = Array.isArray(data) ? data[0] : data;
-        if (!row) {
-          await restoreRecruiterWelcomeResumeView(recruiterId, 1).catch(() => undefined);
-          throw new Error('Resume unlock failed.');
-        }
-        return row as ResumeUnlockResult;
-      } catch (error) {
-        await restoreRecruiterWelcomeResumeView(recruiterId, 1).catch(() => undefined);
-        throw error;
-      }
-    }
   }
 
   const { data, error } = await supabase.rpc('unlock_candidate_contact', {
@@ -357,8 +301,12 @@ export async function unlockCandidateContact(
     p_job_id: jobId || null,
   });
 
-  if (error) throw error;
+  if (error) {
+    const friendly = describeCreditError(error);
+    throw friendly ? new Error(friendly) : error;
+  }
   const row = Array.isArray(data) ? data[0] : data;
+  if (!row) throw new Error('Resume unlock failed.');
   return row as ResumeUnlockResult;
 }
 

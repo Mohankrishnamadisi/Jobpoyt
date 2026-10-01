@@ -35,6 +35,7 @@ import {
   useTheme,
   CircularProgress,
 } from '@mui/material';
+import { RecruiterPageHero } from './RecruiterPageHero';
 import {
   CalendarMonth as CalendarMonthIcon,
   CheckCircle as CheckCircleIcon,
@@ -1065,22 +1066,20 @@ export const InterviewManagement: React.FC<InterviewManagementProps> = ({ recrui
 
   return (
     <MotionBox initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: themeColors.text.primary }}>
-            Interview Management
-          </Typography>
-          <Typography variant="body2" sx={{ color: themeColors.text.secondary }}>
-            Schedule, track, and evaluate interviews across your ATS pipeline.
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={1}>
-          <Button variant="outlined" onClick={() => exportRows(filteredInterviews)}>Export CSV</Button>
-          <Button variant="contained" startIcon={<EventIcon />} onClick={openCreateDialog}>
-            Schedule Interview
-          </Button>
-        </Stack>
-      </Box>
+      <RecruiterPageHero
+        eyebrow="Workspace"
+        icon={<EventIcon />}
+        title="Interview Management"
+        description="Schedule, track, and evaluate interviews across your ATS pipeline."
+        actions={(
+          <>
+            <Button variant="contained" startIcon={<EventIcon />} onClick={openCreateDialog}>
+              Schedule Interview
+            </Button>
+            <Button variant="outlined" onClick={() => exportRows(filteredInterviews)}>Export CSV</Button>
+          </>
+        )}
+      />
 
       <Tabs value={viewMode} onChange={(_, value) => setViewMode(value)} sx={{ mb: 2 }}>
         <Tab value="dashboard" label="Dashboard" />

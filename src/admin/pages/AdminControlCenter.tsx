@@ -28,7 +28,6 @@ import {
   BarChartOutlined,
   BellOutlined,
   BugOutlined,
-  CheckCircleOutlined,
   CloudServerOutlined,
   CodeOutlined,
   DatabaseOutlined,
@@ -45,6 +44,7 @@ import {
   MailOutlined,
   PauseCircleOutlined,
   PlayCircleOutlined,
+  ReloadOutlined,
   SearchOutlined,
   SettingOutlined,
   SafetyOutlined,
@@ -52,18 +52,19 @@ import {
   TagOutlined,
   TeamOutlined,
   ToolOutlined,
-  UnlockOutlined,
-  UploadOutlined,
   UserSwitchOutlined,
   CustomerServiceOutlined,
 } from '@ant-design/icons';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { adminService } from '../../services/admin';
 import { organizationSaasService } from '@services/organizationSaas';
 import { useAuthStore } from '@store/index';
 import { ROUTES } from '../../constants';
+import AdminDashboardHome from '../components/AdminDashboardHome';
+import { ADMIN_VIEW_TITLES } from '../adminViews';
+import { formatRupees, paiseToRupees } from '@utils/currency';
 
 const { Title, Text } = Typography;
 
@@ -220,7 +221,7 @@ const hasPermission = (role: SuperAdminRole, permission: string): boolean => {
   return perms.includes('*') || perms.includes(permission);
 };
 
-const formatMoney = (amount: number): string => `Rs ${Number(amount || 0).toLocaleString()}`;
+const formatMoney = (amount: number): string => formatRupees(amount);
 
 const toDateLabel = (iso: string | undefined): string => {
   if (!iso) return '-';
@@ -232,8 +233,10 @@ const toDateLabel = (iso: string | undefined): string => {
 const AdminControlCenter: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [dashboardStats, setDashboardStats] = useState<Record<string, number>>({});
 
@@ -321,7 +324,15 @@ const AdminControlCenter: React.FC = () => {
     'global-search': ROUTES.ADMIN_DASHBOARD,
   };
 
-  const activeTabKey = routeToTabKey[location.pathname] || 'dashboard';
+  const requestedView = searchParams.get('view') || '';
+  const activeTabKey = requestedView && requestedView in tabKeyToRoute
+    ? requestedView
+    : routeToTabKey[location.pathname] || 'dashboard';
+
+  useEffect(() => {
+    const query = searchParams.get('q');
+    if (query !== null) setGlobalSearch(query);
+  }, [searchParams]);
 
   const addAuditLog = (action: string, entity: string, details: string) => {
     const row = {
@@ -417,6 +428,7 @@ const AdminControlCenter: React.FC = () => {
       } else {
         setOrganizations(orgRows);
       }
+      setLastUpdated(new Date());
     } catch (error: any) {
       message.error(error?.message || 'Failed to load super admin console data');
     } finally {
@@ -506,11 +518,6 @@ const AdminControlCenter: React.FC = () => {
     return date.toISOString();
   }, []);
 
-  const thisMonthKey = useMemo(() => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  }, []);
-
   const dashboardKpi = useMemo(() => {
     const openJobs = dashboardStats.activeJobs ?? jobsWithOverrides.filter((job) => String(job.runtimeStatus).toLowerCase() === 'published').length;
     const pendingOrganizations = organizationsWithOverrides.filter((o) => String(o.status).toLowerCase() === 'pending').length;
@@ -526,20 +533,17 @@ const AdminControlCenter: React.FC = () => {
     const messagesToday = Math.max(0, Math.round(applicationsToday * 0.82 + supportTickets.length * 0.2));
     const aiRequestsToday = Math.max(0, Math.round(applicationsToday * 0.6 + recruiters.length * 0.7));
 
+    const now = new Date();
     const revenueToday = payments.reduce((sum, p) => {
-      const createdAt = String(p.created_at || '');
-      if (createdAt >= todayIso) {
-        return sum + Number(p.amount || 0);
-      }
-      return sum;
+      const createdAt = p.created_at ? new Date(p.created_at) : null;
+      return createdAt && createdAt.toDateString() === now.toDateString() ? sum + paiseToRupees(p.amount) : sum;
     }, 0);
 
     const revenueMonth = payments.reduce((sum, p) => {
-      const createdAt = String(p.created_at || '');
-      if (createdAt.startsWith(thisMonthKey)) {
-        return sum + Number(p.amount || 0);
-      }
-      return sum;
+      const createdAt = p.created_at ? new Date(p.created_at) : null;
+      return createdAt && createdAt.getFullYear() === now.getFullYear() && createdAt.getMonth() === now.getMonth()
+        ? sum + paiseToRupees(p.amount)
+        : sum;
     }, 0);
 
     const creditsPurchased = Object.values(localState.credits).reduce((sum, n) => sum + Number(n || 0), 0);
@@ -564,12 +568,12 @@ const AdminControlCenter: React.FC = () => {
       platformHealth,
       serverStatus: platformHealth > 85 ? 'Healthy' : 'Attention Needed',
     };
-  }, [applications, candidatesWithOverrides.length, dashboardStats, jobsWithOverrides, localState.credits, organizationsWithOverrides, payments, recruitersWithOverrides.length, supportTickets.length, systemHealth, thisMonthKey, todayIso]);
+  }, [applications, candidatesWithOverrides.length, dashboardStats, jobsWithOverrides, localState.credits, organizationsWithOverrides, payments, recruitersWithOverrides.length, supportTickets.length, systemHealth, todayIso]);
 
   const revenueMetrics = useMemo(() => {
-    const totalRevenue = payments.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    const totalRevenue = payments.reduce((sum, p) => sum + paiseToRupees(p.amount), 0);
     const paidRows = payments.filter((p) => String(p.status || '').toLowerCase() === 'paid').length;
-    const refunds = payments.filter((p) => String(p.status || '').toLowerCase() === 'refunded').reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    const refunds = payments.filter((p) => String(p.status || '').toLowerCase() === 'refunded').reduce((sum, p) => sum + paiseToRupees(p.amount), 0);
     const mrr = Math.round(totalRevenue * 0.22);
     const arr = mrr * 12;
     const creditsSold = Object.values(localState.credits).reduce((sum, n) => sum + Number(n || 0), 0);
@@ -672,20 +676,6 @@ const AdminControlCenter: React.FC = () => {
     return supportTickets.filter((ticket) => String(ticket.status || 'open').toLowerCase() === ticketFilter);
   }, [supportTickets, ticketFilter]);
 
-  const recentUsers = useMemo(() => (users || []).slice(0, 5).map((user) => ({
-    name: user.name || user.email || 'User',
-    type: user.role || 'member',
-    joined: user.created_at ? new Date(user.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Recent',
-    status: user.status || 'Active',
-  })), [users]);
-
-  const recentJobs = useMemo(() => (jobs || []).slice(0, 5).map((job) => ({
-    title: job.title || 'Untitled Role',
-    company: job.company_name || 'Company',
-    posted: job.created_at ? new Date(job.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Recent',
-    status: job.status || 'published',
-  })), [jobs]);
-
   const adminDisplayName = authUser?.name || authUser?.email || 'Admin';
 
   const globalSearchResults = useMemo(() => {
@@ -733,7 +723,7 @@ const AdminControlCenter: React.FC = () => {
     payments.forEach((p) => {
       const label = `${p.id || ''} ${p.user_id || ''} ${p.plan || ''} ${p.status || ''}`.toLowerCase();
       if (label.includes(q)) {
-        aggregate.push({ type: 'Invoice', id: String(p.id), title: `Invoice ${p.id}`, subtitle: `${formatMoney(Number(p.amount || 0))} • ${p.status || 'pending'}` });
+        aggregate.push({ type: 'Invoice', id: String(p.id), title: `Invoice ${p.id}`, subtitle: `${formatMoney(paiseToRupees(p.amount))} • ${p.status || 'pending'}` });
       }
     });
 
@@ -1233,34 +1223,28 @@ const AdminControlCenter: React.FC = () => {
 
   if (loading) {
     return (
-      <Card style={{ borderRadius: 14 }}>
-        <Space direction="vertical" size="middle" style={{ width: '100%', alignItems: 'center', padding: 36 }}>
-          <Spin size="large" />
-          <Text type="secondary">Loading platform super admin console...</Text>
-        </Space>
-      </Card>
+      <div className="acc-loading">
+        <Spin size="large" />
+        <Text type="secondary">Loading platform super admin console...</Text>
+      </div>
     );
   }
 
+  const isDashboardView = activeTabKey === 'dashboard';
+
   return (
     <Space direction="vertical" size={16} style={{ width: '100%' }}>
-      <Card
-        style={{
-          borderRadius: 16,
-          background:
-            'radial-gradient(circle at 10% 20%, rgba(198, 242, 255, 0.65) 0%, rgba(198, 242, 255, 0) 35%), linear-gradient(135deg, #f9fdff 0%, #f5f7ff 42%, #eef6ff 100%)',
-        }}
-      >
-        <Space direction="vertical" size={6} style={{ width: '100%' }}>
-          <Title level={3} style={{ margin: 0 }}>Platform Super Admin Console</Title>
-          <Text type="secondary">
-            Dedicated control plane for multi-tenant organizations, recruiters, candidates, jobs, subscriptions, credits, moderation, platform analytics, AI monitoring, and developer operations.
-          </Text>
+      {!isDashboardView && (
+        <div className="acc-toolbar">
+          <div className="acc-toolbar__copy">
+            <span className="acc-toolbar__eyebrow">Super Admin</span>
+            <Title level={4} style={{ margin: 0 }}>{ADMIN_VIEW_TITLES[activeTabKey] || 'Platform Control Center'}</Title>
+          </div>
           <Space wrap>
             <Select
               value={activeRole}
               onChange={(v) => setActiveRole(v as SuperAdminRole)}
-              style={{ width: 240 }}
+              style={{ width: 200 }}
               options={[
                 { label: 'Platform Owner', value: 'platform_owner' },
                 { label: 'Super Admin', value: 'super_admin' },
@@ -1272,17 +1256,10 @@ const AdminControlCenter: React.FC = () => {
                 { label: 'Developer Admin', value: 'developer_admin' },
               ]}
             />
-            <Input
-              value={globalSearch}
-              onChange={(e) => setGlobalSearch(e.target.value)}
-              prefix={<SearchOutlined />}
-              placeholder="Global search across organizations, recruiters, candidates, jobs, applications, invoices, support tickets"
-              style={{ minWidth: 420 }}
-            />
-            <Button onClick={loadAll}>Refresh All</Button>
+            <Button icon={<ReloadOutlined />} onClick={loadAll}>Refresh</Button>
           </Space>
-        </Space>
-      </Card>
+        </div>
+      )}
 
       <Tabs
         type="card"
@@ -1299,315 +1276,21 @@ const AdminControlCenter: React.FC = () => {
             key: 'dashboard',
             label: 'Dashboard',
             children: (
-              <div className="admin-dashboard">
-                <section className="admin-dashboard__hero">
-                  <div className="admin-dashboard__hero-copy">
-                    <span className="admin-dashboard__hero-badge">Super Admin Control Center</span>
-                    <h2>Welcome back, {adminDisplayName}!</h2>
-                    <p>Here&apos;s what&apos;s happening across JobPoyt today.</p>
-                    <p className="admin-dashboard__hero-sub">Monitor your marketplace, users, jobs, revenue and platform health from one place.</p>
-                  </div>
-                  <div className="admin-dashboard__hero-side">
-                    <div className="admin-dashboard__hero-side-label">
-                      <span>Platform Health</span>
-                      <span>{dashboardKpi.platformHealth}/100</span>
-                    </div>
-                    <div className="admin-dashboard__hero-side-value">
-                      <strong>{dashboardKpi.platformHealth}</strong>
-                      <span>Healthy</span>
-                    </div>
-                    <div className="admin-dashboard__hero-side-meta">
-                      <div>
-                        <strong>{users.length}</strong>
-                        <span>Users</span>
-                      </div>
-                      <div>
-                        <strong>{jobs.length}</strong>
-                        <span>Jobs</span>
-                      </div>
-                      <div>
-                        <strong>{formatMoney(dashboardKpi.revenueMonth || 0)}</strong>
-                        <span>Revenue</span>
-                      </div>
-                    </div>
-                  </div>
-                </section>
-
-                <div className="admin-kpi-grid">
-                  <div className="admin-kpi-card">
-                    <div className="admin-kpi-card__top">
-                      <span className="admin-kpi-card__icon"><UserSwitchOutlined /></span>
-                      <span className="admin-kpi-card__trend">↗ 12%</span>
-                    </div>
-                    <div className="admin-kpi-card__label">Total Users</div>
-                    <p className="admin-kpi-card__value">{(dashboardStats.totalUsers ?? users.length).toLocaleString()}</p>
-                    <div className="admin-kpi-card__meta">Live platform count</div>
-                  </div>
-                  <div className="admin-kpi-card">
-                    <div className="admin-kpi-card__top">
-                      <span className="admin-kpi-card__icon"><ToolOutlined /></span>
-                      <span className="admin-kpi-card__trend">↗ 8%</span>
-                    </div>
-                    <div className="admin-kpi-card__label">Active Jobs</div>
-                    <p className="admin-kpi-card__value">{dashboardKpi.openJobs.toLocaleString()}</p>
-                    <div className="admin-kpi-card__meta">{dashboardKpi.openJobs.toLocaleString()} live listings</div>
-                  </div>
-                  <div className="admin-kpi-card">
-                    <div className="admin-kpi-card__top">
-                      <span className="admin-kpi-card__icon"><BankOutlined /></span>
-                      <span className="admin-kpi-card__trend">↗ 5%</span>
-                    </div>
-                    <div className="admin-kpi-card__label">Organizations</div>
-                    <p className="admin-kpi-card__value">{dashboardKpi.totalOrganizations.toLocaleString()}</p>
-                    <div className="admin-kpi-card__meta">{dashboardKpi.activeOrganizations} active</div>
-                  </div>
-                  <div className="admin-kpi-card">
-                    <div className="admin-kpi-card__top">
-                      <span className="admin-kpi-card__icon"><AppstoreOutlined /></span>
-                      <span className="admin-kpi-card__trend">↗ 15%</span>
-                    </div>
-                    <div className="admin-kpi-card__label">Platform Activity</div>
-                    <p className="admin-kpi-card__value">{Math.max(dashboardKpi.aiRequestsToday, dashboardKpi.messagesToday).toLocaleString()}</p>
-                    <div className="admin-kpi-card__meta">Engaged today</div>
-                  </div>
-
-                  <div className="admin-kpi-card">
-                    <div className="admin-kpi-card__top">
-                      <span className="admin-kpi-card__icon"><TeamOutlined /></span>
-                      <span className="admin-kpi-card__trend">↗ 9%</span>
-                    </div>
-                    <div className="admin-kpi-card__label">Candidates</div>
-                    <p className="admin-kpi-card__value">{dashboardKpi.totalCandidates.toLocaleString()}</p>
-                    <div className="admin-kpi-card__meta">Active talent pool</div>
-                  </div>
-                  <div className="admin-kpi-card">
-                    <div className="admin-kpi-card__top">
-                      <span className="admin-kpi-card__icon"><TeamOutlined /></span>
-                      <span className="admin-kpi-card__trend">↗ 6%</span>
-                    </div>
-                    <div className="admin-kpi-card__label">Recruiters</div>
-                    <p className="admin-kpi-card__value">{dashboardKpi.totalRecruiters.toLocaleString()}</p>
-                    <div className="admin-kpi-card__meta">Hiring partners</div>
-                  </div>
-                  <div className="admin-kpi-card">
-                    <div className="admin-kpi-card__top">
-                      <span className="admin-kpi-card__icon"><FileSearchOutlined /></span>
-                      <span className="admin-kpi-card__trend">↗ 11%</span>
-                    </div>
-                    <div className="admin-kpi-card__label">Applications</div>
-                    <p className="admin-kpi-card__value">{(dashboardStats.totalApplications ?? applications.length).toLocaleString()}</p>
-                    <div className="admin-kpi-card__meta">Across active roles</div>
-                  </div>
-                  <div className="admin-kpi-card">
-                    <div className="admin-kpi-card__top">
-                      <span className="admin-kpi-card__icon"><DollarOutlined /></span>
-                      <span className="admin-kpi-card__trend">↗ 18%</span>
-                    </div>
-                    <div className="admin-kpi-card__label">Revenue</div>
-                    <p className="admin-kpi-card__value">{formatMoney(dashboardKpi.revenueMonth || 0)}</p>
-                    <div className="admin-kpi-card__meta">This month</div>
-                  </div>
-                </div>
-
-                <div className="admin-panel-grid">
-                  <div className="admin-panel">
-                    <div className="admin-panel__header">
-                      <div>
-                        <h3 className="admin-panel__title">User Growth</h3>
-                        <div className="admin-panel__subtitle">Registered users over time</div>
-                      </div>
-                      <select className="admin-select" defaultValue="7d">
-                        <option value="7d">Last 7 days</option>
-                        <option value="30d">Last 30 days</option>
-                      </select>
-                    </div>
-                    <div className="admin-analytics-plot">
-                      <svg viewBox="0 0 700 260" width="100%" height="100%" preserveAspectRatio="none" role="img" aria-label="User growth chart">
-                        {[0,1,2,3,4].map((row) => (
-                          <line key={row} x1="24" y1={20 + row * 48} x2="680" y2={20 + row * 48} stroke="#e2e8f0" strokeDasharray="4 8" />
-                        ))}
-                        <path d={dashboardChartData.length > 1 ? (() => {
-                          const max = Math.max(...dashboardChartData.map((item) => Number(item.registrations || 0)), 1);
-                          const points = dashboardChartData.map((item, index) => {
-                            const x = 30 + (index * (640 / Math.max(1, dashboardChartData.length - 1)));
-                            const y = 200 - (Number(item.registrations || 0) / max) * 150;
-                            return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
-                          }).join(' ');
-                          return `${points} L 650 220 L 30 220 Z`;
-                        })() : 'M 30 220 L 650 220 L 650 220 L 30 220 Z'} fill="rgba(37,99,235,0.12)" />
-                        <path d={dashboardChartData.length > 1 ? (() => {
-                          const max = Math.max(...dashboardChartData.map((item) => Number(item.registrations || 0)), 1);
-                          return dashboardChartData.map((item, index) => {
-                            const x = 30 + (index * (640 / Math.max(1, dashboardChartData.length - 1)));
-                            const y = 200 - (Number(item.registrations || 0) / max) * 150;
-                            return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
-                          }).join(' ');
-                        })() : 'M 30 220 L 650 220'} stroke="#2563eb" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                        {dashboardChartData.slice(0, 7).map((item, index) => {
-                          const max = Math.max(...dashboardChartData.map((row) => Number(row.registrations || 0)), 1);
-                          const x = 30 + (index * (640 / Math.max(1, Math.min(7, dashboardChartData.length) - 1)));
-                          const y = 200 - (Number(item.registrations || 0) / max) * 150;
-                          return <circle key={`${item.day}-${index}`} cx={x} cy={y} r="4" fill="#2563eb" />;
-                        })}
-                      </svg>
-                    </div>
-                  </div>
-
-                  <div className="admin-panel">
-                    <div className="admin-panel__header">
-                      <div>
-                        <h3 className="admin-panel__title">Job Statistics</h3>
-                        <div className="admin-panel__subtitle">Jobs posted and applications</div>
-                      </div>
-                    </div>
-                    <div className="admin-analytics-plot">
-                      <svg viewBox="0 0 420 260" width="100%" height="100%" preserveAspectRatio="none" role="img" aria-label="Job statistics chart">
-                        {[0,1,2,3,4].map((row) => (
-                          <line key={row} x1="26" y1={20 + row * 42} x2="390" y2={20 + row * 42} stroke="#e2e8f0" strokeDasharray="4 8" />
-                        ))}
-                        {[0,1,2,3,4,5].map((barIndex) => {
-                          const baseX = 50 + barIndex * 50;
-                          const heightA = 100 + (barIndex % 3) * 22;
-                          const heightB = 70 + (barIndex % 4) * 18;
-                          return (
-                            <g key={barIndex}>
-                              <rect x={baseX} y={200 - heightA} width="18" height={heightA} rx="7" fill="#2563eb" opacity="0.9" />
-                              <rect x={baseX + 22} y={200 - heightB} width="18" height={heightB} rx="7" fill="#7c3aed" opacity="0.9" />
-                            </g>
-                          );
-                        })}
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="admin-lower-grid">
-                  <div className="admin-table-panel">
-                    <div className="admin-table-panel__header">
-                      <div>
-                        <h3 className="admin-table-panel__title">Recent Users</h3>
-                        <div className="admin-table-panel__subtitle">{recentUsers.length} new entries</div>
-                      </div>
-                      <button type="button" className="admin-table-panel__action admin-table-panel__action--secondary" onClick={() => navigate(ROUTES.ADMIN_USERS)}>View All</button>
-                    </div>
-                    <table className="admin-table">
-                      <thead>
-                        <tr>
-                          <th>Name</th>
-                          <th>Type</th>
-                          <th>Joined</th>
-                          <th>Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {recentUsers.map((userItem) => (
-                          <tr key={`${userItem.name}-${userItem.joined}`}>
-                            <td>{userItem.name}</td>
-                            <td>{userItem.type}</td>
-                            <td>{userItem.joined}</td>
-                            <td><span className="admin-table__status admin-table__status--success">{userItem.status}</span></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="admin-table-panel">
-                    <div className="admin-table-panel__header">
-                      <div>
-                        <h3 className="admin-table-panel__title">Quick Actions</h3>
-                        <div className="admin-table-panel__subtitle">Fast access</div>
-                      </div>
-                    </div>
-                    <div className="admin-quick-actions">
-                      <button type="button" className="admin-quick-action" onClick={() => navigate(ROUTES.ADMIN_JOBS)}><ToolOutlined /> Post a New Job</button>
-                      <button type="button" className="admin-quick-action" onClick={() => navigate(ROUTES.ADMIN_BULK_IMPORT)}><UploadOutlined /> Bulk Job Deploy</button>
-                      <button type="button" className="admin-quick-action" onClick={() => navigate(ROUTES.ADMIN_USERS)}><BankOutlined /> Add Organization</button>
-                      <button type="button" className="admin-quick-action" onClick={() => navigate(ROUTES.ADMIN_RECRUITERS)}><TeamOutlined /> Manage Users</button>
-                      <button type="button" className="admin-quick-action" onClick={() => navigate(ROUTES.ADMIN_APPLICATIONS)}><FileSearchOutlined /> Review Applications</button>
-                      <button type="button" className="admin-quick-action" onClick={() => navigate(ROUTES.ADMIN_DASHBOARD)}><BellOutlined /> Send Announcement</button>
-                      <button type="button" className="admin-quick-action" onClick={() => navigate(ROUTES.ADMIN_BILLING_MANAGEMENT)}><DollarOutlined /> Open Billing</button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="admin-lower-grid">
-                  <div className="admin-table-panel">
-                    <div className="admin-table-panel__header">
-                      <div>
-                        <h3 className="admin-table-panel__title">Recent Job Postings</h3>
-                        <div className="admin-table-panel__subtitle">Live job activity</div>
-                      </div>
-                      <button type="button" className="admin-table-panel__action admin-table-panel__action--secondary" onClick={() => navigate(ROUTES.ADMIN_JOBS)}>View All</button>
-                    </div>
-                    <table className="admin-table">
-                      <thead>
-                        <tr>
-                          <th>Job Title</th>
-                          <th>Company</th>
-                          <th>Posted</th>
-                          <th>Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {recentJobs.map((jobItem) => (
-                          <tr key={`${jobItem.title}-${jobItem.company}`}>
-                            <td>{jobItem.title}</td>
-                            <td>{jobItem.company}</td>
-                            <td>{jobItem.posted}</td>
-                            <td><span className="admin-table__status admin-table__status--success">{jobItem.status}</span></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="admin-activity">
-                    <div className="admin-activity__header">
-                      <div>
-                        <h3 className="admin-activity__title">Platform Activity</h3>
-                        <div className="admin-activity__subtitle">Latest signals</div>
-                      </div>
-                    </div>
-                    <ul className="admin-activity__list">
-                      {[
-                        { label: 'New user registered', detail: `${users.length} total users`, color: 'blue' },
-                        { label: 'New job posted', detail: `${jobs.filter((job) => String(job.status || '').toLowerCase() === 'published').length} active jobs`, color: 'purple' },
-                        { label: 'New application', detail: `${applications.length} submitted`, color: 'green' },
-                        { label: 'New company', detail: `${organizations.length || dashboardKpi.totalOrganizations} organizations`, color: 'gold' },
-                        { label: 'New payment', detail: `${payments.length} transactions`, color: 'cyan' },
-                      ].map((item) => (
-                        <li key={item.label} className="admin-activity__item">
-                          <span className="admin-activity__dot" style={{ background: item.color === 'purple' ? '#7c3aed' : item.color === 'green' ? '#16a34a' : item.color === 'gold' ? '#d6a73a' : item.color === 'cyan' ? '#0ea5e9' : '#2563eb' }} />
-                          <div>
-                            <strong>{item.label}</strong>
-                            <span>{item.detail}</span>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="admin-metrics-row">
-                  <div className="admin-mini-card">
-                    <strong>Platform Health</strong>
-                    <span>{systemHealth ? 'Healthy' : 'Monitoring'}</span>
-                  </div>
-                  <div className="admin-mini-card">
-                    <strong>API</strong>
-                    <span>Healthy</span>
-                  </div>
-                  <div className="admin-mini-card">
-                    <strong>Database</strong>
-                    <span>Healthy</span>
-                  </div>
-                  <div className="admin-mini-card">
-                    <strong>Revenue Overview</strong>
-                    <span>{formatMoney(dashboardKpi.revenueToday || 0)}</span>
-                  </div>
-                </div>
-              </div>
+              <AdminDashboardHome
+                adminName={adminDisplayName}
+                stats={dashboardStats}
+                kpi={dashboardKpi}
+                users={users}
+                jobs={jobs}
+                applications={applications}
+                payments={payments}
+                supportTickets={supportTickets}
+                chartData={dashboardChartData}
+                systemHealth={systemHealth}
+                lastUpdated={lastUpdated}
+                onRefresh={loadAll}
+                onNavigate={navigate}
+              />
             ),
           },
           {
@@ -2356,6 +2039,7 @@ const AdminControlCenter: React.FC = () => {
         ]}
       />
 
+      {activeTabKey === 'organizations' && (
       <Card title="Organization Details">
         <Space direction="vertical" size={12} style={{ width: '100%' }}>
           <Select
@@ -2401,14 +2085,7 @@ const AdminControlCenter: React.FC = () => {
           )}
         </Space>
       </Card>
-
-      <Card>
-        <Space wrap>
-          <Tag color="green" icon={<CheckCircleOutlined />}>Recruiter Dashboard remains isolated and unchanged.</Tag>
-          <Tag color="blue" icon={<UnlockOutlined />}>Super Admin Portal is dedicated and platform-wide.</Tag>
-          <Tag color="purple" icon={<DatabaseOutlined />}>Architecture ready for high-scale pagination and sharded tenancy.</Tag>
-        </Space>
-      </Card>
+      )}
     </Space>
   );
 };

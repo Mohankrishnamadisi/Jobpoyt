@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { supportService } from './support';
+import { paiseToRupees } from '@utils/currency';
 
 export const adminService = {
   async getDashboardStats() {
@@ -16,12 +17,12 @@ export const adminService = {
     if (failedQuery?.error) throw failedQuery.error;
 
     const [{ count: usersCount }, { count: candidatesCount }, { count: recruitersCount }, { count: activeJobsCount }, { count: applicationsCount }, paymentsResult] = results;
-    const totalRevenue = (paymentsResult.data || []).reduce((total, item) => total + Number(item.amount || 0), 0);
+    const totalRevenue = (paymentsResult.data || []).reduce((total, item) => total + paiseToRupees(item.amount), 0);
     const now = new Date();
     const monthlyRevenue = (paymentsResult.data || []).reduce((total, item) => {
       const createdAt = item.created_at ? new Date(item.created_at) : null;
       return createdAt && createdAt.getFullYear() === now.getFullYear() && createdAt.getMonth() === now.getMonth()
-        ? total + Number(item.amount || 0)
+        ? total + paiseToRupees(item.amount)
         : total;
     }, 0);
 
@@ -239,7 +240,7 @@ export const adminService = {
     ]).then((res) => res.map((r) => r));
 
     const payments = await supabase.from('payments').select('amount');
-    const totalRevenue = (payments.data || []).reduce((total, item) => total + Number(item.amount || 0), 0);
+    const totalRevenue = (payments.data || []).reduce((total, item) => total + paiseToRupees(item.amount), 0);
 
     return {
       totalUsers: usersCount || 0,
@@ -278,7 +279,7 @@ export const adminService = {
 
       const revenue = payments.reduce((sum, item: any) => {
         const paymentDate = item.created_at ? new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : null;
-        return paymentDate === label ? sum + Number(item.amount || 0) : sum;
+        return paymentDate === label ? sum + paiseToRupees(item.amount) : sum;
       }, 0);
 
       return { day: label, registrations, revenue };

@@ -27,6 +27,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { RecruiterPageHero } from './RecruiterPageHero';
 import {
   AutoGraph as AutoGraphIcon,
   Download as DownloadIcon,
@@ -424,33 +425,31 @@ export const RecruiterAnalyticsInsights: React.FC<RecruiterAnalyticsInsightsProp
 
   return (
     <MotionBox initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.35 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5, mb: 2 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: themeColors.text.primary }}>
-            Analytics & Hiring Insights
-          </Typography>
-          <Typography variant="body2" sx={{ color: themeColors.text.secondary, mt: 0.5 }}>
-            Comprehensive hiring intelligence across funnel, performance, and AI recommendations.
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-          <Button size="small" variant="outlined" startIcon={<RefreshIcon />} onClick={() => void loadAnalytics()}>
-            Refresh
-          </Button>
-          <Button size="small" variant="outlined" startIcon={<DownloadIcon />} onClick={exportCsv}>
-            CSV
-          </Button>
-          <Button size="small" variant="outlined" startIcon={<TableChartIcon />} onClick={exportExcel}>
-            Excel
-          </Button>
-          <Button size="small" variant="outlined" startIcon={<PictureAsPdfIcon />} onClick={exportPdf}>
-            PDF
-          </Button>
-          <Button size="small" variant="outlined" startIcon={<PrintIcon />} onClick={() => window.print()}>
-            Print
-          </Button>
-        </Stack>
-      </Box>
+      <RecruiterPageHero
+        eyebrow="Intelligence"
+        icon={<TableChartIcon />}
+        title="Analytics & Hiring Insights"
+        description="Comprehensive hiring intelligence across funnel, performance, and AI recommendations."
+        actions={(
+          <>
+            <Button variant="contained" startIcon={<RefreshIcon />} onClick={() => void loadAnalytics()}>
+              Refresh
+            </Button>
+            <Button variant="outlined" startIcon={<DownloadIcon />} onClick={exportCsv}>
+              CSV
+            </Button>
+            <Button variant="outlined" startIcon={<TableChartIcon />} onClick={exportExcel}>
+              Excel
+            </Button>
+            <Button variant="outlined" startIcon={<PictureAsPdfIcon />} onClick={exportPdf}>
+              PDF
+            </Button>
+            <Button variant="outlined" startIcon={<PrintIcon />} onClick={() => window.print()}>
+              Print
+            </Button>
+          </>
+        )}
+      />
 
       <Paper sx={{ p: 2, mb: 2, borderRadius: 2.5, border: `1px solid ${themeColors.border}` }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.25, color: themeColors.text.primary }}>

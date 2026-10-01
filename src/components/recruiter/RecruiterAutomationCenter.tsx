@@ -37,6 +37,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { RecruiterPageHero } from './RecruiterPageHero';
 import {
   Add as AddIcon,
   AutoAwesome as AutoAwesomeIcon,
@@ -377,21 +378,18 @@ export const RecruiterAutomationCenter: React.FC<RecruiterAutomationCenterProps>
 
   return (
     <MotionBox initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1.5, flexWrap: 'wrap', mb: 2 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: themeColors.text.primary }}>
-            Automation Center
-          </Typography>
-          <Typography variant="body2" sx={{ mt: 0.5, color: themeColors.text.secondary }}>
-            Build workflow automations for applications, ATS, interviews, messaging, and offers.
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-          <Button variant="outlined" startIcon={<RefreshIcon />} onClick={refresh}>Refresh</Button>
-          <Button variant="outlined" startIcon={<ExportIcon />} onClick={exportCsv}>Export</Button>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={openCreateWizard}>Create Automation</Button>
-        </Stack>
-      </Box>
+      <RecruiterPageHero
+        eyebrow="Intelligence"
+        title="Automation Center"
+        description="Build workflow automations for applications, ATS, interviews, messaging, and offers."
+        actions={(
+          <>
+            <Button variant="contained" startIcon={<AddIcon />} onClick={openCreateWizard}>Create Automation</Button>
+            <Button variant="outlined" startIcon={<RefreshIcon />} onClick={refresh}>Refresh</Button>
+            <Button variant="outlined" startIcon={<ExportIcon />} onClick={exportCsv}>Export</Button>
+          </>
+        )}
+      />
 
       <Paper sx={{ p: 1.5, borderRadius: 2, border: `1px solid ${themeColors.border}`, mb: 2 }}>
         <Grid container spacing={1.2}>

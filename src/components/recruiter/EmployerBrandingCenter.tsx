@@ -32,6 +32,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { RecruiterPageHero } from './RecruiterPageHero';
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
@@ -307,24 +308,22 @@ export const EmployerBrandingCenter: React.FC<EmployerBrandingCenterProps> = ({
 
   return (
     <MotionBox initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1.5, flexWrap: 'wrap', mb: 2 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: themeColors.text.primary }}>
-            Employer Branding
-          </Typography>
-          <Typography variant="body2" sx={{ mt: 0.5, color: themeColors.text.secondary }}>
-            Build and publish your career page experience, branding assets, and hiring story.
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-          <Button variant="outlined" startIcon={<PreviewIcon />} onClick={() => setPreviewOpen(true)}>Preview</Button>
-          <Button variant="outlined" startIcon={<DownloadIcon />} onClick={exportPdf}>Export PDF</Button>
-          <Button variant="outlined" startIcon={<PublishIcon />} onClick={publish}>Publish</Button>
-          <Button variant="contained" startIcon={<SaveIcon />} onClick={() => void persist()} disabled={saving || !canEdit}>
-            {saving ? 'Saving...' : 'Save'}
-          </Button>
-        </Stack>
-      </Box>
+      <RecruiterPageHero
+        eyebrow="Company"
+        icon={<PreviewIcon />}
+        title="Employer Branding"
+        description="Build and publish your career page experience, branding assets, and hiring story."
+        actions={(
+          <>
+            <Button variant="contained" startIcon={<SaveIcon />} onClick={() => void persist()} disabled={saving || !canEdit}>
+              {saving ? 'Saving...' : 'Save'}
+            </Button>
+            <Button variant="outlined" startIcon={<PreviewIcon />} onClick={() => setPreviewOpen(true)}>Preview</Button>
+            <Button variant="outlined" startIcon={<PublishIcon />} onClick={publish}>Publish</Button>
+            <Button variant="outlined" startIcon={<DownloadIcon />} onClick={exportPdf}>Export PDF</Button>
+          </>
+        )}
+      />
 
       <Paper sx={{ p: 1.2, borderRadius: 2, border: `1px solid ${themeColors.border}`, mb: 2 }}>
         <Typography variant="caption" sx={{ color: themeColors.text.secondary }}>

@@ -2,8 +2,9 @@ import { supabase } from './supabase';
 import type { JobSeeker, Recruiter, Job } from '../types';
 import { getFreshnessDate, diversifyJobsByCompany, PERSONAL_EMAIL_ERROR, validateWorkEmail } from '@utils/index';
 import { isCandidatePremium, isSubscriptionActive } from '@utils/candidateSubscriptionHelpers';
-import { ensureRecruiterWelcomeBenefit, restoreRecruiterWelcomeJobPost, reserveRecruiterWelcomeJobPost } from '@utils/recruiterWelcomeBenefits';
-import { buildKeywordSearchVariants, matchesRoleSearchIntent, scoreRoleSearchMatch } from '@utils/roleSearch';
+import { describeCreditError } from './recruiterCredits';
+import { buildKeywordSearchVariants, matchesRoleSearchIntent } from '@utils/roleSearch';
+import { collectDistinctExperienceValues, parseRequestedExperience, selectMatchingExperienceValues } from '@utils/jobExperienceFilter';
 
 const normalizeJob = (job: Record<string, any>): Job => ({
   ...job,
@@ -49,58 +50,6 @@ const triggerJobMatchNotifications = async (jobId: string) => {
   }
 };
 
-const parseNumericExperienceYears = (value: unknown): number | null => {
-  const text = String(value ?? '').trim();
-  if (!/^\d+$/.test(text)) return null;
-  const years = Number(text);
-  return Number.isNaN(years) ? null : years;
-};
-
-const matchesExperienceYears = (jobExperience: unknown, years: number): boolean => {
-  const experienceText = String(jobExperience ?? '').trim().toLowerCase();
-  if (!experienceText) return false;
-
-  if (
-    experienceText.includes('any experience')
-    || experienceText.includes('no experience required')
-    || experienceText.includes('experience not required')
-    || experienceText.includes('not specified')
-  ) {
-    return true;
-  }
-
-  if (experienceText.includes('fresher')) {
-    return years === 0;
-  }
-
-  const rangeMatch = experienceText.match(/(\d+)\s*(?:-|to)\s*(\d+)/i);
-  if (rangeMatch) {
-    const min = Number(rangeMatch[1]);
-    const max = Number(rangeMatch[2]);
-    if (!Number.isNaN(min) && !Number.isNaN(max)) {
-      return years >= min && years <= max;
-    }
-  }
-
-  const plusMatch = experienceText.match(/(\d+)\s*\+/);
-  if (plusMatch) {
-    const min = Number(plusMatch[1]);
-    if (!Number.isNaN(min)) {
-      return years >= min;
-    }
-  }
-
-  const singleMatch = experienceText.match(/(\d+)/);
-  if (singleMatch) {
-    const single = Number(singleMatch[1]);
-    if (!Number.isNaN(single)) {
-      return years === single;
-    }
-  }
-
-  return false;
-};
-
 // User operations
 export const userService = {
   async createProfile(userId: string, profileData: Partial<JobSeeker | Recruiter>) {
@@ -139,10 +88,8 @@ export const userService = {
           .select()
           .single();
         if (error) throw error;
-        await ensureRecruiterWelcomeBenefit(userId).catch(() => undefined);
         return data;
       }
-      await ensureRecruiterWelcomeBenefit(userId).catch(() => undefined);
       return existing;
     }
 
@@ -174,7 +121,6 @@ export const userService = {
 
     const { data, error } = await supabase.from('profiles').insert([payload]).select().single();
     if (error) throw error;
-    await ensureRecruiterWelcomeBenefit(userId).catch(() => undefined);
     return data;
   },
 
@@ -218,10 +164,10 @@ export const userService = {
   },
 
   async uploadCompanyLogo(userId: string, file: File) {
-    const fileName = `${userId}-logo-${Date.now()}.${file.name.split('.').pop()}`;
+    const fileName = `${userId}/logo-${Date.now()}.${file.name.split('.').pop()}`;
     const { data, error } = await supabase.storage
       .from('company-logos')
-      .upload(fileName, file);
+      .upload(fileName, file, { contentType: file.type });
     if (error) throw error;
 
     const { data: publicData } = supabase.storage.from('company-logos').getPublicUrl(data.path);
@@ -370,6 +316,45 @@ export const recruiterService = {
   },
 };
 
+const EXPERIENCE_VALUES_TTL_MS = 5 * 60 * 1000;
+let experienceValuesCache: { expiresAt: number; promise: Promise<string[]> } | null = null;
+
+const getDistinctJobExperienceValues = (): Promise<string[]> => {
+  if (experienceValuesCache && experienceValuesCache.expiresAt > Date.now()) {
+    return experienceValuesCache.promise;
+  }
+
+  const promise = collectDistinctExperienceValues(async (afterValue) => {
+    let query = supabase
+      .from('job_listings')
+      .select('experience')
+      .not('experience', 'is', null)
+      .order('experience', { ascending: true })
+      .limit(1000);
+    if (afterValue !== null) query = query.gt('experience', afterValue);
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data || []).map((row: { experience: string }) => row.experience);
+  });
+
+  experienceValuesCache = { expiresAt: Date.now() + EXPERIENCE_VALUES_TTL_MS, promise };
+  promise.catch(() => {
+    experienceValuesCache = null;
+  });
+  return promise;
+};
+
+const selectJobListings = (options?: { count?: 'exact' | 'planned'; head?: boolean }) =>
+  supabase.from('job_listings').select(PUBLIC_JOB_SELECT, options);
+type JobListingsQuery = ReturnType<typeof selectJobListings>;
+
+const isStatementTimeout = (error: unknown) => (error as { code?: string } | null)?.code === '57014';
+
+const retryOnStatementTimeout = async <T extends { error: unknown }>(run: () => PromiseLike<T>): Promise<T> => {
+  const first = await run();
+  return isStatementTimeout(first.error) ? run() : first;
+};
+
 // Job operations
 export const jobService = {
   async getJobs(
@@ -380,9 +365,6 @@ export const jobService = {
   ) {
     const includeTotal = options.includeTotal !== false;
     const safeLimit = Math.min(Math.max(Number(limit) || 1, 1), 50);
-    let query = supabase
-      .from('job_listings')
-      .select(PUBLIC_JOB_SELECT, includeTotal ? { count: 'exact' } : undefined);
 
     const keywordInput = filters?.keyword ? String(filters.keyword).trim() : '';
     const companyInput = filters?.company ? String(filters.company).trim() : '';
@@ -392,179 +374,147 @@ export const jobService = {
     const matchesAnyKeyword = (value: unknown) => keywordLowers.some((term) => String(value || '').toLowerCase().includes(term));
     const matchesAnyRoleIntent = (job: Record<string, unknown>) => keywordTerms.some((term) => matchesRoleSearchIntent(job, term));
     const experienceInput = filters?.experience ? String(filters.experience).trim() : '';
-    const numericExperienceYears = parseNumericExperienceYears(experienceInput);
-
-    const locationTerms = (Array.isArray(filters?.location) ? filters.location : [filters?.location])
-      .map((value) => String(value || '').trim())
-      .filter(Boolean);
-    if (locationTerms.length > 0) {
-      query = locationTerms.length === 1
-        ? query.ilike('location', `%${locationTerms[0]}%`)
-        : query.or(locationTerms.map((term) => `location.ilike.%${term.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`).join(','));
-    }
-    if (keywordTerms.length > 0) {
-      const searchTerms = [...new Set([...keywordTerms, ...keywordVariants])].slice(0, 24);
-      const keywordClauses = searchTerms.flatMap((term) => {
-        const escapedTerm = term.replace(/%/g, '\\%').replace(/_/g, '\\_');
-        return [
-          `title.ilike.%${escapedTerm}%`,
-          `company_name.ilike.%${escapedTerm}%`,
-          `description.ilike.%${escapedTerm}%`,
-          `skills.cs.{${escapedTerm}}`,
-        ];
-      });
-      query = query.or(keywordClauses.join(','));
-    }
-    if (companyInput) {
-      const escapedCompany = companyInput.replace(/%/g, '\\%').replace(/_/g, '\\_');
-      query = query.ilike('company_name', `%${escapedCompany}%`);
-    }
-    if (filters?.status) {
-      query = query.eq('status', String(filters.status));
-    }
-    if (Array.isArray(filters?.jobType) && filters.jobType.length > 0) {
-      query = query.in('job_type', filters.jobType as string[]);
-    } else if (filters?.jobType) {
-      query = query.eq('job_type', filters.jobType as string);
-    }
-    if (Array.isArray(filters?.workMode) && filters.workMode.length > 0) {
-      query = query.in('work_mode', filters.workMode as string[]);
-    } else if (filters?.workMode) {
-      query = query.eq('work_mode', filters.workMode as string);
-    }
-    if (Array.isArray(filters?.category) && filters.category.length > 0) {
-      const categoryTerms = (filters.category as string[])
-        .map((value) => String(value).trim())
-        .filter(Boolean);
-
-      if (categoryTerms.length > 0) {
-        const exactCategoryClauses = categoryTerms.map((term) => `category.eq.${JSON.stringify(term)}`);
-        const titleClauses = categoryTerms.map((term) => `title.ilike.%${term.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`);
-        const descriptionClauses = categoryTerms.map((term) => `description.ilike.%${term.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`);
-        const companyClauses = categoryTerms.map((term) => `company_name.ilike.%${term.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`);
-        const skillClauses = categoryTerms.map((term) => `skills.cs.{${term}}`);
-
-        const allClauses = [
-          ...exactCategoryClauses,
-          ...titleClauses,
-          ...descriptionClauses,
-          ...companyClauses,
-          ...skillClauses,
-        ];
-
-        query = query.or(allClauses.join(','));
-      }
-    } else if (filters?.category) {
-      const term = String(filters.category).trim();
-      const escaped = term.replace(/%/g, '\\%').replace(/_/g, '\\_');
-      query = query.or(
-        `category.eq.${JSON.stringify(term)},title.ilike.%${escaped}%,description.ilike.%${escaped}%,company_name.ilike.%${escaped}%,skills.cs.{${term}}`
+    const requestedExperience = parseRequestedExperience(experienceInput);
+    let matchingExperienceValues: string[] | null = null;
+    if (requestedExperience) {
+      matchingExperienceValues = selectMatchingExperienceValues(
+        await getDistinctJobExperienceValues(),
+        requestedExperience,
       );
-    }
-    if (experienceInput && numericExperienceYears === null) {
-      query = query.ilike('experience', `%${experienceInput}%`);
-    }
-    if (filters?.education) {
-      query = query.ilike('education', `%${filters.education}%`);
-    }
-    if (filters?.freshness) {
-      const fromDate = getFreshnessDate(filters.freshness as string);
-      if (fromDate) {
-        query = query.gte('created_at', fromDate);
+      if (matchingExperienceValues.length === 0) {
+        return { data: [], total: 0 };
       }
     }
 
-    const needsInMemoryFiltering = numericExperienceYears !== null;
+    const applyJobFilters = (baseQuery: JobListingsQuery): JobListingsQuery => {
+      let query = baseQuery;
+      const locationTerms = (Array.isArray(filters?.location) ? filters.location : [filters?.location])
+        .map((value) => String(value || '').trim())
+        .filter(Boolean);
+      if (locationTerms.length > 0) {
+        query = locationTerms.length === 1
+          ? query.ilike('location', `%${locationTerms[0]}%`)
+          : query.or(locationTerms.map((term) => `location.ilike.%${term.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`).join(','));
+      }
+      if (keywordTerms.length > 0) {
+        const searchTerms = [...new Set([...keywordTerms, ...keywordVariants])].slice(0, 24);
+        const keywordClauses = searchTerms.flatMap((term) => {
+          const escapedTerm = term.replace(/%/g, '\\%').replace(/_/g, '\\_');
+          return [
+            `title.ilike.%${escapedTerm}%`,
+            `company_name.ilike.%${escapedTerm}%`,
+            `description.ilike.%${escapedTerm}%`,
+            `skills.cs.{${escapedTerm}}`,
+          ];
+        });
+        query = query.or(keywordClauses.join(','));
+      }
+      if (companyInput) {
+        const escapedCompany = companyInput.replace(/%/g, '\\%').replace(/_/g, '\\_');
+        query = query.ilike('company_name', `%${escapedCompany}%`);
+      }
+      if (filters?.status) {
+        query = query.eq('status', String(filters.status));
+      }
+      if (Array.isArray(filters?.jobType) && filters.jobType.length > 0) {
+        query = query.in('job_type', filters.jobType as string[]);
+      } else if (filters?.jobType) {
+        query = query.eq('job_type', filters.jobType as string);
+      }
+      if (Array.isArray(filters?.workMode) && filters.workMode.length > 0) {
+        query = query.in('work_mode', filters.workMode as string[]);
+      } else if (filters?.workMode) {
+        query = query.eq('work_mode', filters.workMode as string);
+      }
+      if (Array.isArray(filters?.category) && filters.category.length > 0) {
+        const categoryTerms = (filters.category as string[])
+          .map((value) => String(value).trim())
+          .filter(Boolean);
 
-    if (!needsInMemoryFiltering) {
-      let data: Record<string, any>[] = [];
-      let count: number | null = null;
+        if (categoryTerms.length > 0) {
+          const exactCategoryClauses = categoryTerms.map((term) => `category.eq.${JSON.stringify(term)}`);
+          const titleClauses = categoryTerms.map((term) => `title.ilike.%${term.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`);
+          const descriptionClauses = categoryTerms.map((term) => `description.ilike.%${term.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`);
+          const companyClauses = categoryTerms.map((term) => `company_name.ilike.%${term.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`);
+          const skillClauses = categoryTerms.map((term) => `skills.cs.{${term}}`);
 
-      const pageStart = Math.max(page - 1, 0) * safeLimit;
-      const windowSize = Math.min(Math.max(safeLimit * 8, safeLimit), 100);
-      const orderedQuery = query.order('created_at', { ascending: false });
-      const response = await (options.signal ? orderedQuery.abortSignal(options.signal) : orderedQuery)
-        .range(pageStart, pageStart + windowSize - 1);
+          const allClauses = [
+            ...exactCategoryClauses,
+            ...titleClauses,
+            ...descriptionClauses,
+            ...companyClauses,
+            ...skillClauses,
+          ];
 
-      if (response.error) throw response.error;
-
-      data = response.data || [];
-      count = response.count;
-
-      const normalizedJobs = data.map(normalizeJob);
-      const baseMatches = keywordInput
-        ? normalizedJobs.filter((job) => {
-            const skills = Array.isArray(job.skills) ? job.skills : [];
-            const directMatch = (
-              matchesAnyKeyword(job.title)
-              || matchesAnyKeyword(job.company_name)
-              || matchesAnyKeyword(job.description)
-              || skills.some((skill) => matchesAnyKeyword(skill))
-            );
-
-            return directMatch || matchesAnyRoleIntent(job as Record<string, unknown>);
-          })
-        : normalizedJobs;
-
-      const diversified = diversifyJobsByCompany(baseMatches);
-      const pageJobs = diversified.slice(0, safeLimit);
-
-      return {
-        data: pageJobs,
-        total: count || baseMatches.length || 0,
-      };
-    }
+          query = query.or(allClauses.join(','));
+        }
+      } else if (filters?.category) {
+        const term = String(filters.category).trim();
+        const escaped = term.replace(/%/g, '\\%').replace(/_/g, '\\_');
+        query = query.or(
+          `category.eq.${JSON.stringify(term)},title.ilike.%${escaped}%,description.ilike.%${escaped}%,company_name.ilike.%${escaped}%,skills.cs.{${term}}`
+        );
+      }
+      if (matchingExperienceValues) {
+        query = query.in('experience', matchingExperienceValues);
+      }
+      if (filters?.education) {
+        query = query.ilike('education', `%${filters.education}%`);
+      }
+      if (filters?.freshness) {
+        const fromDate = getFreshnessDate(filters.freshness as string);
+        if (fromDate) {
+          query = query.gte('created_at', fromDate);
+        }
+      }
+      return query;
+    };
 
     const pageStart = Math.max(page - 1, 0) * safeLimit;
-    const batchSize = 1000;
-    const jobRows: Record<string, any>[] = [];
-    let offset = 0;
-    let databaseCount: number | null = null;
+    const windowSize = Math.min(Math.max(safeLimit * 8, safeLimit), 100);
+    const withSignal = (query: JobListingsQuery) => (options.signal ? query.abortSignal(options.signal) : query);
 
-    while (true) {
-      const orderedQuery = query.order('created_at', { ascending: false });
-      const response = await (options.signal ? orderedQuery.abortSignal(options.signal) : orderedQuery)
-        .range(offset, offset + batchSize - 1);
-      if (response.error) throw response.error;
-      const batch = response.data || [];
-      jobRows.push(...batch);
-      databaseCount = response.count;
-      offset += batch.length;
-      if (batch.length < batchSize || (databaseCount !== null && offset >= databaseCount)) break;
-    }
+    const countRows = async (): Promise<number | null> => {
+      if (!includeTotal) return null;
+      const exact = await retryOnStatementTimeout(() => withSignal(applyJobFilters(selectJobListings({ count: 'exact', head: true }))));
+      if (!exact.error) return exact.count;
+      const planned = await withSignal(applyJobFilters(selectJobListings({ count: 'planned', head: true })));
+      return planned.error ? null : planned.count;
+    };
 
-    let normalizedJobs = jobRows.map(normalizeJob);
+    const [response, count] = await Promise.all([
+      retryOnStatementTimeout(() => withSignal(applyJobFilters(selectJobListings()))
+        .order('created_at', { ascending: false })
+        .range(pageStart, pageStart + windowSize - 1)),
+      countRows(),
+    ]);
 
-    if (numericExperienceYears !== null) {
-      normalizedJobs = normalizedJobs.filter((job) =>
-        matchesExperienceYears((job as Record<string, unknown>).experience, numericExperienceYears)
-      );
-    }
+    if (response.error) throw response.error;
 
-    const matchesKeyword = (value: unknown) => matchesAnyKeyword(value);
+    const data: Record<string, any>[] = response.data || [];
 
-    const filteredJobs = keywordInput ? normalizedJobs.filter((job) => {
-      const skills = Array.isArray(job.skills) ? job.skills : [];
+    const normalizedJobs = data.map(normalizeJob);
+    const baseMatches = keywordInput
+      ? normalizedJobs.filter((job) => {
+          const skills = Array.isArray(job.skills) ? job.skills : [];
+          const directMatch = (
+            matchesAnyKeyword(job.title)
+            || matchesAnyKeyword(job.company_name)
+            || matchesAnyKeyword(job.description)
+            || skills.some((skill) => matchesAnyKeyword(skill))
+          );
 
-      const literalMatch = (
-        matchesKeyword(job.title)
-        || matchesKeyword(job.company_name)
-        || matchesKeyword(job.description)
-        || skills.some((skill) => matchesKeyword(skill))
-      );
+          return directMatch || matchesAnyRoleIntent(job as Record<string, unknown>);
+        })
+      : normalizedJobs;
 
-      return literalMatch || matchesAnyRoleIntent(job as Record<string, unknown>);
-    }) : normalizedJobs;
+    const diversified = diversifyJobsByCompany(baseMatches);
+    const pageJobs = diversified.slice(0, safeLimit);
 
-    const rankedJobs = keywordInput
-      ? [...filteredJobs].sort((a, b) => scoreRoleSearchMatch(b as Record<string, unknown>, keywordInput) - scoreRoleSearchMatch(a as Record<string, unknown>, keywordInput))
-      : filteredJobs;
-
-    const diversified = diversifyJobsByCompany(rankedJobs);
-
-    const paginatedJobs = diversified.slice(pageStart, pageStart + safeLimit);
-
-    return { data: paginatedJobs, total: diversified.length };
+    return {
+      data: pageJobs,
+      total: count || pageStart + baseMatches.length || 0,
+    };
   },
 
   async getJobById(id: string) {
@@ -600,65 +550,6 @@ export const jobService = {
 
   async createJob(userId: string, jobData: Partial<Job>) {
     if (!userId) throw new Error('Missing userId for createJob');
-
-    const { data: subscriptionData, error: subscriptionError } = await supabase
-      .from('subscriptions')
-      .select('plan, status')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const hasUnlimitedRecruiterPlan = !subscriptionError && subscriptionData && ['premium', 'pro', 'enterprise'].includes(String(subscriptionData.plan || '').toLowerCase());
-
-    if (!hasUnlimitedRecruiterPlan) {
-      try {
-        const welcomeCheck = await ensureRecruiterWelcomeBenefit(userId);
-        if ((welcomeCheck.free_job_posts_total - welcomeCheck.free_job_posts_used) <= 0) {
-          throw new Error('Your free job posting allowance has been used.');
-        }
-      } catch (welcomeError) {
-        if (welcomeError instanceof Error && welcomeError.message.includes('free job posting allowance')) {
-          throw welcomeError;
-        }
-      }
-
-      try {
-        const reservation = await reserveRecruiterWelcomeJobPost(userId);
-        if (!reservation.allowed) {
-          throw new Error('Your free job posting allowance has been used.');
-        }
-
-        try {
-          // insert the job only after the free allowance is reserved
-          const { data, error } = await supabase
-            .from('jobs')
-            .insert([{
-              ...jobData,
-              posted_by: userId,
-              status: 'published',
-            }])
-            .select();
-          if (error) {
-            await restoreRecruiterWelcomeJobPost(userId, 1).catch(() => undefined);
-            throw error;
-          }
-          if (data?.[0]?.id) {
-            await triggerJobMatchNotifications(data[0].id);
-          }
-          return data?.[0] ? normalizeJob(data[0]) : null;
-        } catch (jobError) {
-          await restoreRecruiterWelcomeJobPost(userId, 1).catch(() => undefined);
-          throw jobError;
-        }
-      } catch (reservationError) {
-        if (reservationError instanceof Error && reservationError.message.includes('free job posting allowance')) {
-          throw reservationError;
-        }
-        throw reservationError;
-      }
-    }
 
     // List of ALL camelCase properties to EXCLUDE from the payload
     // These should NEVER be sent to Supabase as they are not actual database columns
@@ -728,7 +619,10 @@ export const jobService = {
       .from('jobs')
       .insert([createPayload])
       .select();
-    if (error) throw error;
+    if (error) {
+      const friendly = describeCreditError(error);
+      throw friendly ? new Error(friendly) : error;
+    }
 
     const createdJob = data?.[0] ? normalizeJob(data[0]) : null;
 
@@ -1414,22 +1308,48 @@ export const statsService = {
       .eq('posted_by', recruiterId);
     if (jobError) throw jobError;
 
-    const { data: applications, error: appError } = await supabase
-      .from('job_applications')
-      .select('id, status, priority_application')
-      .in(
-        'job_id',
-        jobs?.map((j) => j.id) || []
-      );
-    if (appError) throw appError;
+    const jobIds = jobs?.map((j) => j.id) || [];
+    let applications: Array<{ id: string; job_id: string; status: string; priority_application: boolean; applied_at: string | null }> = [];
+    if (jobIds.length > 0) {
+      const { data, error: appError } = await supabase
+        .from('job_applications')
+        .select('id, job_id, status, priority_application, applied_at')
+        .in('job_id', jobIds);
+      if (appError) throw appError;
+      applications = data || [];
+    }
+
+    const countStatus = (status: string) => applications.filter((a) => a.status === status).length;
+
+    const trendDays = 14;
+    const dayKey = (date: Date) => date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    const applications_by_day = Array.from({ length: trendDays }, (_, index) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (trendDays - 1 - index));
+      return { day: dayKey(date), applications: 0 };
+    });
+    const dayIndex = new Map(applications_by_day.map((row, index) => [row.day, index]));
+    const applications_by_job: Record<string, number> = {};
+    applications.forEach((application) => {
+      applications_by_job[application.job_id] = (applications_by_job[application.job_id] || 0) + 1;
+      if (application.applied_at) {
+        const index = dayIndex.get(dayKey(new Date(application.applied_at)));
+        if (index !== undefined) applications_by_day[index].applications += 1;
+      }
+    });
 
     const stats = {
       active_jobs: jobs?.filter((j) => j.status === 'published').length || 0,
       total_jobs: jobs?.length || 0,
-      total_applicants: applications?.length || 0,
-      shortlisted: applications?.filter((a) => a.status === 'shortlisted').length || 0,
-      rejected: applications?.filter((a) => a.status === 'rejected').length || 0,
-      priority_applicants: applications?.filter((a) => a.priority_application).length || 0,
+      total_applicants: applications.length,
+      applied: countStatus('applied'),
+      under_review: countStatus('under_review'),
+      shortlisted: countStatus('shortlisted'),
+      accepted: countStatus('accepted'),
+      rejected: countStatus('rejected'),
+      priority_applicants: applications.filter((a) => a.priority_application).length,
+      applications_by_day,
+      applications_by_job,
     };
     return stats;
   },

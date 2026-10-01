@@ -287,7 +287,7 @@ export const RecruiterSidebar: React.FC<RecruiterSidebarProps> = ({
 
       <Box sx={{ mx: mobileCompact ? 0.9 : 1.5, mb: mobileCompact ? 0.9 : 1.5, p: mobileCompact ? 1.1 : 1.4, borderRadius: 2.2, bgcolor: 'rgba(91,140,255,0.12)', border: '1px solid rgba(125, 211, 252, 0.22)', boxShadow: '0 12px 28px rgba(91,140,255,0.12)', position: 'relative', zIndex: 1 }}>
         <Typography sx={{ color: '#99F6E4', fontSize: mobileCompact ? 9 : 10, fontWeight: 800, letterSpacing: 0.8, textTransform: 'uppercase' }}>{planName} workspace</Typography>
-        <Typography sx={{ color: 'rgba(226,232,240,0.72)', fontSize: mobileCompact ? 10 : 11, mt: 0.35 }}>{credits.toLocaleString()} credits available</Typography>
+        <Typography sx={{ color: 'rgba(226,232,240,0.72)', fontSize: mobileCompact ? 10 : 11, mt: 0.35 }}>{credits < 0 ? 'Unlimited credits' : `${credits.toLocaleString()} credits available`}</Typography>
       </Box>
     </MotionBox>
   );

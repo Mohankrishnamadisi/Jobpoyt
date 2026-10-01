@@ -1,28 +1,29 @@
 import React, { useMemo, useState } from 'react';
 import {
   Box,
-  Button,
   Chip,
   CircularProgress,
   FormControl,
+  IconButton,
   InputLabel,
   MenuItem,
   OutlinedInput,
   Paper,
   Select,
-  Stack,
   Tooltip,
   Typography,
 } from '@mui/material';
 import {
   Archive as PoolIcon,
   Cancel as RejectIcon,
+  ClearAll as DeselectIcon,
   Download as ExportIcon,
   Label as TagIcon,
+  LabelOff as RemoveTagIcon,
   Mail as MessageIcon,
   PersonAdd as ShortlistIcon,
   PlaylistAddCheck as StageIcon,
-  RemoveCircleOutline as RemoveIcon,
+  Unarchive as RemovePoolIcon,
 } from '@mui/icons-material';
 import {
   ATS_STAGES,
@@ -53,6 +54,64 @@ interface BulkActionsToolbarProps {
 
 const uniqueOptions = (values: string[], presets: readonly string[]) =>
   Array.from(new Set([...presets, ...values].map((value) => value.trim()).filter(Boolean)));
+
+interface ActionIconProps {
+  title: string;
+  icon: React.ReactNode;
+  color: string;
+  disabled: boolean;
+  onClick: () => void;
+}
+
+const ActionIcon: React.FC<ActionIconProps> = ({ title, icon, color, disabled, onClick }) => (
+  <Tooltip title={title} arrow>
+    <span>
+      <IconButton
+        aria-label={title}
+        size="small"
+        disabled={disabled}
+        onClick={onClick}
+        sx={{
+          width: 34,
+          height: 34,
+          borderRadius: 1.75,
+          color,
+          bgcolor: '#FFFFFF',
+          border: '1px solid',
+          borderColor: `${color}33`,
+          transition: 'transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease',
+          '& svg': { fontSize: 18 },
+          '&:hover': {
+            bgcolor: `${color}14`,
+            borderColor: color,
+            transform: 'translateY(-2px)',
+            boxShadow: `0 6px 14px ${color}33`,
+          },
+          '&.Mui-disabled': { color: '#B4C0CE', bgcolor: '#F8FAFC', borderColor: '#E2E8F0' },
+        }}
+      >
+        {icon}
+      </IconButton>
+    </span>
+  </Tooltip>
+);
+
+const groupSx = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 0.5,
+  p: 0.5,
+  borderRadius: 2,
+  bgcolor: 'rgba(255,255,255,0.7)',
+  border: '1px solid #E4ECF6',
+  minWidth: 0,
+} as const;
+
+const selectSx = {
+  width: { xs: 120, md: 130 },
+  '& .MuiInputBase-root': { height: 34, fontSize: 11.5, borderRadius: 1.75, bgcolor: '#FFFFFF' },
+  '& .MuiInputLabel-root': { fontSize: 12 },
+} as const;
 
 export const BulkActionsToolbar: React.FC<BulkActionsToolbarProps> = ({
   selectedCount,
@@ -88,152 +147,83 @@ export const BulkActionsToolbar: React.FC<BulkActionsToolbarProps> = ({
         background: 'linear-gradient(145deg, #ffffff 0%, #F4F8FF 100%)',
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, px: { xs: 1.25, md: 1.5 }, py: 1, borderBottom: '1px solid #E4ECF6', background: 'linear-gradient(90deg, rgba(220,235,255,0.62), rgba(255,255,255,0.5))', borderRadius: '10px 10px 0 0' }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', gap: 1, px: { xs: 1.25, md: 1.5 }, py: 0.75, borderBottom: '1px solid #E4ECF6', background: 'linear-gradient(90deg, rgba(220,235,255,0.62), rgba(255,255,255,0.5))', borderRadius: '10px 10px 0 0' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
           <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: selectedCount > 0 ? '#0E9F8E' : '#94A3B8', boxShadow: selectedCount > 0 ? '0 0 0 4px rgba(14,159,142,0.12)' : 'none' }} />
           <Typography sx={{ color: '#16325C', fontSize: '0.72rem', fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Candidate actions</Typography>
         </Box>
-        <Typography sx={{ color: '#71839B', fontSize: '0.68rem' }}>{selectedCount > 0 ? 'Choose an action for selected candidates' : 'Select candidates to enable actions'}</Typography>
+        <Chip
+          size="small"
+          color={selectedCount > 0 ? 'primary' : 'default'}
+          label={`${selectedCount} selected`}
+          sx={{ fontWeight: 800, borderRadius: 2, height: 26, transition: 'all 0.2s ease', '& .MuiChip-label': { px: 1.25, fontSize: 11.5 } }}
+        />
+        <Typography sx={{ color: '#71839B', fontSize: '0.68rem', textAlign: 'right', display: { xs: 'none', sm: 'block' } }}>{selectedCount > 0 ? 'Choose an action for selected candidates' : 'Select candidates to enable actions'}</Typography>
       </Box>
       <Box
         sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: 'minmax(0, 1fr)',
-            sm: 'repeat(2, minmax(0, 1fr))',
-            md: 'repeat(4, minmax(120px, 1fr))',
-            lg: 'repeat(6, minmax(120px, 1fr))',
-          },
+          display: 'flex',
+          flexWrap: 'wrap',
           alignItems: 'center',
           gap: 0.75,
-          p: { xs: 1, md: 1 },
+          p: 1,
           minWidth: 0,
-          '& .MuiButton-root': {
-            minHeight: 36,
-            py: 0.55,
-            px: 1,
-            fontSize: 11,
-            lineHeight: 1.15,
-            whiteSpace: 'nowrap',
-            borderRadius: 1.5,
-            borderColor: '#C9D8EA',
-          },
-          '& .MuiButton-startIcon': {
-            mr: 0.5,
-            '& svg': { fontSize: 16 },
-          },
-          '& .MuiInputBase-root': {
-            minHeight: 36,
-            fontSize: 11,
-            borderRadius: 1.5,
-          },
-          '& .MuiInputBase-input': {
-            py: 0.6,
-          },
-          '& .MuiInputLabel-root': {
-            fontSize: 12,
-          },
-          '& .MuiButton-outlined': {
-            color: '#28508A',
-            backgroundColor: '#FFFFFF',
-            '&:hover': { backgroundColor: '#EAF3FF', borderColor: '#5B8CFF' },
-          },
-          '& .MuiButton-text': {
-            color: '#54708F',
-            '&:hover': { backgroundColor: '#EAF3FF', color: '#28508A' },
-          },
-          '& .MuiButton-root.Mui-disabled': {
-            color: '#9AA8B8',
-            borderColor: '#D9E2EC',
-            backgroundColor: '#F8FAFC',
-            opacity: 1,
-          },
-          '& .MuiInputBase-root.Mui-disabled': {
-            color: '#8A99AA',
-            backgroundColor: '#F8FAFC',
-          },
+          '& .MuiInputBase-root.Mui-disabled': { color: '#8A99AA', bgcolor: '#F8FAFC' },
         }}
       >
-        <Chip
-          color="primary"
-          label={`${selectedCount} ${selectedCount === 1 ? 'Candidate' : 'Candidates'} Selected`}
-          sx={{ fontWeight: 900, borderRadius: 1.5, height: 36, width: '100%', '& .MuiChip-label': { px: 1, fontSize: 11 } }}
-        />
-        <Tooltip title="Shortlist selected candidates">
-          <span>
-            <Button fullWidth disabled={disabled} startIcon={<ShortlistIcon />} variant="contained" onClick={() => onAction({ type: 'shortlist' })}>
-              Shortlist
-            </Button>
-          </span>
-        </Tooltip>
-        <Tooltip title="Reject selected candidates">
-          <span>
-            <Button fullWidth disabled={disabled} color="error" startIcon={<RejectIcon />} variant="outlined" onClick={() => onAction({ type: 'reject' })}>
-              Reject
-            </Button>
-          </span>
-        </Tooltip>
-        <FormControl fullWidth size="small" disabled={disabled}>
-          <InputLabel>ATS Stage</InputLabel>
-          <Select value={stage} label="ATS Stage" onChange={(event) => setStage(event.target.value as AtsStage)}>
-            {ATS_STAGES.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>)}
-          </Select>
-        </FormControl>
-        <Button fullWidth disabled={disabled} startIcon={<StageIcon />} variant="outlined" onClick={() => onAction({ type: 'move_stage', stage })}>
-          Move
-        </Button>
-        <FormControl fullWidth size="small" disabled={disabled}>
-          <InputLabel>Tags</InputLabel>
-          <Select
-            multiple
-            value={selectedTags}
-            input={<OutlinedInput label="Tags" />}
-            renderValue={(selected) => selected.join(', ')}
-            onChange={(event) => setSelectedTags(typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value)}
-            sx={{ minWidth: 0 }}
-          >
-            {tagOptions.map((tag) => <MenuItem key={tag} value={tag}>{tag}</MenuItem>)}
-          </Select>
-        </FormControl>
-        <Button fullWidth disabled={disabled || selectedTags.length === 0} startIcon={<TagIcon />} variant="outlined" onClick={() => onAction({ type: 'add_tags', values: selectedTags })}>
-          Add Tags
-        </Button>
-        <Button fullWidth disabled={disabled || selectedTags.length === 0} startIcon={<RemoveIcon />} variant="text" onClick={() => onAction({ type: 'remove_tags', values: selectedTags })}>
-          Remove Tags
-        </Button>
-        <FormControl fullWidth size="small" disabled={disabled}>
-          <InputLabel>Talent Pool</InputLabel>
-          <Select
-            multiple
-            value={selectedPools}
-            input={<OutlinedInput label="Talent Pool" />}
-            renderValue={(selected) => selected.join(', ')}
-            onChange={(event) => setSelectedPools(typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value)}
-            sx={{ minWidth: 0 }}
-          >
-            {poolOptions.map((pool) => <MenuItem key={pool} value={pool}>{pool}</MenuItem>)}
-          </Select>
-        </FormControl>
-        <Button fullWidth disabled={disabled || selectedPools.length === 0} startIcon={<PoolIcon />} variant="outlined" onClick={() => onAction({ type: 'add_pool', values: selectedPools })}>
-          Add Pool
-        </Button>
-        <Button fullWidth disabled={disabled || selectedPools.length === 0} startIcon={<RemoveIcon />} variant="text" onClick={() => onAction({ type: 'remove_pool', values: selectedPools })}>
-          Remove Pool
-        </Button>
-        <Button fullWidth disabled={disabled} startIcon={<MessageIcon />} variant="outlined" onClick={() => onAction({ type: 'message' })}>
-          Message
-        </Button>
-        <Button fullWidth disabled={disabled} startIcon={<ExportIcon />} variant="outlined" onClick={() => onAction({ type: 'export_csv' })}>
-          CSV
-        </Button>
-        <Box sx={{ display: 'none' }} />
-        <Button fullWidth disabled={processing || selectedCount === 0} onClick={onClear}>Deselect All</Button>
-        {processing && (
-          <Stack direction="row" spacing={1} alignItems="center">
-            <CircularProgress size={18} />
-            <Typography variant="caption" color="text.secondary">Working</Typography>
-          </Stack>
-        )}
+        <Box sx={groupSx}>
+          <ActionIcon title="Shortlist selected candidates" icon={<ShortlistIcon />} color="#0E9F8E" disabled={disabled} onClick={() => onAction({ type: 'shortlist' })} />
+          <ActionIcon title="Reject selected candidates" icon={<RejectIcon />} color="#DC2626" disabled={disabled} onClick={() => onAction({ type: 'reject' })} />
+        </Box>
+        <Box sx={groupSx}>
+          <FormControl size="small" disabled={disabled} sx={selectSx}>
+            <InputLabel>ATS Stage</InputLabel>
+            <Select value={stage} label="ATS Stage" onChange={(event) => setStage(event.target.value as AtsStage)}>
+              {ATS_STAGES.map((item) => <MenuItem key={item} value={item}>{item}</MenuItem>)}
+            </Select>
+          </FormControl>
+          <ActionIcon title={`Move to ${stage}`} icon={<StageIcon />} color="#2563EB" disabled={disabled} onClick={() => onAction({ type: 'move_stage', stage })} />
+        </Box>
+        <Box sx={groupSx}>
+          <FormControl size="small" disabled={disabled} sx={selectSx}>
+            <InputLabel>Tags</InputLabel>
+            <Select
+              multiple
+              value={selectedTags}
+              input={<OutlinedInput label="Tags" />}
+              renderValue={(selected) => selected.join(', ')}
+              onChange={(event) => setSelectedTags(typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value)}
+              sx={{ minWidth: 0 }}
+            >
+              {tagOptions.map((tag) => <MenuItem key={tag} value={tag}>{tag}</MenuItem>)}
+            </Select>
+          </FormControl>
+          <ActionIcon title="Add tags" icon={<TagIcon />} color="#7C3AED" disabled={disabled || selectedTags.length === 0} onClick={() => onAction({ type: 'add_tags', values: selectedTags })} />
+          <ActionIcon title="Remove tags" icon={<RemoveTagIcon />} color="#64748B" disabled={disabled || selectedTags.length === 0} onClick={() => onAction({ type: 'remove_tags', values: selectedTags })} />
+        </Box>
+        <Box sx={groupSx}>
+          <FormControl size="small" disabled={disabled} sx={selectSx}>
+            <InputLabel>Talent Pool</InputLabel>
+            <Select
+              multiple
+              value={selectedPools}
+              input={<OutlinedInput label="Talent Pool" />}
+              renderValue={(selected) => selected.join(', ')}
+              onChange={(event) => setSelectedPools(typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value)}
+              sx={{ minWidth: 0 }}
+            >
+              {poolOptions.map((pool) => <MenuItem key={pool} value={pool}>{pool}</MenuItem>)}
+            </Select>
+          </FormControl>
+          <ActionIcon title="Add to talent pool" icon={<PoolIcon />} color="#D97706" disabled={disabled || selectedPools.length === 0} onClick={() => onAction({ type: 'add_pool', values: selectedPools })} />
+          <ActionIcon title="Remove from talent pool" icon={<RemovePoolIcon />} color="#64748B" disabled={disabled || selectedPools.length === 0} onClick={() => onAction({ type: 'remove_pool', values: selectedPools })} />
+        </Box>
+        <Box sx={groupSx}>
+          <ActionIcon title="Message selected candidates" icon={<MessageIcon />} color="#0284C7" disabled={disabled} onClick={() => onAction({ type: 'message' })} />
+          <ActionIcon title="Export CSV" icon={<ExportIcon />} color="#16A34A" disabled={disabled} onClick={() => onAction({ type: 'export_csv' })} />
+          <ActionIcon title="Deselect all" icon={<DeselectIcon />} color="#475569" disabled={processing || selectedCount === 0} onClick={onClear} />
+        </Box>
+        {processing && <CircularProgress size={18} sx={{ ml: 0.5 }} />}
       </Box>
     </Paper>
   );

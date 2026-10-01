@@ -294,16 +294,11 @@ export const Jobs: React.FC = () => {
     } catch (err) {
       if (requestId !== latestRequestRef.current) return;
       if (controller.signal.aborted) return;
-      let loadError = 'Failed to load jobs';
-      if (err && typeof err === 'object' && 'message' in err && typeof (err as any).message === 'string') {
-        loadError = (err as any).message;
-      } else if (typeof err === 'string') {
-        loadError = err;
-      }
       if (isBackgroundRefresh && jobsRef.current.length > 0) {
         console.error('Background jobs refresh failed:', err);
       } else {
-        setError(loadError);
+        console.error('Failed to load jobs:', err);
+        setError('We couldn\'t load jobs right now. Please try again.');
       }
     } finally {
       if (requestId === latestRequestRef.current) {
@@ -438,14 +433,6 @@ export const Jobs: React.FC = () => {
     }
   }, [page, totalPages]);
 
-  if (error) {
-    return (
-      <Layout>
-        <Error message={error} />
-      </Layout>
-    );
-  }
-
   const keywordValues = filters.keyword.split(',').map((value) => value.trim()).filter(Boolean);
   const selectedKeywordSet = new Set(keywordValues.map((value) => value.toLowerCase()));
   const filteredSuggestionGroups = JOB_SEARCH_SUGGESTION_GROUPS
@@ -495,7 +482,7 @@ export const Jobs: React.FC = () => {
   };
 
   return (
-    <Layout stickyContent>
+    <Layout stickyContent className="find-jobs-layout">
       <SEO title="Jobs in India, Abroad & Remote | JobPoyt" description="Search current jobs in India, abroad and remote roles on JobPoyt. Filter opportunities by role, location, experience, job type and work mode." canonical={`${siteConfig.url}/jobs`} />
       <Container maxWidth="xl" className="find-jobs-page" sx={{ py: { xs: 1.5, md: 3 }, backgroundColor: 'transparent' }}>
         <MotionPaper
@@ -520,7 +507,7 @@ export const Jobs: React.FC = () => {
             <Grid item xs={12} md={8}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, mb: 0.5 }}>
                 <AutoAwesomeIcon sx={{ fontSize: 16, color: '#7dd3fc' }} />
-                <Typography variant="overline" sx={{ fontSize: '0.65rem', fontWeight: 700, letterSpacing: 1.4, color: '#7dd3fc' }}>
+                <Typography variant="overline" sx={{ fontSize: '0.65rem', fontWeight: 500, letterSpacing: 1.4, color: '#7dd3fc' }}>
                   Career Discovery
                 </Typography>
               </Box>
@@ -544,7 +531,7 @@ export const Jobs: React.FC = () => {
               </Typography>
               {topLocations ? (
                 <Typography variant="body2" sx={{ color: '#bae6fd', mt: 0.6, maxWidth: 690, lineHeight: 1.4, fontSize: { xs: '0.66rem', md: '0.8rem' } }}>
-                  <Box component="span" sx={{ color: '#fff', fontWeight: 700 }}>Trending locations:</Box> {topLocations}
+                  <Box component="span" sx={{ color: '#fff', fontWeight: 500 }}>Trending locations:</Box> {topLocations}
                 </Typography>
               ) : null}
             </Grid>
@@ -570,7 +557,7 @@ export const Jobs: React.FC = () => {
                   <Box key={stat.label} sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, md: 0.8 }, '& + &': { mt: { xs: 0.5, md: 0.8 }, pt: { xs: 0.5, md: 0.8 }, borderTop: '1px solid rgba(255,255,255,0.14)' } }}>
                     <Box sx={{ width: { xs: 22, md: 30 }, height: { xs: 22, md: 30 }, borderRadius: 1.2, display: 'grid', placeItems: 'center', color: '#7dd3fc', background: 'rgba(34,211,238,0.14)', '& svg': { fontSize: { xs: 14, md: 20 } } }}>{stat.icon}</Box>
                     <Box>
-                      <Typography sx={{ fontSize: { xs: '0.7rem', md: '0.95rem' }, lineHeight: 1.1, fontWeight: 800 }}>{stat.value}</Typography>
+                      <Typography sx={{ fontSize: { xs: '0.7rem', md: '0.95rem' }, lineHeight: 1.1, fontWeight: 600 }}>{stat.value}</Typography>
                       <Typography sx={{ fontSize: { xs: '0.52rem', md: '0.65rem' }, color: 'rgba(255,255,255,0.7)' }}>{stat.label}</Typography>
                     </Box>
                   </Box>
@@ -614,7 +601,7 @@ export const Jobs: React.FC = () => {
                   bgcolor: 'transparent',
                   border: '1px solid rgba(255,255,255,0.42)',
                   textTransform: 'none',
-                  fontWeight: 600,
+                  fontWeight: 500,
                   px: { xs: 1, md: 2 },
                   py: { xs: 0.3, md: 0.72 },
                   fontSize: { xs: '0.7rem', md: '0.9rem' },
@@ -733,8 +720,8 @@ export const Jobs: React.FC = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
             >
-              <Typography sx={{ fontWeight: 800, mb: { xs: 0.4, md: 1 }, fontSize: { xs: '0.95rem', md: '1.25rem' } }}>
-                Smart Filters
+              <Typography sx={{ fontWeight: 700, mb: { xs: 0.4, md: 1 }, fontSize: { xs: '0.95rem', md: '1.25rem' } }}>
+                All Filters
               </Typography>
               <Typography sx={{ color: 'text.secondary', mb: { xs: 1.4, md: 3 }, fontSize: { xs: '0.7rem', md: '0.875rem' } }}>
                 Use keywords, city, experience and job type to narrow the best matches.
@@ -755,9 +742,9 @@ export const Jobs: React.FC = () => {
                     bgcolor: 'rgba(59, 130, 246, 0.06)',
                   }}
                 >
-                  <Typography sx={{ fontWeight: 700, fontSize: { xs: '0.8rem', md: '1rem' } }}>Search</Typography>
+                  <Typography sx={{ fontWeight: 500, fontSize: { xs: '0.8rem', md: '1rem' } }}>Search</Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                    <Chip size="small" label={searchCount} color={searchCount > 0 ? 'primary' : 'default'} sx={{ minWidth: { xs: 24, md: 32 }, height: { xs: 19, md: 24 }, fontWeight: 700, fontSize: { xs: '0.65rem', md: '0.8125rem' } }} />
+                    <Chip size="small" label={searchCount} color={searchCount > 0 ? 'primary' : 'default'} sx={{ minWidth: { xs: 24, md: 32 }, height: { xs: 19, md: 24 }, fontWeight: 500, fontSize: { xs: '0.65rem', md: '0.8125rem' } }} />
                     <IconButton size="small">{openSections.search ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}</IconButton>
                   </Box>
                 </Box>
@@ -864,7 +851,7 @@ export const Jobs: React.FC = () => {
                           >
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, pb: 1.5, borderBottom: '1px solid #e2e8f0' }}>
                               <Box>
-                                <Typography sx={{ color: '#0f172a', fontSize: '1.2rem', fontWeight: 800 }}>Choose a job role</Typography>
+                                <Typography sx={{ color: '#0f172a', fontSize: '1.2rem', fontWeight: 600 }}>Choose a job role</Typography>
                                 <Typography sx={{ color: 'text.secondary', fontSize: '0.84rem', mt: 0.3 }}>Select one or more roles to filter jobs.</Typography>
                               </Box>
                               <IconButton aria-label="Close job role suggestions" onClick={() => setSuggestionsOpen(false)} size="medium">
@@ -932,7 +919,7 @@ export const Jobs: React.FC = () => {
                                   minWidth: 82,
                                   borderRadius: 1,
                                   textTransform: 'none',
-                                  fontWeight: 700,
+                                  fontWeight: 500,
                                   backgroundColor: '#3B82F6',
                                   boxShadow: 'none',
                                   '&:hover': {
@@ -958,7 +945,7 @@ export const Jobs: React.FC = () => {
                                         else next.add(group.label);
                                         return next;
                                       })}
-                                      sx={{ display: 'flex', justifyContent: 'space-between', px: 0.7, py: 0.45, minHeight: 30, color: '#164e9b', fontSize: '0.66rem', fontWeight: 800, textTransform: 'uppercase', textAlign: 'left', background: 'linear-gradient(135deg, #dbeafe, #e0f2fe)', border: '1px solid #bfdbfe', borderRadius: 0.9, boxShadow: '0 2px 6px rgba(37, 99, 235, 0.08)', '&:hover': { background: 'linear-gradient(135deg, #bfdbfe, #dbeafe)' } }}
+                                      sx={{ display: 'flex', justifyContent: 'space-between', px: 0.7, py: 0.45, minHeight: 30, color: '#164e9b', fontSize: '0.66rem', fontWeight: 600, textTransform: 'uppercase', textAlign: 'left', background: 'linear-gradient(135deg, #dbeafe, #e0f2fe)', border: '1px solid #bfdbfe', borderRadius: 0.9, boxShadow: '0 2px 6px rgba(37, 99, 235, 0.08)', '&:hover': { background: 'linear-gradient(135deg, #bfdbfe, #dbeafe)' } }}
                                     >
                                       {group.label}
                                       {expandedSuggestionGroups.has(group.label) ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
@@ -1040,9 +1027,9 @@ export const Jobs: React.FC = () => {
                     bgcolor: 'rgba(14, 165, 233, 0.06)',
                   }}
                 >
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Profile Match</Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>Profile Match</Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                    <Chip size="small" label={profileCount} color={profileCount > 0 ? 'primary' : 'default'} sx={{ minWidth: 32, height: 24, fontWeight: 700 }} />
+                    <Chip size="small" label={profileCount} color={profileCount > 0 ? 'primary' : 'default'} sx={{ minWidth: 32, height: 24, fontWeight: 500 }} />
                     <IconButton size="medium">{openSections.profile ? <ExpandLessIcon /> : <ExpandMoreIcon />}</IconButton>
                   </Box>
                 </Box>
@@ -1118,9 +1105,9 @@ export const Jobs: React.FC = () => {
                     bgcolor: 'rgba(59, 130, 246, 0.06)',
                   }}
                 >
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Job Type</Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>Job Type</Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                    <Chip size="small" label={jobTypeCount} color={jobTypeCount > 0 ? 'primary' : 'default'} sx={{ minWidth: 32, height: 24, fontWeight: 700 }} />
+                    <Chip size="small" label={jobTypeCount} color={jobTypeCount > 0 ? 'primary' : 'default'} sx={{ minWidth: 32, height: 24, fontWeight: 500 }} />
                     <IconButton size="medium">{openSections.jobType ? <ExpandLessIcon /> : <ExpandMoreIcon />}</IconButton>
                   </Box>
                 </Box>
@@ -1168,9 +1155,9 @@ export const Jobs: React.FC = () => {
                     bgcolor: 'rgba(14, 165, 233, 0.06)',
                   }}
                 >
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Work Mode</Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>Work Mode</Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                    <Chip size="small" label={workModeCount} color={workModeCount > 0 ? 'primary' : 'default'} sx={{ minWidth: 32, height: 24, fontWeight: 700 }} />
+                    <Chip size="small" label={workModeCount} color={workModeCount > 0 ? 'primary' : 'default'} sx={{ minWidth: 32, height: 24, fontWeight: 500 }} />
                     <IconButton size="medium">{openSections.workMode ? <ExpandLessIcon /> : <ExpandMoreIcon />}</IconButton>
                   </Box>
                 </Box>
@@ -1218,9 +1205,9 @@ export const Jobs: React.FC = () => {
                     bgcolor: 'rgba(59, 130, 246, 0.06)',
                   }}
                 >
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Category</Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>Category</Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
-                    <Chip size="small" label={categoryCount} color={categoryCount > 0 ? 'primary' : 'default'} sx={{ minWidth: 32, height: 24, fontWeight: 700 }} />
+                    <Chip size="small" label={categoryCount} color={categoryCount > 0 ? 'primary' : 'default'} sx={{ minWidth: 32, height: 24, fontWeight: 500 }} />
                     <IconButton size="medium">{openSections.category ? <ExpandLessIcon /> : <ExpandMoreIcon />}</IconButton>
                   </Box>
                 </Box>
@@ -1301,7 +1288,9 @@ export const Jobs: React.FC = () => {
           </Grid>
 
           <Grid item xs={12} md={9} lg={hasStandardCandidateAdLayout ? 7.5 : 9}>
-            {loading ? (
+            {error ? (
+              <Error message={error} onRetry={() => void fetchJobs()} />
+            ) : loading ? (
               <JobListSkeleton count={6} />
             ) : jobs.length === 0 ? (
               <Box
@@ -1332,7 +1321,7 @@ export const Jobs: React.FC = () => {
                     mb: { xs: 1.5, md: 2 },
                   }}
                 />
-                <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 700, mb: 1.4 }}>
+                <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 600, mb: 1.4 }}>
                   No jobs found
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>

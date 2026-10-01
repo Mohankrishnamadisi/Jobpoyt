@@ -6,16 +6,18 @@ import { useTheme } from '@mui/material/styles';
 
 interface LayoutProps {
   children: React.ReactNode;
+  className?: string;
   footer?: boolean;
   stickyContent?: boolean;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, footer = true, stickyContent = false }) => {
+export const Layout: React.FC<LayoutProps> = ({ children, className, footer = true, stickyContent = false }) => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
 
   return (
     <Box
+      className={className}
       sx={{
         display: 'flex',
         flexDirection: 'column',

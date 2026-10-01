@@ -155,7 +155,7 @@ export const ResumeUnlockContact: React.FC<ResumeUnlockContactProps> = ({
       toast.success(result.already_unlocked ? 'Candidate contact already unlocked' : 'Candidate contact unlocked');
     } catch (err: any) {
       console.error('Failed to unlock candidate contact:', err);
-      toast.error(err?.message?.includes('No credits') ? 'No Credits Remaining' : 'Failed to unlock contact');
+      toast.error(err?.message || 'Failed to unlock contact');
     } finally {
       setUnlocking(false);
     }

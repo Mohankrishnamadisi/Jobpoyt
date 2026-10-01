@@ -11,6 +11,7 @@ import {
   Menu,
   MenuItem,
   Chip,
+  Tooltip,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
@@ -24,6 +25,8 @@ import {
   CreditScore as CreditScoreIcon,
   Home as HomeIcon,
   Menu as MenuIcon,
+  MenuBook as MenuBookIcon,
+  WorkspacePremium as SubscriptionIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
 import { themeColors } from '@styles/recruiterTheme';
@@ -31,6 +34,7 @@ import { useAuthStore } from '@store/index';
 import { authService } from '@services/supabase';
 import { ROUTES } from '@constants/index';
 import { supportService } from '@services/support';
+import { RecruiterHelpGuide } from './RecruiterHelpGuide';
 
 interface RecruiterTopbarProps {
   recruiterLogo?: string;
@@ -45,6 +49,7 @@ interface RecruiterTopbarProps {
   onSettingsClick?: () => void;
   onCustomerCareClick?: () => void;
   onMobileMenuClick?: () => void;
+  onTabChange?: (tabId: string) => void;
 }
 
 const MotionBox = motion(Box);
@@ -62,6 +67,7 @@ export const RecruiterTopbar: React.FC<RecruiterTopbarProps> = ({
   onSettingsClick,
   onCustomerCareClick,
   onMobileMenuClick,
+  onTabChange,
 }) => {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
@@ -69,6 +75,7 @@ export const RecruiterTopbar: React.FC<RecruiterTopbarProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [ticketNotifCount, setTicketNotifCount] = React.useState(0);
+  const [guideOpen, setGuideOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (!user?.id) return;
@@ -187,7 +194,7 @@ export const RecruiterTopbar: React.FC<RecruiterTopbarProps> = ({
             </Typography>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, md: 1.5 } }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, md: 0.75 } }}>
             {!isMobile && (
               <Chip
                 label={planName}
@@ -221,6 +228,27 @@ export const RecruiterTopbar: React.FC<RecruiterTopbarProps> = ({
                 </IconButton>
               </motion.div>
             )}
+
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Tooltip title="Subscription & billing" arrow>
+                <IconButton
+                  onClick={() => navigate(ROUTES.RECRUITER_SUBSCRIPTION)}
+                  aria-label="Subscription and billing"
+                  sx={{
+                    width: { xs: 36, md: 'auto' },
+                    height: { xs: 36, md: 'auto' },
+                    p: { xs: 0, md: 1 },
+                    color: '#D97706',
+                    border: '1px solid rgba(217,119,6,0.25)',
+                    bgcolor: '#FFFFFF',
+                    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
+                    '&:hover': { color: '#B45309', bgcolor: 'rgba(245,158,11,0.08)' },
+                  }}
+                >
+                  <SubscriptionIcon sx={{ fontSize: '1.25rem' }} />
+                </IconButton>
+              </Tooltip>
+            </motion.div>
 
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <IconButton
@@ -263,17 +291,21 @@ export const RecruiterTopbar: React.FC<RecruiterTopbarProps> = ({
             </motion.div>
 
             {!isMobile && (
-              <IconButton
-                sx={{
-                  color: themeColors.text.secondary,
-                  border: '1px solid rgba(148,163,184,0.18)',
-                  bgcolor: '#fff',
-                  boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
-                  '&:hover': { color: '#0F172A', bgcolor: 'rgba(15,23,42,0.02)' },
-                }}
-              >
-                <HelpIcon sx={{ fontSize: '1.25rem' }} />
-              </IconButton>
+              <Tooltip title="Dashboard guide" arrow>
+                <IconButton
+                  onClick={() => setGuideOpen(true)}
+                  aria-label="Open dashboard guide"
+                  sx={{
+                    color: themeColors.text.secondary,
+                    border: '1px solid rgba(148,163,184,0.18)',
+                    bgcolor: '#fff',
+                    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.04)',
+                    '&:hover': { color: '#0F172A', bgcolor: 'rgba(15,23,42,0.02)' },
+                  }}
+                >
+                  <HelpIcon sx={{ fontSize: '1.25rem' }} />
+                </IconButton>
+              </Tooltip>
             )}
 
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -283,7 +315,7 @@ export const RecruiterTopbar: React.FC<RecruiterTopbarProps> = ({
                   p: 0,
                   width: { xs: 36, md: 'auto' },
                   height: { xs: 36, md: 'auto' },
-                  ml: { xs: 0, md: 1 },
+                  ml: { xs: 0, md: 0.25 },
                 }}
               >
                 <Avatar
@@ -373,6 +405,16 @@ export const RecruiterTopbar: React.FC<RecruiterTopbarProps> = ({
         <MenuItem
           onClick={() => {
             handleMenuClose();
+            setGuideOpen(true);
+          }}
+          sx={{ '&:hover': { backgroundColor: themeColors.hover } }}
+        >
+          <MenuBookIcon sx={{ mr: 1.5, fontSize: '1.1rem' }} />
+          Dashboard Guide
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleMenuClose();
             onCustomerCareClick?.();
           }}
           sx={{ '&:hover': { backgroundColor: themeColors.hover } }}
@@ -390,6 +432,15 @@ export const RecruiterTopbar: React.FC<RecruiterTopbarProps> = ({
           Sign out
         </MenuItem>
       </Menu>
+
+      <RecruiterHelpGuide
+        open={guideOpen}
+        onClose={() => setGuideOpen(false)}
+        onOpenTab={onTabChange ? (tabId) => {
+          setGuideOpen(false);
+          onTabChange(tabId);
+        } : undefined}
+      />
     </>
   );
 };

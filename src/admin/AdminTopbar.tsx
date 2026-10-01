@@ -31,6 +31,7 @@ import { adminService } from '../services/admin';
 import { authService } from '@services/supabase';
 import { useAuthStore } from '@store/index';
 import { ROUTES } from '../constants';
+import { ADMIN_VIEW_TITLES } from './adminViews';
 
 const { Header } = Layout;
 
@@ -42,7 +43,7 @@ type AdminTopbarProps = {
   onMobileOpenChange?: (open: boolean) => void;
 };
 
-const AdminTopbar: React.FC<AdminTopbarProps> = ({ collapsed = false, isMobile = false, onToggleCollapsed, onMobileOpenChange }) => {
+const AdminTopbar: React.FC<AdminTopbarProps> = ({ collapsed = false, isMobile = false, onToggleCollapsed }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuthStore();
@@ -50,11 +51,20 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({ collapsed = false, isMobile =
   const [unreadCount, setUnreadCount] = React.useState(0);
   const [loadingNotifications, setLoadingNotifications] = React.useState(false);
   const [notificationsOpen, setNotificationsOpen] = React.useState(false);
+  const [searchText, setSearchText] = React.useState('');
 
   const pageLabel = React.useMemo(() => {
+    const view = new URLSearchParams(location.search).get('view');
+    if (view && ADMIN_VIEW_TITLES[view]) return ADMIN_VIEW_TITLES[view];
     const raw = location.pathname.split('/').filter(Boolean).pop() || 'dashboard';
     return raw.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
+
+  const runGlobalSearch = () => {
+    const query = searchText.trim();
+    if (!query) return;
+    navigate(`${ROUTES.ADMIN_DASHBOARD}?view=global-search&q=${encodeURIComponent(query)}`);
+  };
 
   const loadNotifications = React.useCallback(async () => {
     if (!user?.id) {
@@ -215,12 +225,7 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({ collapsed = false, isMobile =
   return (
     <Header className="admin-topbar" style={{ left: isMobile ? 0 : undefined }}>
       <div className="admin-topbar__left">
-        <button type="button" className="admin-topbar__toggle" onClick={() => {
-          if (isMobile) {
-            onMobileOpenChange?.(true);
-          }
-          onToggleCollapsed?.();
-        }}>
+        <button type="button" className="admin-topbar__toggle" onClick={() => onToggleCollapsed?.()} aria-label={isMobile ? 'Open admin menu' : 'Toggle sidebar'}>
           {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
         </button>
 
@@ -231,13 +236,21 @@ const AdminTopbar: React.FC<AdminTopbarProps> = ({ collapsed = false, isMobile =
         <div className="admin-topbar__title-wrap">
           <Typography.Text className="admin-topbar__crumb">Super Admin / {pageLabel}</Typography.Text>
           <Typography.Title level={5} className="admin-topbar__title">
-            Platform Control Center
+            {pageLabel}
           </Typography.Title>
         </div>
       </div>
 
       <div className="admin-topbar__right">
-        <Input className="admin-topbar__search" prefix={<SearchOutlined />} placeholder="Search users, jobs, companies..." />
+        <Input
+          className="admin-topbar__search"
+          prefix={<SearchOutlined />}
+          placeholder="Search users, jobs, companies... (Enter)"
+          value={searchText}
+          onChange={(event) => setSearchText(event.target.value)}
+          onPressEnter={runGlobalSearch}
+          allowClear
+        />
         <button type="button" className="admin-topbar__icon-button" onClick={() => navigate(ROUTES.HOME)} aria-label="Home">
           <HomeOutlined />
         </button>

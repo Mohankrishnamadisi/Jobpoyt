@@ -1,5 +1,5 @@
-const CACHE_PREFIX = 'jobpoyt-v4';
-const LEGACY_CACHE_PREFIXES = ['jobpoyt-cache', 'jobpoyt-v'];
+const CACHE_PREFIX = 'jobpoyt-v5';
+const LEGACY_CACHE_PREFIXES = ['jobpoyt-cache', 'jobpoyt-v', '[object Promise]'];
 const SHELL_CACHE_ASSETS = [
   '/',
   '/index.html',
@@ -40,9 +40,14 @@ const isApiOrSupabaseRequest = (url) => {
 
 const isNavigationRequest = (request) => request.mode === 'navigate' || request.destination === 'document';
 
-const isHashedAsset = (url) => {
-  const hasHashedAssetPattern = /\.[a-z0-9]{8,}\.(js|css|png|jpg|jpeg|svg|webp|woff2?|ico)$/i.test(url.pathname);
-  return hasHashedAssetPattern || /\/assets\//i.test(url.pathname);
+const isHashedAsset = (url) => /^\/assets\//i.test(url.pathname);
+
+// Rewrites can answer a missing .css/.js with index.html; never cache or serve that as an asset.
+const hasExpectedAssetType = (url, response) => {
+  const contentType = (response.headers.get('content-type') || '').toLowerCase();
+  if (/\.css$/i.test(url.pathname)) return contentType.includes('text/css');
+  if (/\.m?js$/i.test(url.pathname)) return contentType.includes('javascript');
+  return !contentType.includes('text/html');
 };
 
 self.addEventListener('install', (event) => {
@@ -116,15 +121,16 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (isHashedAsset(url) || /\.(?:js|css|png|jpg|jpeg|svg|webp|ico|woff2?)$/i.test(url.pathname)) {
+  if (isHashedAsset(url)) {
     event.respondWith(
       (async () => {
         const cache = await caches.open(await getCacheName());
         const cached = await cache.match(request);
-        if (cached) return cached;
+        if (cached && hasExpectedAssetType(url, cached)) return cached;
+        if (cached) await cache.delete(request);
 
-        const response = await fetch(request, { cache: 'force-cache' });
-        if (response && response.ok) {
+        const response = await fetch(request);
+        if (response && response.ok && hasExpectedAssetType(url, response)) {
           cache.put(request, response.clone());
         }
         return response;
@@ -134,11 +140,11 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    fetch(request).then((response) => {
-      if (response && response.ok) {
+    fetch(request).then(async (response) => {
+      if (response && response.ok && hasExpectedAssetType(url, response)) {
         const responseForCache = response.clone();
-        const cache = caches.open(getCacheName());
-        cache.then((store) => store.put(request, responseForCache)).catch(() => undefined);
+        const cache = await caches.open(await getCacheName());
+        await cache.put(request, responseForCache).catch(() => undefined);
       }
       return response;
     }).catch(() => caches.match(request))

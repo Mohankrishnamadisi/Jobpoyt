@@ -1,20 +1,29 @@
 import React from 'react';
-import { Box, Button, Card, CardContent, Chip, Grid, Stack, Switch, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Grid, IconButton, Stack, Switch, Typography } from '@mui/material';
 import {
   WorkspacePremium as WorkspacePremiumIcon,
   CalendarMonth as CalendarMonthIcon,
   CurrencyRupee as CurrencyRupeeIcon,
   AccessTime as AccessTimeIcon,
+  ReceiptLong as ReceiptLongIcon,
+  Download as DownloadIcon,
+  Visibility as VisibilityIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
+import toast from 'react-hot-toast';
 import { formatDate } from '@utils/index';
+import { buildSubscriptionInvoice, createInvoicePdf, invoiceFileName } from '@services/invoice';
 
 export interface SubscriptionSummaryData {
+  id?: string | null;
+  user_id?: string | null;
   plan?: string | null;
   amount?: number | null;
   start_date?: string | null;
   end_date?: string | null;
   status?: string | null;
   auto_renew?: boolean | null;
+  payment_id?: string | null;
 }
 
 interface SubscriptionSummaryCardProps {
@@ -48,6 +57,117 @@ const getDaysRemaining = (endDate?: string | null): number | null => {
   const now = Date.now();
   if (Number.isNaN(end)) return null;
   return Math.ceil((end - now) / (24 * 60 * 60 * 1000));
+};
+
+const SubscriptionInvoicePanel: React.FC<{ subscription: SubscriptionSummaryData }> = ({ subscription }) => {
+  const [busy, setBusy] = React.useState<'view' | 'download' | null>(null);
+  const [preview, setPreview] = React.useState<{ url: string; fileName: string; number: string } | null>(null);
+
+  React.useEffect(() => () => {
+    if (preview?.url) URL.revokeObjectURL(preview.url);
+  }, [preview?.url]);
+
+  const generate = async () => {
+    const invoice = await buildSubscriptionInvoice(String(subscription.user_id), subscription as Record<string, unknown>);
+    const doc = await createInvoicePdf(invoice);
+    return { doc, invoice };
+  };
+
+  const handleView = async () => {
+    setBusy('view');
+    try {
+      const { doc, invoice } = await generate();
+      const url = URL.createObjectURL(doc.output('blob'));
+      setPreview({ url, fileName: invoiceFileName(invoice), number: invoice.invoiceNumber });
+    } catch (error) {
+      console.error('Failed to generate invoice:', error);
+      toast.error('Could not generate your invoice. Please try again.');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (preview) {
+      const link = document.createElement('a');
+      link.href = preview.url;
+      link.download = preview.fileName;
+      link.click();
+      return;
+    }
+    setBusy('download');
+    try {
+      const { doc, invoice } = await generate();
+      doc.save(invoiceFileName(invoice));
+      toast.success('Invoice downloaded');
+    } catch (error) {
+      console.error('Failed to download invoice:', error);
+      toast.error('Could not download your invoice. Please try again.');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <>
+      <Box sx={{ mt: 2.4, p: 1.6, borderRadius: 2, border: '1px solid #E2E8F0', bgcolor: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+          <Box sx={{ width: 38, height: 38, borderRadius: 2, display: 'grid', placeItems: 'center', color: '#2563EB', bgcolor: 'rgba(37,99,235,0.1)', flexShrink: 0 }}>
+            <ReceiptLongIcon fontSize="small" />
+          </Box>
+          <Box>
+            <Typography sx={{ fontWeight: 700, fontSize: 13.5, color: '#0F172A' }}>Subscription invoice</Typography>
+            <Typography sx={{ color: '#64748B', fontSize: 11.5 }}>Official tax invoice with plan, billing and payment details</Typography>
+          </Box>
+        </Box>
+        <Stack direction="row" spacing={1}>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={busy === 'view' ? <CircularProgress size={14} /> : <VisibilityIcon fontSize="small" />}
+            disabled={busy !== null}
+            onClick={handleView}
+            sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.5 }}
+          >
+            View invoice
+          </Button>
+          <Button
+            size="small"
+            variant="contained"
+            startIcon={busy === 'download' ? <CircularProgress size={14} color="inherit" /> : <DownloadIcon fontSize="small" />}
+            disabled={busy !== null}
+            onClick={handleDownload}
+            sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 1.5, boxShadow: 'none', background: 'linear-gradient(135deg, #2563EB, #4F46E5)' }}
+          >
+            Download PDF
+          </Button>
+        </Stack>
+      </Box>
+
+      <Dialog open={Boolean(preview)} onClose={() => setPreview(null)} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, pr: 1.5 }}>
+          <Box>
+            <Typography sx={{ fontWeight: 700, fontSize: 16 }}>Invoice</Typography>
+            <Typography sx={{ color: '#64748B', fontSize: 12 }}>{preview?.number}</Typography>
+          </Box>
+          <IconButton aria-label="Close invoice" onClick={() => setPreview(null)}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: 0, height: { xs: '70vh', md: '78vh' }, bgcolor: '#E2E8F0' }}>
+          {preview && (
+            <Box component="iframe" title="Subscription invoice" src={`${preview.url}#toolbar=0&view=FitH`} sx={{ width: '100%', height: '100%', border: 0, display: 'block' }} />
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 2.5, py: 1.5 }}>
+          <Button onClick={() => setPreview(null)} sx={{ textTransform: 'none' }}>Close</Button>
+          <Button variant="contained" startIcon={<DownloadIcon />} onClick={handleDownload} sx={{ textTransform: 'none', fontWeight: 600 }}>
+            Download PDF
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
 };
 
 export const SubscriptionSummaryCard: React.FC<SubscriptionSummaryCardProps> = ({
@@ -175,6 +295,10 @@ export const SubscriptionSummaryCard: React.FC<SubscriptionSummaryCardProps> = (
               color="primary"
             />
           </Box>
+        )}
+
+        {!isFree && subscription?.id && subscription?.user_id && (
+          <SubscriptionInvoicePanel subscription={subscription} />
         )}
 
         {(isFree || isExpiringSoon || isExpired) && onRenew && (

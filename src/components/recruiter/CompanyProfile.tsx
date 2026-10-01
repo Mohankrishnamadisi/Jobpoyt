@@ -17,6 +17,7 @@ import { motion } from 'framer-motion';
 import { recruiterService, userService } from '@services/api';
 import { authService } from '@services/supabase';
 import { INDUSTRY_TYPES } from '@constants/index';
+import { RECRUITER_EMAIL_ERROR, validateRecruiterEmail } from '@utils/index';
 import toast from 'react-hot-toast';
 
 const LOCATION_SUGGESTIONS = [
@@ -206,6 +207,9 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
       const value = field === 'companyLogoUrl' ? (logoFile || formData.companyLogoUrl) : formData[field];
       if (!String(value || '').trim()) nextFieldErrors[field] = message;
     });
+    if (formData.companyEmail.trim() && !nextFieldErrors.companyEmail && !validateRecruiterEmail(formData.companyEmail)) {
+      nextFieldErrors.companyEmail = RECRUITER_EMAIL_ERROR;
+    }
     if (Object.keys(nextFieldErrors).length > 0) {
       setFieldErrors(nextFieldErrors);
       setError('Please complete all required fields before saving ');
@@ -243,8 +247,9 @@ export const CompanyProfile: React.FC<CompanyProfileProps> = ({ recruiterId, onP
       onProfileUpdate?.();
     } catch (err) {
       console.error('Error saving profile:', err);
-      setError('Failed to save company profile');
-      toast.error('Failed to save profile');
+      const message = (err as { message?: string })?.message || 'Failed to save company profile';
+      setError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }

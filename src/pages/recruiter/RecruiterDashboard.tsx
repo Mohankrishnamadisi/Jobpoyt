@@ -1,7 +1,6 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import {
   Box,
-  Grid,
   Card,
   CardContent,
   Typography,
@@ -20,9 +19,14 @@ import {
 import { motion } from 'framer-motion';
 import {
   Add as AddIcon,
-  ArrowRight as ArrowRightIcon,
   Search as SearchIcon,
   WorkOutline as WorkOutlineIcon,
+  PeopleOutline as PeopleOutlineIcon,
+  AutoAwesome as AutoAwesomeIcon,
+  Groups as GroupsIcon,
+  LocalOfferOutlined as LocalOfferOutlinedIcon,
+  AccountTreeOutlined as AccountTreeOutlinedIcon,
+  SettingsOutlined as SettingsOutlinedIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@store/index';
@@ -32,12 +36,17 @@ import { useSubscription } from '@hooks/index';
 import { SubscriptionSummaryCard } from '@components/common/SubscriptionSummaryCard';
 import { messagingService } from '@services/messaging';
 import { billingSubscriptionService } from '@services/billingSubscription';
-import { getRecruiterWelcomeUsage } from '@utils/recruiterWelcomeBenefits';
+import { authService } from '@services/supabase';
+import { canAfford, getRecruiterCreditStatus, JOB_POST_CREDIT_COST, type RecruiterCreditStatus } from '@services/recruiterCredits';
+import { RecruiterPlanGuard } from '@components/recruiter/RecruiterPlanGuard';
 import toast from 'react-hot-toast';
 import type { Job } from '@types';
 import { themeColors } from '@styles/recruiterTheme';
 import { RecruiterLayout } from '@components/recruiter/RecruiterLayout';
 import { DashboardOverview } from '@components/recruiter/DashboardOverview';
+import RecruiterDashboardHome, { type RecruiterDashboardStats } from '@components/recruiter/RecruiterDashboardHome';
+import { RecruiterPageHero } from '@components/recruiter/RecruiterPageHero';
+import { ApplicantsByJobDonut, ApplicationStatusDonut, JobStatusDonut, PipelineFlowCard, WorkModeDonut } from '@components/recruiter/RecruiterInsights';
 import { JobPostingForm } from '@components/recruiter/JobPostingForm';
 import { ManageJobs } from '@components/recruiter/ManageJobs';
 import { ViewApplicants } from '@components/recruiter/ViewApplicants';
@@ -105,7 +114,6 @@ type DashboardTab =
   | 'settings';
 
 const MotionBox = motion(Box);
-const MotionCard = motion(Card);
 const RecommendedCandidates = React.lazy(() =>
   import('@components/recruiter/RecommendedCandidates').then((module) => ({
     default: module.RecommendedCandidates,
@@ -113,7 +121,7 @@ const RecommendedCandidates = React.lazy(() =>
 );
 
 export const RecruiterDashboard: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const { subscription, loading: subscriptionLoading, refetch: refetchSubscription } = useSubscription(user?.id || null);
@@ -122,7 +130,7 @@ export const RecruiterDashboard: React.FC = () => {
   // State
   const [currentTab, setCurrentTab] = useState<DashboardTab>('overview');
   const [jobPostingFormOpen, setJobPostingFormOpen] = useState(false);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<RecruiterDashboardStats>({
     active_jobs: 0,
     total_jobs: 0,
     total_applicants: 0,
@@ -140,7 +148,7 @@ export const RecruiterDashboard: React.FC = () => {
   const [recommendedJobId, setRecommendedJobId] = useState('');
   const [pipelineJobId, setPipelineJobId] = useState('');
   const [pendingChatTarget, setPendingChatTarget] = useState<PendingRecruiterChatTarget | null>(null);
-  const [welcomeBenefit, setWelcomeBenefit] = useState<any>(null);
+  const [creditStatus, setCreditStatus] = useState<RecruiterCreditStatus | null>(null);
   const [welcomeBannerDismissed, setWelcomeBannerDismissed] = useState(false);
 
   useEffect(() => {
@@ -212,7 +220,7 @@ export const RecruiterDashboard: React.FC = () => {
       const recruiterId = user?.id || '';
       billingSubscriptionService.initialize(recruiterId, recruiterId);
 
-      const [statsData, profileData, unreadNotif, conversations, recruiterJobs, billingOverview, onboarding] =
+      const [statsData, profileData, unreadNotif, conversations, recruiterJobs, credits] =
         await Promise.all([
           statsService.getRecruiterStats(recruiterId).catch((error) => {
             console.error('Failed to load recruiter stats:', error);
@@ -234,11 +242,10 @@ export const RecruiterDashboard: React.FC = () => {
             console.error('Failed to load recruiter jobs:', error);
             return [];
           }),
-          billingSubscriptionService.getBillingOverview(recruiterId, recruiterId).catch((error) => {
-            console.error('Failed to load billing overview:', error);
+          getRecruiterCreditStatus().catch((error) => {
+            console.error('Failed to load recruiter credits:', error);
             return null;
           }),
-          getRecruiterWelcomeUsage(recruiterId).catch(() => null),
         ]);
 
       if (statsData) {
@@ -254,9 +261,9 @@ export const RecruiterDashboard: React.FC = () => {
       setUnreadMessagesCount(
         (conversations || []).reduce((count: number, item: any) => count + Number(item?.unreadCount || 0), 0)
       );
-      setLayoutCredits(Number(billingOverview?.creditsRemaining || 0));
-      setLayoutPlanName(String(billingOverview?.currentPlan || 'Free'));
-      setWelcomeBenefit(onboarding || null);
+      setCreditStatus(credits);
+      setLayoutCredits(credits ? (credits.unlimited ? -1 : credits.availableCredits) : 0);
+      setLayoutPlanName(credits?.unlimited ? 'Recruiter Pro' : credits?.planState === 'expired' ? 'Expired' : 'Free');
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       toast.error('Failed to load dashboard data');
@@ -280,14 +287,25 @@ export const RecruiterDashboard: React.FC = () => {
     setCurrentTab('messages');
   };
 
-  const welcomeUsage = welcomeBenefit || {
-    freeJobPostsRemaining: 0,
-    freeResumeViewsRemaining: 0,
-    freeJobPostsUsed: 0,
-    freeResumeViewsUsed: 0,
-    freeJobPostsTotal: 15,
-    freeResumeViewsTotal: 150,
-    claimed: false,
+  const canPostJob = canAfford(creditStatus, JOB_POST_CREDIT_COST);
+  const openPostJob = () => {
+    if (!canPostJob) {
+      toast.error(`Posting a job needs ${JOB_POST_CREDIT_COST} credits. Upgrade to Recruiter Pro for unlimited job posts.`);
+      navigate(ROUTES.RECRUITER_SUBSCRIPTION);
+      return;
+    }
+    setJobPostingFormOpen(true);
+  };
+
+  const handlePlanGuardLogout = async () => {
+    try {
+      await authService.signOut();
+    } catch {
+      // Proceed with local logout even if Supabase sign-out fails.
+    } finally {
+      logout();
+      navigate(ROUTES.LOGIN, { replace: true });
+    }
   };
 
   const profileCompletionFields = [
@@ -340,20 +358,22 @@ export const RecruiterDashboard: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
           >
-            {profileComplete && !welcomeBannerDismissed && welcomeUsage.claimed && (
+            {profileComplete && !welcomeBannerDismissed && creditStatus?.planState === 'free' && (
               <Card
                 sx={{ mb: 3, borderRadius: 3, border: '1px solid rgba(59,130,246,0.18)', background: 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(168,85,247,0.06))' }}
               >
                 <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
                   <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 800, color: themeColors.text.primary }}>🎉 Welcome to Jobpoyt</Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 800, color: themeColors.text.primary }}>
+                      {creditStatus.availableCredits} free credits remaining
+                    </Typography>
                     <Typography variant="body2" sx={{ color: themeColors.text.secondary, mt: 0.5 }}>
-                      You have received 15 Free Job Posts and 150 Free Resume Views. Start hiring today — no subscription required.
+                      Job post = {JOB_POST_CREDIT_COST} credits · Candidate unlock (contact + resume + full profile) = 1 credit. Upgrade to Recruiter Pro for unlimited access.
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                    <Button variant="contained" size="small" onClick={() => setJobPostingFormOpen(true)} sx={{ background: 'linear-gradient(135deg, #2563EB, #7C3AED)', fontWeight: 700 }}>
-                      Post Your First Job
+                    <Button variant="contained" size="small" onClick={() => navigate(ROUTES.RECRUITER_SUBSCRIPTION)} sx={{ background: 'linear-gradient(135deg, #2563EB, #7C3AED)', fontWeight: 700 }}>
+                      Upgrade to Pro
                     </Button>
                     <Button variant="text" size="small" onClick={() => setWelcomeBannerDismissed(true)} sx={{ color: themeColors.text.secondary }}>
                       Dismiss
@@ -363,54 +383,30 @@ export const RecruiterDashboard: React.FC = () => {
               </Card>
             )}
 
-            {profileComplete && welcomeUsage.claimed && (
-              <Card sx={{ mb: 3, borderRadius: 3, border: `1px solid ${themeColors.border}`, background: 'linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.96))' }}>
-                <CardContent>
-                  <Typography variant="h5" sx={{ fontWeight: 800, color: themeColors.text.primary }}>Welcome to Jobpoyt</Typography>
-                  <Typography variant="body2" sx={{ color: themeColors.text.secondary, mb: 2 }}>
-                    Start hiring with your complimentary recruiter benefits.
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} md={6}>
-                      <Card sx={{ borderRadius: 3, background: 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.02))', border: '1px solid rgba(16,185,129,0.2)' }}>
-                        <CardContent>
-                          <Typography variant="h4" sx={{ fontWeight: 900, color: '#065F46' }}>🎁 15</Typography>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Free Job Posts</Typography>
-                          <Typography variant="body2" sx={{ color: themeColors.text.secondary }}>
-                            {welcomeUsage.freeJobPostsUsed} / {welcomeUsage.freeJobPostsTotal} used · {welcomeUsage.freeJobPostsRemaining} remaining
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <Card sx={{ borderRadius: 3, background: 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(59,130,246,0.02))', border: '1px solid rgba(59,130,246,0.2)' }}>
-                        <CardContent>
-                          <Typography variant="h4" sx={{ fontWeight: 900, color: '#1D4ED8' }}>📄 150</Typography>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Free Resume Views</Typography>
-                          <Typography variant="body2" sx={{ color: themeColors.text.secondary }}>
-                            {welcomeUsage.freeResumeViewsUsed} / {welcomeUsage.freeResumeViewsTotal} used · {welcomeUsage.freeResumeViewsRemaining} remaining
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
+            {profileComplete ? (
+              <RecruiterDashboardHome
+                displayName={recruiterProfile?.hr_name || user?.name || user?.email || 'Recruiter'}
+                companyName={recruiterProfile?.company_name}
+                stats={stats}
+                jobs={jobs}
+                unreadMessages={unreadMessagesCount}
+                unreadNotifications={notificationsCount}
+                credits={layoutCredits}
+                planName={layoutPlanName}
+                creditStatus={creditStatus}
+                canPostJob={canPostJob}
+                onNavigate={(tab) => setCurrentTab(tab as DashboardTab)}
+                onPostJob={openPostJob}
+                onOpenSubscription={() => setSubscriptionDialogOpen(true)}
+                onRefresh={fetchData}
+              />
+            ) : (
+              <DashboardOverview
+                profileCompletion={profileCompletion}
+                profileComplete={profileComplete}
+                onEditProfile={() => setCurrentTab('company-profile')}
+              />
             )}
-
-            <DashboardOverview
-              activeJobs={stats.active_jobs}
-              totalApplicants={stats.total_applicants}
-              shortlisted={stats.shortlisted}
-              rejected={stats.rejected}
-              priorityCandidates={stats.priority_applicants}
-              profileCompletion={profileCompletion}
-              profileComplete={profileComplete}
-              onEditProfile={() => setCurrentTab('company-profile')}
-              onViewJobs={profileComplete ? () => setCurrentTab('jobs') : undefined}
-              onViewApplicants={profileComplete ? () => setCurrentTab('applicants') : undefined}
-              onPostJob={profileComplete ? () => setJobPostingFormOpen(true) : undefined}
-            />
 
             <Dialog open={subscriptionDialogOpen} onClose={() => setSubscriptionDialogOpen(false)} maxWidth="md" fullWidth>
               <DialogContent sx={{ p: { xs: 1.5, md: 2 } }}>
@@ -435,185 +431,6 @@ export const RecruiterDashboard: React.FC = () => {
                 />
               </DialogContent>
             </Dialog>
-
-            {/* Quick Actions Section */}
-            {profileComplete && <Grid container spacing={3} sx={{ mt: 2 }}>
-              {/* Post New Job Card */}
-              <Grid item xs={12} md={6}>
-                <MotionCard
-                  initial={{ opacity: 0, y: 18 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.45, delay: 0.08 }}
-                  whileHover={{ y: -8, boxShadow: '0 18px 44px rgba(15, 23, 42, 0.14)' }}
-                  onClick={() => setJobPostingFormOpen(true)}
-                  sx={{
-                    borderRadius: '22px',
-                    border: `1px solid ${themeColors.border}`,
-                    background: `linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(245,250,255,0.95) 100%)`,
-                    cursor: 'pointer',
-                    transition: 'all 0.25s ease-in-out',
-                    minHeight: 180,
-                    overflow: 'hidden',
-                    position: 'relative',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: 6,
-                      background: `linear-gradient(90deg, ${themeColors.primary} 0%, #7C3AED 100%)`,
-                    }}
-                  />
-                  <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            fontWeight: 800,
-                            color: themeColors.text.primary,
-                            mb: 1,
-                          }}
-                        >
-                          Post a New Job
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: themeColors.text.secondary,
-                            fontSize: '0.9rem',
-                            lineHeight: 1.6,
-                          }}
-                        >
-                          Start recruiting for your open positions with a beautiful job listing experience.
-                        </Typography>
-                      </Box>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        startIcon={<AddIcon />}
-                        sx={{
-                          minWidth: 130,
-                          background: `linear-gradient(135deg, ${themeColors.primary} 0%, #7C3AED 100%)`,
-                          color: '#FFFFFF',
-                          fontWeight: 700,
-                          py: 1.25,
-                        }}
-                      >
-                        Post Job
-                      </Button>
-                    </Box>
-                  </CardContent>
-                </MotionCard>
-              </Grid>
-
-              {/* View Pipeline Card */}
-              <Grid item xs={12} md={6}>
-                <MotionCard
-                  initial={{ opacity: 0, y: 18 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.45, delay: 0.12 }}
-                  whileHover={{ y: -8, boxShadow: '0 18px 44px rgba(15, 23, 42, 0.14)' }}
-                  onClick={() => setCurrentTab('ats-pipeline')}
-                  sx={{
-                    borderRadius: '22px',
-                    border: `1px solid ${themeColors.border}`,
-                    background: `linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(250,252,255,0.96) 100%)`,
-                    cursor: 'pointer',
-                    transition: 'all 0.25s ease-in-out',
-                    minHeight: 180,
-                    overflow: 'hidden',
-                    position: 'relative',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: 6,
-                      background: `linear-gradient(90deg, ${themeColors.primary} 0%, ${themeColors.primaryLight} 100%)`,
-                    }}
-                  />
-                  <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            fontWeight: 800,
-                            color: themeColors.text.primary,
-                            mb: 1,
-                          }}
-                        >
-                          View ATS Pipeline
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: themeColors.text.secondary,
-                            fontSize: '0.9rem',
-                            lineHeight: 1.6,
-                          }}
-                        >
-                          Manage your hiring stages and candidate flow with confidence.
-                        </Typography>
-                      </Box>
-                      <ArrowRightIcon sx={{ color: themeColors.primary, fontSize: '2rem' }} />
-                    </Box>
-                  </CardContent>
-                </MotionCard>
-              </Grid>
-
-              {/* My Subscription Card */}
-              <Grid item xs={12}>
-                <MotionCard
-                  initial={{ opacity: 0, y: 18 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.45, delay: 0.16 }}
-                  whileHover={{ y: -8, boxShadow: '0 18px 44px rgba(15, 23, 42, 0.14)' }}
-                  onClick={() => setSubscriptionDialogOpen(true)}
-                  sx={{
-                    borderRadius: '22px',
-                    border: `1px solid ${themeColors.border}`,
-                    background: `linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(255,251,235,0.96) 100%)`,
-                    cursor: 'pointer',
-                    transition: 'all 0.25s ease-in-out',
-                    minHeight: 120,
-                    overflow: 'hidden',
-                    position: 'relative',
-                  }}
-                >
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: 6,
-                      background: 'linear-gradient(90deg, #D6A73A 0%, #B78317 100%)',
-                    }}
-                  />
-                  <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 800, color: themeColors.text.primary, mb: 1 }}>
-                          My Subscription
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: themeColors.text.secondary, fontSize: '0.9rem', lineHeight: 1.6 }}>
-                          View your plan, amount paid, and renewal date.
-                        </Typography>
-                      </Box>
-                      <ArrowRightIcon sx={{ color: themeColors.primary, fontSize: '2rem' }} />
-                    </Box>
-                  </CardContent>
-                </MotionCard>
-              </Grid>
-            </Grid>}
           </MotionBox>
         );
 
@@ -624,28 +441,34 @@ export const RecruiterDashboard: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
           >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 700,
-                  color: themeColors.text.primary,
-                }}
-              >
-                Jobs
-              </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => setJobPostingFormOpen(true)}
-                sx={{
-                  background: `linear-gradient(135deg, ${themeColors.primary} 0%, #7C3AED 100%)`,
-                  color: '#FFFFFF',
-                }}
-              >
-                Post Job
-              </Button>
-            </Box>
+            <RecruiterPageHero
+              eyebrow="Workspace"
+              icon={<WorkOutlineIcon />}
+              title="Jobs"
+              description="Create, publish and manage every role you are hiring for."
+              actions={(
+                <>
+                  <Button variant="contained" startIcon={<AddIcon />} onClick={openPostJob} disabled={!canPostJob}>
+                    {canPostJob ? `Post Job${creditStatus?.unlimited ? '' : ` · ${JOB_POST_CREDIT_COST} credits`}` : 'Not enough credits'}
+                  </Button>
+                  <Button variant="outlined" onClick={() => setCurrentTab('applicants')}>View applicants</Button>
+                </>
+              )}
+              stats={[
+                { label: 'Live jobs', value: stats.active_jobs.toLocaleString(), tone: 'ok' },
+                { label: 'Total posted', value: stats.total_jobs.toLocaleString() },
+                { label: 'Applicants', value: stats.total_applicants.toLocaleString() },
+              ]}
+            />
+            {jobs.length > 0 && (
+              <Box className="adm" sx={{ mb: 2.5 }}>
+                <div className="adm-grid adm-grid--three">
+                  <JobStatusDonut jobs={jobs} />
+                  <WorkModeDonut jobs={jobs} />
+                  <ApplicantsByJobDonut stats={stats} jobs={jobs} />
+                </div>
+              </Box>
+            )}
             {user?.id && <ManageJobs recruiterId={user.id} onJobsChange={fetchData} />}
           </MotionBox>
         );
@@ -977,16 +800,31 @@ export const RecruiterDashboard: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
           >
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 700,
-                color: themeColors.text.primary,
-                mb: 3,
-              }}
-            >
-              Applicants
-            </Typography>
+            <RecruiterPageHero
+              eyebrow="Workspace"
+              icon={<PeopleOutlineIcon />}
+              title="Applicants"
+              description="Review, shortlist and move candidates forward for each of your jobs."
+              actions={(
+                <>
+                  <Button variant="contained" onClick={() => setCurrentTab('ats-pipeline')}>Open ATS pipeline</Button>
+                  <Button variant="outlined" onClick={() => setCurrentTab('interview-management')}>Interviews</Button>
+                </>
+              )}
+              stats={[
+                { label: 'Total applicants', value: stats.total_applicants.toLocaleString() },
+                { label: 'Shortlisted', value: stats.shortlisted.toLocaleString(), tone: 'ok' },
+                { label: 'Awaiting review', value: (stats.applied || 0).toLocaleString(), tone: (stats.applied || 0) > 0 ? 'warn' : 'ok' },
+              ]}
+            />
+            {stats.total_applicants > 0 && (
+              <Box className="adm" sx={{ mb: 2.5 }}>
+                <div className="adm-grid adm-grid--wide">
+                  <PipelineFlowCard stats={stats} onNavigate={(tab) => setCurrentTab(tab as DashboardTab)} />
+                  <ApplicationStatusDonut stats={stats} />
+                </div>
+              </Box>
+            )}
             {user?.id && <ViewApplicants recruiterId={user.id} onChatClick={(candidateId, candidateName) => handleChatClick(candidateId, candidateName, 'applicants', 'message')} />}
           </MotionBox>
         );
@@ -998,16 +836,16 @@ export const RecruiterDashboard: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
           >
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 700,
-                color: themeColors.text.primary,
-                mb: 3,
-              }}
-            >
-              Recommended Candidates
-            </Typography>
+            <RecruiterPageHero
+              eyebrow="Candidates"
+              icon={<AutoAwesomeIcon />}
+              title="Recommended Candidates"
+              description="AI-matched profiles for your open roles, ranked by fit."
+              stats={[
+                { label: 'Jobs to match', value: jobs.length.toLocaleString() },
+                { label: 'Live jobs', value: stats.active_jobs.toLocaleString(), tone: 'ok' },
+              ]}
+            />
 
             {jobs.length === 0 ? (
               <Card sx={{ borderRadius: '12px', border: `1px solid ${themeColors.border}` }}>
@@ -1021,7 +859,8 @@ export const RecruiterDashboard: React.FC = () => {
                   <Button
                     variant="contained"
                     startIcon={<AddIcon />}
-                    onClick={() => setJobPostingFormOpen(true)}
+                    onClick={openPostJob}
+                    disabled={!canPostJob}
                     sx={{ background: `linear-gradient(135deg, ${themeColors.primary} 0%, #7C3AED 100%)` }}
                   >
                     Post New Job
@@ -1070,16 +909,22 @@ export const RecruiterDashboard: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
           >
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 700,
-                color: themeColors.text.primary,
-                mb: 3,
-              }}
-            >
-              Find Candidates
-            </Typography>
+            <RecruiterPageHero
+              eyebrow="Candidates"
+              icon={<SearchIcon />}
+              title="Find Candidates"
+              description="Search the JobPoyt talent database by skills, experience and location."
+              actions={(
+                <>
+                  <Button variant="contained" onClick={() => setCurrentTab('talent-pool')}>Talent pool</Button>
+                  <Button variant="outlined" onClick={() => setCurrentTab('recommended')}>AI recommendations</Button>
+                </>
+              )}
+              stats={[
+                { label: 'Credits left', value: creditStatus?.unlimited ? 'Unlimited' : (creditStatus?.availableCredits ?? 0).toLocaleString(), tone: creditStatus?.unlimited || (creditStatus?.availableCredits ?? 0) > 0 ? 'ok' : 'warn' },
+                { label: 'Unlock cost', value: creditStatus?.unlimited ? 'Free' : '1 credit' },
+              ]}
+            />
             {user?.id && <CandidateSearch recruiterId={user.id} onChatClick={(candidateId, candidateName) => handleChatClick(candidateId, candidateName, 'find-candidates', 'message')} />}
           </MotionBox>
         );
@@ -1091,16 +936,13 @@ export const RecruiterDashboard: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
           >
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 700,
-                color: themeColors.text.primary,
-                mb: 3,
-              }}
-            >
-              Talent Pool
-            </Typography>
+            <RecruiterPageHero
+              eyebrow="Candidates"
+              icon={<GroupsIcon />}
+              title="Talent Pool"
+              description="Organise your best candidates into pools and re-engage them for future roles."
+              actions={<Button variant="contained" onClick={() => setCurrentTab('find-candidates')}>Find more candidates</Button>}
+            />
             {user?.id && <TalentPool recruiterId={user.id} onChatClick={(candidateId, candidateName) => handleChatClick(candidateId, candidateName, 'talent-pool', 'message')} />}
           </MotionBox>
         );
@@ -1112,16 +954,12 @@ export const RecruiterDashboard: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
           >
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 700,
-                color: themeColors.text.primary,
-                mb: 3,
-              }}
-            >
-              Candidate Tags
-            </Typography>
+            <RecruiterPageHero
+              eyebrow="Candidates"
+              icon={<LocalOfferOutlinedIcon />}
+              title="Candidate Tags"
+              description="Create colour-coded tags to label, filter and group candidates across jobs."
+            />
             {user?.id && <TagManager recruiterId={user.id} inline onTagsChange={fetchData} />}
           </MotionBox>
         );
@@ -1133,16 +971,28 @@ export const RecruiterDashboard: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
           >
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 700,
-                color: themeColors.text.primary,
-                mb: 3,
-              }}
-            >
-              ATS Pipeline
-            </Typography>
+            <RecruiterPageHero
+              eyebrow="Workspace"
+              icon={<AccountTreeOutlinedIcon />}
+              title="ATS Pipeline"
+              description="Drag candidates across stages — from applied to offer and hire."
+              actions={(
+                <>
+                  <Button variant="contained" onClick={() => setCurrentTab('applicants')}>Review applicants</Button>
+                  <Button variant="outlined" onClick={() => setCurrentTab('interview-management')}>Schedule interviews</Button>
+                </>
+              )}
+              stats={[
+                { label: 'Shortlisted', value: stats.shortlisted.toLocaleString() },
+                { label: 'Hired', value: (stats.accepted || 0).toLocaleString(), tone: 'ok' },
+                { label: 'Priority', value: stats.priority_applicants.toLocaleString() },
+              ]}
+            />
+            {stats.total_applicants > 0 && (
+              <Box className="adm" sx={{ mb: 2.5 }}>
+                <PipelineFlowCard stats={stats} onNavigate={(tab) => setCurrentTab(tab as DashboardTab)} actionLabel="Review applicants" actionTab="applicants" />
+              </Box>
+            )}
             {jobs.length > 0 && (
               <Card sx={{ mb: 2, borderRadius: 3, border: '1px solid rgba(96,165,250,0.25)', background: 'linear-gradient(145deg, #ffffff 0%, #F2F7FF 100%)', boxShadow: '0 14px 34px rgba(15,39,75,0.08)' }}>
                 <CardContent sx={{ p: { xs: 1.5, md: 2 } }}>
@@ -1236,16 +1086,12 @@ export const RecruiterDashboard: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
           >
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 700,
-                color: themeColors.text.primary,
-                mb: 3,
-              }}
-            >
-              Settings
-            </Typography>
+            <RecruiterPageHero
+              eyebrow="Account"
+              icon={<SettingsOutlinedIcon />}
+              title="Settings"
+              description="Notifications, preferences and account controls for your recruiter workspace."
+            />
             {user?.id && <RecruiterSettingsPanel recruiterId={user.id} />}
           </MotionBox>
         );
@@ -1293,6 +1139,12 @@ export const RecruiterDashboard: React.FC = () => {
       onSettingsClick={() => setCurrentTab('settings')}
     >
       {renderContent()}
+
+      <RecruiterPlanGuard
+        status={creditStatus}
+        onUpgrade={() => navigate(ROUTES.RECRUITER_SUBSCRIPTION)}
+        onLogout={handlePlanGuardLogout}
+      />
 
       {/* Job Posting Dialog */}
       <Dialog

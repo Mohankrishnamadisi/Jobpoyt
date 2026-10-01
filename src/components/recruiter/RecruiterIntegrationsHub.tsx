@@ -30,6 +30,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { RecruiterPageHero } from './RecruiterPageHero';
 import {
   Autorenew as SyncIcon,
   CheckCircle as CheckCircleIcon,
@@ -384,15 +385,12 @@ export const RecruiterIntegrationsHub: React.FC<RecruiterIntegrationsHubProps> =
 
   return (
     <MotionBox initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1.5, mb: 2, flexWrap: 'wrap' }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: themeColors.text.primary }}>ATS Integrations & External Hiring Platform Hub</Typography>
-          <Typography variant="body2" sx={{ mt: 0.5, color: themeColors.text.secondary }}>
-            Connect ATS, calendar, video, chat, email, webhooks, REST APIs, and import/export pipelines with sync visibility and AI-guided fixes.
-          </Typography>
-        </Box>
-        <Chip color={canManageIntegrations ? 'success' : 'warning'} label={canManageIntegrations ? 'Manage Access: Owner/Admin' : 'View Only: Recruiter'} />
-      </Box>
+      <RecruiterPageHero
+        eyebrow="Company"
+        title="Integrations Hub"
+        description="Connect ATS, calendar, video, chat, email, webhooks, REST APIs, and import/export pipelines with sync visibility and AI-guided fixes."
+        actions={<Chip color={canManageIntegrations ? 'success' : 'warning'} label={canManageIntegrations ? 'Manage Access: Owner/Admin' : 'View Only: Recruiter'} />}
+      />
 
       {!canManageIntegrations && (
         <Alert severity="info" sx={{ mb: 2 }}>

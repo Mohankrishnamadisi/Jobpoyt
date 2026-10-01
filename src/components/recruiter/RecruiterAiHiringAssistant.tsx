@@ -26,6 +26,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
+import { RecruiterPageHero } from './RecruiterPageHero';
 import {
   Add as AddIcon,
   AutoAwesome as AutoAwesomeIcon,
@@ -724,17 +725,17 @@ export const RecruiterAiHiringAssistant: React.FC<RecruiterAiHiringAssistantProp
 
   return (
     <MotionBox initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, gap: 1.5, flexWrap: 'wrap' }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: themeColors.text.primary }}>AI Hiring Assistant</Typography>
-          <Typography variant="body2" sx={{ color: themeColors.text.secondary, mt: 0.4 }}>
-            Context-aware Recruiter Copilot integrated with jobs, applicants, ATS, interviews, messaging, analytics, and employer branding workflows.
-          </Typography>
-        </Box>
-        <Button startIcon={<RefreshIcon />} variant="outlined" onClick={() => void refreshContext()} disabled={loadingContext}>
-          {loadingContext ? 'Refreshing...' : 'Refresh Context'}
-        </Button>
-      </Box>
+      <RecruiterPageHero
+        eyebrow="Intelligence"
+        icon={<RefreshIcon />}
+        title="AI Hiring Assistant"
+        description="Context-aware Recruiter Copilot integrated with jobs, applicants, ATS, interviews, messaging, analytics, and employer branding workflows."
+        actions={(
+          <Button startIcon={<RefreshIcon />} variant="contained" onClick={() => void refreshContext()} disabled={loadingContext}>
+            {loadingContext ? 'Refreshing...' : 'Refresh Context'}
+          </Button>
+        )}
+      />
 
       <Paper sx={{ borderRadius: 2, border: `1px solid ${themeColors.border}`, mb: 2, overflow: 'hidden' }}>
         <Tabs

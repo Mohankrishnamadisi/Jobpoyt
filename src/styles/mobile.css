@@ -1,7 +1,7 @@
 /* Mobile-Specific Styles */
 
 @media (max-width: 600px) {
-  /* Compact the Jobs page "Smart Filters" panel on mobile */
+  /* Compact the Jobs page "All Filters" panel on mobile */
   .find-jobs-filters .filter-section-toggle {
     min-height: 40px !important;
     padding: 4px 10px !important;

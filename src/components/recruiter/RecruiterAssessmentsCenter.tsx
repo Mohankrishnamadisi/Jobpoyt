@@ -26,6 +26,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { RecruiterPageHero } from './RecruiterPageHero';
 import {
   Add as AddIcon,
   Download as DownloadIcon,
@@ -114,19 +115,13 @@ export const RecruiterAssessmentsCenter: React.FC<RecruiterAssessmentsCenterProp
 
   return (
     <Box>
-      <Card sx={{ borderRadius: 3, border: '1px solid #e2e8f0', mb: 2, background: 'linear-gradient(110deg, #0f172a 0%, #155e75 52%, #1d4ed8 100%)', color: '#f8fafc' }}>
-        <CardContent>
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.2} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
-            <Box>
-              <Typography variant="h4" sx={{ fontWeight: 800 }}>Recruiter Assessments</Typography>
-              <Typography variant="body2" sx={{ opacity: 0.92 }}>
-                Create, assign, evaluate and certify candidate skills with AI-powered assessment workflows.
-              </Typography>
-            </Box>
-            <Chip icon={<VerifiedIcon />} label="Skill Verification Active" />
-          </Stack>
-        </CardContent>
-      </Card>
+      <RecruiterPageHero
+        eyebrow="Candidates"
+        icon={<VerifiedIcon />}
+        title="Recruiter Assessments"
+        description="Create, assign, evaluate and certify candidate skills with AI-powered assessment workflows."
+        actions={<Chip icon={<VerifiedIcon />} label="Skill Verification Active" color="success" />}
+      />
 
       <Paper sx={{ border: '1px solid #e2e8f0', borderRadius: 2, mb: 2 }}>
         <Tabs value={tab} onChange={(_, value: RecruiterTab) => setTab(value)} variant={isTablet ? 'scrollable' : 'scrollable'} scrollButtons="auto" allowScrollButtonsMobile sx={{ minHeight: 54, px: 0.5, '& .MuiTabs-scroller': { overflowX: 'auto !important' }, '& .MuiTabs-scrollButtons': { width: 34, borderRadius: 1, mx: 0.5 }, '& .MuiTab-root': { textTransform: 'none', whiteSpace: 'nowrap', minHeight: 54, minWidth: 'max-content', px: 1.8, fontWeight: 700, fontSize: '0.82rem' } }}>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Grid, Paper, Typography, Box } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { adminService } from '../../services/admin';
+import { formatRupees } from '@utils/currency';
 
 const StatCard: React.FC<{ title: string; value: number | string }> = ({ title, value }) => (
   <Paper sx={{ p: 2 }} elevation={1}>
@@ -71,7 +72,7 @@ const AnalyticsPage: React.FC = () => {
           <StatCard title="Total Applications" value={analytics.totalApplications ?? '—'} />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Total Revenue" value={`₹${analytics.totalRevenue ?? 0}`} />
+          <StatCard title="Total Revenue" value={formatRupees(analytics.totalRevenue)} />
         </Grid>
       </Grid>
 

@@ -229,6 +229,12 @@ Deno.serve(async (request) => {
         throw paymentError;
       }
 
+      // Non-fatal: the invoice is also issued on demand when the user opens it.
+      const { error: invoiceError } = await admin.rpc('issue_subscription_invoice', { p_subscription_id: subscription.id });
+      if (invoiceError) {
+        console.error('Failed to issue subscription invoice', { subscriptionId: subscription.id, invoiceError });
+      }
+
       return response({ ...payment, subscription, alreadyProcessed: false });
     }
     return response({ error: 'Unsupported checkout action.' }, 400);

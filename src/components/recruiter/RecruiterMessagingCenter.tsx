@@ -32,6 +32,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { RecruiterPageHero } from './RecruiterPageHero';
 import {
   Archive as ArchiveIcon,
   AutoFixHigh as AutoFixHighIcon,
@@ -2425,22 +2426,22 @@ export const RecruiterMessagingCenter: React.FC<RecruiterMessagingCenterProps> =
 
   return (
     <MotionBox initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800 }}>Messages</Typography>
-          <Typography variant="body2" sx={{ color: themeColors.text.secondary }}>
-            Messaging and communication center integrated with applicants, ATS, interviews, offers, recommended candidates, and talent pool.
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={1}>
-          <Button variant="outlined" startIcon={<NotificationsActiveIcon />} onClick={requestDesktopNotifications}>
-            Desktop Alerts
-          </Button>
-          <Button variant="contained" startIcon={<MailIcon />} onClick={() => setViewTab('center')}>
-            Open Conversations
-          </Button>
-        </Stack>
-      </Box>
+      <RecruiterPageHero
+        eyebrow="Workspace"
+        icon={<MailIcon />}
+        title="Messages"
+        description="Conversations with applicants, ATS candidates, interviewees and your talent pool in one inbox."
+        actions={(
+          <>
+            <Button variant="contained" startIcon={<MailIcon />} onClick={() => setViewTab('center')}>
+              Open Conversations
+            </Button>
+            <Button variant="outlined" startIcon={<NotificationsActiveIcon />} onClick={requestDesktopNotifications}>
+              Desktop Alerts
+            </Button>
+          </>
+        )}
+      />
 
       <Tabs value={viewTab} onChange={(_, value) => setViewTab(value)} sx={{ mb: 1.5 }}>
         <Tab value="dashboard" label="Dashboard" />

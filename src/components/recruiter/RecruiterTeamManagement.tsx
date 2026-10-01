@@ -39,6 +39,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { RecruiterPageHero } from './RecruiterPageHero';
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
@@ -457,19 +458,16 @@ export const RecruiterTeamManagement: React.FC<RecruiterTeamManagementProps> = (
 
   return (
     <MotionBox initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, gap: 1.2, flexWrap: 'wrap' }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: themeColors.text.primary }}>
-            Team Management & RBAC
-          </Typography>
-          <Typography variant="body2" sx={{ mt: 0.5, color: themeColors.text.secondary }}>
-            Centralized enterprise team access control for jobs, applicants, ATS, messaging, interview, analytics, AI, automation, company modules, billing, and settings.
-          </Typography>
-        </Box>
-        <Button startIcon={<RefreshIcon />} variant="outlined" onClick={() => void refresh()}>
-          Refresh
-        </Button>
-      </Box>
+      <RecruiterPageHero
+        eyebrow="Company"
+        title="Team Management & RBAC"
+        description="Centralized team access control for jobs, applicants, ATS, messaging, interviews, analytics, AI, automation, billing, and settings."
+        actions={(
+          <Button startIcon={<RefreshIcon />} variant="contained" onClick={() => void refresh()}>
+            Refresh
+          </Button>
+        )}
+      />
 
       {!canManageTeam && (
         <Alert severity="warning" sx={{ mb: 2 }}>

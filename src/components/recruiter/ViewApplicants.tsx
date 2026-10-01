@@ -697,8 +697,23 @@ export const ViewApplicants: React.FC<ViewApplicantsProps> = ({ recruiterId, onC
                   <Tab label={`Rejected (${statusCounts.rejected})`} value="rejected" sx={{ textTransform: 'none', minHeight: 38, py: 0.75 }} />
                 </Tabs>
 
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1.25, pt: 1.1, borderTop: '1px solid rgba(148,163,184,0.14)' }}>
-                  <FormControl size="small" sx={{ width: { xs: '100%', sm: 190 } }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 1,
+                    flexWrap: 'wrap',
+                    mt: 1.25,
+                    pt: 1.1,
+                    borderTop: '1px solid rgba(148,163,184,0.14)',
+                    '& .MuiFormControl-root': { width: { xs: '100%', sm: 160 } },
+                    '& .MuiInputBase-root': { height: 32, fontSize: 12, borderRadius: 1.5 },
+                    '& .MuiSelect-select': { py: 0.5, pl: 1.25 },
+                    '& .MuiInputLabel-root': { fontSize: 12 },
+                    '& .MuiInputLabel-root:not(.MuiInputLabel-shrink)': { transform: 'translate(12px, 7px) scale(1)' },
+                    '& .MuiSvgIcon-root': { fontSize: 18 },
+                  }}
+                >
+                  <FormControl size="small">
                     <InputLabel>Sort By Match Score</InputLabel>
                     <Select value={sortMode} label="Sort By Match Score" onChange={(event) => setSortMode(event.target.value as SortMode)}>
                       <MenuItem value="applied_desc">Newest Applied</MenuItem>
@@ -706,7 +721,7 @@ export const ViewApplicants: React.FC<ViewApplicantsProps> = ({ recruiterId, onC
                       <MenuItem value="match_asc">Match Score: Low to High</MenuItem>
                     </Select>
                   </FormControl>
-                  <FormControl size="small" sx={{ width: { xs: '100%', sm: 190 } }}>
+                  <FormControl size="small">
                     <InputLabel>Filter By Match Score</InputLabel>
                     <Select value={matchScoreFilter} label="Filter By Match Score" onChange={(event) => setMatchScoreFilter(event.target.value as MatchScoreFilter)}>
                       <MenuItem value="all">All Scores</MenuItem>
@@ -715,7 +730,7 @@ export const ViewApplicants: React.FC<ViewApplicantsProps> = ({ recruiterId, onC
                       <MenuItem value="below_70">Below 70 Red</MenuItem>
                     </Select>
                   </FormControl>
-                  <FormControl size="small" sx={{ width: { xs: '100%', sm: 190 } }}>
+                  <FormControl size="small">
                     <InputLabel>Filter By Featured</InputLabel>
                     <Select value={priorityFilter} label="Filter By Featured" onChange={(event) => setPriorityFilter(event.target.value as 'all' | 'priority')}>
                       <MenuItem value="all">All Applicants</MenuItem>
