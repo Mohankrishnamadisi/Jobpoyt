@@ -808,19 +808,6 @@ export const Jobs: React.FC = () => {
                         />
                       </Box>
 
-                      <TextField
-                        fullWidth
-                        aria-label="Search company"
-                        placeholder="Company name"
-                        value={companyDraft}
-                        onChange={(event) => handleFilterChange('company', event.target.value)}
-                        InputProps={{ startAdornment: <SearchIcon sx={{ color: 'text.secondary', mr: 1 }} /> }}
-                        sx={{
-                          mt: 1.5,
-                          '& .MuiOutlinedInput-root': { minHeight: 54, fontSize: '0.97rem' },
-                        }}
-                      />
-
                       {suggestionsOpen ? createPortal(
                         <>
                           <Box
@@ -1006,6 +993,18 @@ export const Jobs: React.FC = () => {
                           }}
                         />
                       )}
+                    />
+                    <TextField
+                      fullWidth
+                      aria-label="Search company"
+                      placeholder="Company name"
+                      value={companyDraft}
+                      onChange={(event) => handleFilterChange('company', event.target.value)}
+                      sx={{
+                        mt: -1,
+                        mb: 2.5,
+                        '& .MuiOutlinedInput-root': { minHeight: 54, fontSize: '0.97rem' },
+                      }}
                     />
                   </Box>
                 </Collapse>
