@@ -474,22 +474,27 @@ export const jobService = {
     const windowSize = Math.min(Math.max(safeLimit * 8, safeLimit), 100);
     const withSignal = (query: JobListingsQuery) => (options.signal ? query.abortSignal(options.signal) : query);
 
-    const countRows = async (): Promise<number | null> => {
-      if (!includeTotal) return null;
-      const exact = await retryOnStatementTimeout(() => withSignal(applyJobFilters(selectJobListings({ count: 'exact', head: true }))));
-      if (!exact.error) return exact.count;
-      const planned = await withSignal(applyJobFilters(selectJobListings({ count: 'planned', head: true })));
-      return planned.error ? null : planned.count;
-    };
-
-    const [response, count] = await Promise.all([
-      retryOnStatementTimeout(() => withSignal(applyJobFilters(selectJobListings()))
+    const pageQuery = (countOptions?: { count?: 'exact' | 'planned'; head?: boolean }) =>
+      withSignal(applyJobFilters(selectJobListings(countOptions))
         .order('created_at', { ascending: false })
-        .range(pageStart, pageStart + windowSize - 1)),
-      countRows(),
-    ]);
+        .range(pageStart, pageStart + windowSize - 1));
 
-    if (response.error) throw response.error;
+    let response = includeTotal
+      ? await pageQuery({ count: 'exact' })
+      : await retryOnStatementTimeout(() => pageQuery());
+    let count = includeTotal ? response.count : null;
+
+    if (response.error) {
+      if (!includeTotal || options.signal?.aborted) throw response.error;
+
+      const [dataResponse, plannedCount] = await Promise.all([
+        retryOnStatementTimeout(() => pageQuery()),
+        withSignal(applyJobFilters(selectJobListings({ count: 'planned', head: true }))),
+      ]);
+      if (dataResponse.error) throw dataResponse.error;
+      response = dataResponse;
+      count = plannedCount.error ? null : plannedCount.count;
+    }
 
     const data: Record<string, any>[] = response.data || [];
 
@@ -1210,6 +1215,17 @@ export const notificationService = {
       .order('created_at', { ascending: false });
     if (error) throw error;
     return data;
+  },
+
+  async getUnreadNotificationCount(userId: string): Promise<number> {
+    const { count, error } = await supabase
+      .from('notifications')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('read', false);
+    if (error) throw error;
+    if (count === null) throw new Error('Unread notification count was not returned');
+    return count;
   },
 
   async markAsRead(notificationId: string) {

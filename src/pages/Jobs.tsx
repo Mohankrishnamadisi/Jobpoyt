@@ -43,7 +43,8 @@ import { Layout } from '@components/layout/Layout';
 import { HorizontalJobListItem } from '@components/jobs/HorizontalJobListItem';
 import { JobListSkeleton } from '@components/common/LoadingSkeleton';
 import { Error } from '@components/common/Error';
-import { applicationService, companyService, jobService } from '@services/api';
+import { applicationService, jobService } from '@services/api';
+import { getPublicJobCategories, getPublicPlatformStats } from '@services/publicJobMetadata';
 import { EMPLOYMENT_TYPES, WORK_MODES, EDUCATION_OPTIONS, FRESHNESS_OPTIONS, INDIAN_CITIES, USER_ROLES, ROUTES, JOB_FILTER_CATEGORIES } from '@constants/index';
 import { JOB_SEARCH_SUGGESTION_GROUPS } from '@constants/jobSearchSuggestions';
 import type { Job } from '../types';
@@ -111,10 +112,7 @@ export const Jobs: React.FC = () => {
 
     const fetchAllJobsTotal = async () => {
       try {
-        const [{ total: jobsCount }, companiesCount] = await Promise.all([
-          jobService.getJobs({}, 1, 1),
-          companyService.getCompanyCount(),
-        ]);
+        const { activeJobs: jobsCount, companies: companiesCount } = await getPublicPlatformStats();
         if (isActive) {
           setAllJobsTotal(jobsCount);
           setCompanyTotal(companiesCount);
@@ -135,7 +133,7 @@ export const Jobs: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const fetchedCategories = await jobService.getCategories();
+        const fetchedCategories = await getPublicJobCategories();
         const categoryMap = new Map<string, string>();
         [...JOB_FILTER_CATEGORIES, ...fetchedCategories].forEach((category) => {
           const normalizedCategory = String(category || '').trim();
@@ -330,13 +328,9 @@ export const Jobs: React.FC = () => {
         void fetchJobs(true);
       }
     };
-    const interval = window.setInterval(() => {
-      refreshIfVisible();
-    }, 60000);
     document.addEventListener('visibilitychange', refreshIfVisible);
 
     return () => {
-      window.clearInterval(interval);
       document.removeEventListener('visibilitychange', refreshIfVisible);
       activeRequestRef.current?.abort();
     };

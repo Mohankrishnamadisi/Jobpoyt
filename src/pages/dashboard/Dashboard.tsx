@@ -326,15 +326,14 @@ export const Dashboard: React.FC = () => {
     let mounted = true;
     const refreshUnreadNotifications = async () => {
       try {
-        const unread = await notificationService.getUnreadNotifications(user.id);
+        const unreadCount = await notificationService.getUnreadNotificationCount(user.id);
         if (!mounted) return;
-        setNotificationsCount((unread || []).length);
-      } catch {
-        // noop
+        setNotificationsCount(unreadCount);
+      } catch (error) {
+        console.error('Failed to refresh unread notification count:', error);
       }
     };
 
-    refreshUnreadNotifications();
     const interval = window.setInterval(() => {
       if (document.visibilityState === 'visible') {
         refreshUnreadNotifications();
@@ -394,17 +393,17 @@ export const Dashboard: React.FC = () => {
       if (!user?.id) return;
 
       try {
-        const [applications, saved, notifications, conversations] = await Promise.all([
+        const [applications, saved, unreadNotificationCount, conversations] = await Promise.all([
           applicationService.getUserApplications(user.id),
           savedService.getUserSavedJobs(user.id),
-          notificationService.getUnreadNotifications(user.id),
+          notificationService.getUnreadNotificationCount(user.id),
           messagingService.getConversations(user.id),
         ]);
 
         setRecentApplications(applications || []);
         setSavedJobs(saved || []);
         setSavedCount((saved || []).length);
-        setNotificationsCount((notifications || []).length);
+        setNotificationsCount(unreadNotificationCount);
         setUnreadMessagesCount(
           (((conversations as any[]) || []).reduce((count, conv) => count + (conv.unreadCount || 0), 0)),
         );

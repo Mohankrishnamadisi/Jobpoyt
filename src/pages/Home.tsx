@@ -41,7 +41,7 @@ import {
 } from '@mui/icons-material';
 import { Layout } from '@components/layout/Layout';
 import { ROUTES, JOB_CATEGORIES, INDIAN_CITIES, INTERVIEW_ROLES, INTERVIEW_ROLE_CATEGORIES } from '@constants/index';
-import { companyService, jobService } from '@services/api';
+import { getPublicPlatformStats } from '@services/publicJobMetadata';
 import { SEO } from '@components/seo/SEO';
 import { knownSocialUrls, siteConfig } from '@config/site';
 
@@ -122,9 +122,9 @@ export const Home: React.FC = () => {
   useEffect(() => {
     let active = true;
 
-    Promise.all([jobService.getJobs({}, 1, 1), companyService.getCompanyCount()])
-      .then(([jobs, companies]) => {
-        if (active) setHeroStats({ activeJobs: jobs.total, companies });
+    getPublicPlatformStats()
+      .then((stats) => {
+        if (active) setHeroStats(stats);
       })
       .catch((error) => console.error('Failed to load home hero stats:', error));
 

@@ -81,6 +81,7 @@ export const JobDetails: React.FC = () => {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeUrl, setResumeUrl] = useState('');
   const [profile, setProfile] = useState<Record<string, any> | null>(null);
+  const [profileLoadedForUserId, setProfileLoadedForUserId] = useState<string | null>(null);
   const [currentCtc, setCurrentCtc] = useState('');
   const [expectedCtc, setExpectedCtc] = useState('');
   const [noticePeriod, setNoticePeriod] = useState('');
@@ -136,11 +137,20 @@ export const JobDetails: React.FC = () => {
   }, [id, user?.id]);
 
   useEffect(() => {
+    let isActive = true;
+
     const loadProfileData = async () => {
-      if (!user?.id) return;
+      if (!user?.id) {
+        setProfile(null);
+        setProfileLoadedForUserId(null);
+        return;
+      }
+
+      setProfile(null);
+      setProfileLoadedForUserId(null);
       try {
         const profile = await userService.getProfile(user.id);
-        if (profile) {
+        if (isActive && profile) {
           setProfile(profile);
           setResumeUrl(profile.resume_url || profile.resumeUrl || '');
           setCurrentCtc(profile.current_ctc || profile.currentCtc || '');
@@ -149,39 +159,38 @@ export const JobDetails: React.FC = () => {
         }
       } catch (err) {
         console.error('Failed to load candidate profile for application:', err);
+      } finally {
+        if (isActive) setProfileLoadedForUserId(user.id);
       }
     };
 
     loadProfileData();
+    return () => {
+      isActive = false;
+    };
   }, [user?.id]);
 
   const [aiMatch, setAiMatch] = useState<any | null>(null);
   const [matchLoading, setMatchLoading] = useState(false);
 
   useEffect(() => {
-    const compute = async () => {
-      if (!job) return;
-      // Only show compute for job seekers
-      if (!user || user.role !== USER_ROLES.JOB_SEEKER) return;
-      setMatchLoading(true);
-      try {
-        const profileToUse = profile || (user?.id ? await userService.getProfile(user.id) : null);
-        if (!profileToUse) {
-          setAiMatch(null);
-          return;
-        }
-        const result = computeAIMatch(profileToUse, job as any);
-        setAiMatch(result);
-      } catch (err) {
-        console.error('Failed to compute AI match:', err);
-        setAiMatch(null);
-      } finally {
-        setMatchLoading(false);
-      }
-    };
+    if (!job || !user || user.role !== USER_ROLES.JOB_SEEKER) return;
+    if (profileLoadedForUserId !== user.id) return;
 
-    compute();
-  }, [job, profile, user]);
+    setMatchLoading(true);
+    try {
+      if (!profile) {
+        setAiMatch(null);
+        return;
+      }
+      setAiMatch(computeAIMatch(profile, job as any));
+    } catch (err) {
+      console.error('Failed to compute AI match:', err);
+      setAiMatch(null);
+    } finally {
+      setMatchLoading(false);
+    }
+  }, [job, profile, profileLoadedForUserId, user?.id, user?.role]);
 
   if (loading) return <Loading />;
   if (!job || error)

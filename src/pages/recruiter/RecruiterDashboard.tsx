@@ -181,15 +181,14 @@ export const RecruiterDashboard: React.FC = () => {
     let mounted = true;
     const refreshUnreadNotifications = async () => {
       try {
-        const unreadNotif = await notificationService.getUnreadNotifications(user.id);
+        const unreadCount = await notificationService.getUnreadNotificationCount(user.id);
         if (!mounted) return;
-        setNotificationsCount(unreadNotif?.length || 0);
-      } catch {
-        // noop
+        setNotificationsCount(unreadCount);
+      } catch (error) {
+        console.error('Failed to refresh unread notification count:', error);
       }
     };
 
-    refreshUnreadNotifications();
     const interval = window.setInterval(() => {
       if (document.visibilityState === 'visible') {
         refreshUnreadNotifications();
@@ -220,7 +219,7 @@ export const RecruiterDashboard: React.FC = () => {
       const recruiterId = user?.id || '';
       billingSubscriptionService.initialize(recruiterId, recruiterId);
 
-      const [statsData, profileData, unreadNotif, conversations, recruiterJobs, credits] =
+      const [statsData, profileData, unreadNotificationCount, conversations, recruiterJobs, credits] =
         await Promise.all([
           statsService.getRecruiterStats(recruiterId).catch((error) => {
             console.error('Failed to load recruiter stats:', error);
@@ -230,9 +229,9 @@ export const RecruiterDashboard: React.FC = () => {
             console.error('Failed to load recruiter profile:', error);
             return null;
           }),
-          notificationService.getUnreadNotifications(recruiterId).catch((error) => {
+          notificationService.getUnreadNotificationCount(recruiterId).catch((error) => {
             console.error('Failed to load notifications:', error);
-            return [];
+            return 0;
           }),
           messagingService.getConversations(recruiterId).catch((error) => {
             console.error('Failed to load conversations:', error);
@@ -257,7 +256,7 @@ export const RecruiterDashboard: React.FC = () => {
       }
       setRecruiterProfile(profileData);
       setJobs(recruiterJobs || []);
-      setNotificationsCount(unreadNotif?.length || 0);
+      setNotificationsCount(unreadNotificationCount);
       setUnreadMessagesCount(
         (conversations || []).reduce((count: number, item: any) => count + Number(item?.unreadCount || 0), 0)
       );
@@ -1167,4 +1166,3 @@ export const RecruiterDashboard: React.FC = () => {
     </RecruiterLayout>
   );
 };
-
