@@ -3,6 +3,7 @@ import { Alert, Box, Button, CircularProgress, Container, IconButton, Paper, Sta
 import { Bookmark, BookmarkBorder, DownloadDone, DownloadForOffline, PlayCircleOutline, PlaylistAdd, Share } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '@components/layout/Layout';
+import { GuestSignInDialog } from '@components/common/GuestSignInDialog';
 import { useAuthStore } from '@store/index';
 import Swal from '@utils/sweetAlert';
 import {
@@ -626,27 +627,22 @@ export const LearningPage: React.FC = () => {
         )}
 
         {!user && (
-          <Paper
-            variant="outlined"
-            sx={{
-              p: { xs: 3, md: 5 },
-              textAlign: 'center',
-              borderRadius: 3,
-              maxWidth: 720,
-              mx: 'auto',
-            }}
-          >
-            <PlayCircleOutline color="primary" sx={{ fontSize: 48, mb: 1 }} />
-            <Typography variant="h6" fontWeight={700}>
-              Sign in to personalize your learning feed
-            </Typography>
-            <Typography color="text.secondary" sx={{ mt: 0.75 }}>
-              Your skills and designation will be used to find relevant learning videos.
-            </Typography>
-            <Button component="a" href={`#${ROUTES.LOGIN}`} variant="contained" sx={{ mt: 2 }}>
-              Sign in
-            </Button>
-          </Paper>
+          <GuestSignInDialog
+            open
+            eyebrow="Learn without limits"
+            panelTitle="Build skills for what comes next."
+            panelDescription="Turn your curiosity into practical skills and keep growing at every stage of your career."
+            highlightTitle="Learning, made personal"
+            highlightDescription="Lessons picked around your goals"
+            title="Make learning work for you."
+            description="Sign in to get learning videos tailored to your skills, role and career goals."
+            benefits={[
+              'Explore videos matched to your skills',
+              'Save lessons and continue where you left off',
+              'Build a learning path around your goals',
+            ]}
+            signInLabel="Sign in to start learning"
+          />
         )}
 
         {/* Error Alert */}
