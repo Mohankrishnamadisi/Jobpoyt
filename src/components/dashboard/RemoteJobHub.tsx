@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { CompanyLogoAvatar } from '@components/common/CompanyLogoAvatar';
 import {
   Alert,
   Avatar,
@@ -436,7 +437,7 @@ export const RemoteJobHub: React.FC<Props> = ({ subscription, subscriptionLoadin
     const compactChipSx = { height: 25, borderRadius: 1.2, '& .MuiChip-label': { px: 0.9, fontSize: 11.5, fontWeight: 650 }, '& .MuiChip-icon': { ml: 0.65, mr: -0.3, fontSize: 14 } };
     return <Card key={job.id} sx={{ ...surface, display: 'flex', flexDirection: 'column', height: '100%', minHeight: 292, p: 1.4, transition: 'border-color 150ms ease, box-shadow 150ms ease', '&:hover': { borderColor: '#A8BED4', boxShadow: '0 8px 20px rgba(15,23,42,0.08)' } }}>
       <Stack direction="row" alignItems="flex-start" gap={1} sx={{ minWidth: 0 }}>
-        <Avatar src={logo || undefined} variant="rounded" imgProps={{ onError: (event) => { event.currentTarget.style.display = 'none'; } }} sx={{ width: 40, height: 40, flexShrink: 0, bgcolor: '#F1F5F9', color: '#174A7C', fontWeight: 800 }}>{String(job.company_name || 'C').charAt(0).toUpperCase()}</Avatar>
+        <CompanyLogoAvatar companyName={String(job.company_name || '')} logoUrl={logo} variant="rounded" sx={{ width: 40, height: 40, flexShrink: 0, bgcolor: '#F1F5F9', color: '#174A7C', fontWeight: 800 }}>{String(job.company_name || 'C').charAt(0).toUpperCase()}</CompanyLogoAvatar>
         <Box sx={{ flex: 1, minWidth: 0 }}><Typography variant="subtitle2" sx={{ color: ink, fontWeight: 800, lineHeight: 1.3, overflowWrap: 'anywhere' }}>{job.title}</Typography><Typography variant="caption" sx={{ display: 'block', mt: 0.2, color: muted }}>{job.company_name || 'Company not listed'}</Typography></Box>
         {score !== null ? <Box sx={{ minWidth: 72, textAlign: 'right' }}><Typography variant="caption" sx={{ color: score >= 70 ? '#15803D' : '#1D4ED8', fontWeight: 800 }}>{score}% match</Typography><LinearProgress variant="determinate" value={score} sx={{ mt: 0.35, height: 4, borderRadius: 4, bgcolor: '#EAF0F6', '& .MuiLinearProgress-bar': { borderRadius: 4, bgcolor: score >= 70 ? '#16A34A' : '#2563EB' } }} /></Box> : null}
       </Stack>

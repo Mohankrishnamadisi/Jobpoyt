@@ -103,6 +103,10 @@ npm run dev
 
 Access the app at \`http://localhost:5173\`
 
+## Company logo storage
+
+Company logos are served from the public Supabase Storage bucket named \`logos\`; the logo image files are stored in Supabase rather than bundled with the application. Non-ASCII logo filenames are mapped to deterministic ASCII object names in Storage; the app resolves those names automatically.
+
 ## 📁 Project Structure
 
 \`\`\`

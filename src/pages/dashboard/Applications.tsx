@@ -44,6 +44,7 @@ import { useAuthStore } from '@store/index';
 import { applicationService } from '@services/api';
 import { formatDate } from '@utils/index';
 import { ROUTES } from '@constants/index';
+import { CompanyLogoAvatar } from '@components/common/CompanyLogoAvatar';
 import '../../styles/opportunitySignalButton.css';
 
 type UserApplication = {
@@ -262,9 +263,9 @@ export const ApplicationsPage: React.FC<{ embedded?: boolean }> = ({ embedded = 
         <CardContent sx={{ p: { xs: 2, md: 3 } }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, alignItems: 'flex-start' }}>
             <Box sx={{ display: 'flex', gap: 1.4, minWidth: 0 }}>
-              <Box sx={{ width: 54, height: 54, borderRadius: 2.75, display: 'grid', placeItems: 'center', flexShrink: 0, color: '#fff', background: 'linear-gradient(135deg, #4F46E5, #8B5CF6)', boxShadow: '0 10px 20px rgba(79,70,229,0.28)', border: '2px solid #fff', fontWeight: 900, fontSize: 18, overflow: 'hidden' }}>
-                {application.jobs?.company_logo_url || application.jobs?.logo_url ? <Box component="img" src={application.jobs.company_logo_url || application.jobs.logo_url} alt="" sx={{ width: '100%', height: '100%', objectFit: 'contain' }} /> : getCompanyInitials(company)}
-              </Box>
+              <CompanyLogoAvatar companyName={company} logoUrl={application.jobs?.company_logo_url || application.jobs?.logo_url} sx={{ width: 54, height: 54, borderRadius: 2.75, flexShrink: 0, color: '#fff', background: 'linear-gradient(135deg, #4F46E5, #8B5CF6)', boxShadow: '0 10px 20px rgba(79,70,229,0.28)', border: '2px solid #fff', fontWeight: 900, fontSize: 18, '& img': { objectFit: 'contain' } }}>
+                {getCompanyInitials(company)}
+              </CompanyLogoAvatar>
               <Box sx={{ minWidth: 0 }}>
                 <Typography variant="h6" sx={{ fontWeight: 850, lineHeight: 1.2, color: isDarkMode ? '#F8FAFC' : '#0F172A' }}>{application.jobs?.title || 'Job title unavailable'}</Typography>
                 <Typography sx={{ mt: 0.4, fontWeight: 700, color: isDarkMode ? '#CBD5E1' : '#475569' }}>{company}</Typography>

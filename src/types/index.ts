@@ -162,6 +162,10 @@ export interface Job {
   title: string;
   company_name: string;
   companyLogo?: string;
+  companyLogoUrl?: string;
+  company_logo?: string;
+  company_logo_url?: string;
+  logo_url?: string;
   location: string;
   job_type?: 'Full-Time' | 'Part-Time' | 'Contract' | 'Internship' | 'Freelance';
   work_type?: 'Full-Time' | 'Part-Time' | 'Contract' | 'Internship' | 'Freelance';

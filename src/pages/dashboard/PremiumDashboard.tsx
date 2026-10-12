@@ -30,6 +30,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { motion } from 'framer-motion';
+import { CompanyLogoAvatar } from '@components/common/CompanyLogoAvatar';
 import {
   Chat as ChatIcon,
   Close as CloseIcon,
@@ -1241,13 +1242,14 @@ export const PremiumDashboard: React.FC = () => {
                               '&.Mui-disabled': { opacity: 0.7 },
                             }}
                           >
-                            <Avatar
-                              src={savedJob.jobs?.company_logo_url || undefined}
+                            <CompanyLogoAvatar
+                              companyName={String(savedJob.jobs?.company_name || '')}
+                              logoUrl={savedJob.jobs?.company_logo_url}
                               variant="rounded"
                               sx={{ width: { xs: 42, sm: 48 }, height: { xs: 42, sm: 48 }, flexShrink: 0, borderRadius: 1.7, bgcolor: isDarkMode ? 'rgba(96,165,250,0.14)' : '#EFF6FF', color: isDarkMode ? '#93C5FD' : '#2563EB', fontSize: 16, fontWeight: 850 }}
                             >
                               {(savedJob.jobs?.company_name || 'C').charAt(0).toUpperCase()}
-                            </Avatar>
+                            </CompanyLogoAvatar>
                             <ListItemText
                               sx={{ minWidth: 0, my: 0 }}
                               primary={jobTitle}
@@ -1441,13 +1443,14 @@ export const PremiumDashboard: React.FC = () => {
                           transition: 'border-color 160ms ease, transform 160ms ease',
                         }}
                       >
-                        <Avatar
-                          src={job.company_logo_url || job.company_logo || undefined}
+                        <CompanyLogoAvatar
+                          companyName={String(job.company_name || '')}
+                          logoUrl={job.company_logo_url || job.company_logo}
                           variant="rounded"
                           sx={{ width: 34, height: 34, mr: 1.2, flexShrink: 0, bgcolor: '#FFF7E6', color: '#B7791F', fontSize: 14, fontWeight: 800 }}
                         >
                           {(job.company_name || 'C').charAt(0).toUpperCase()}
-                        </Avatar>
+                        </CompanyLogoAvatar>
                         <ListItemText
                           primary={job.title || 'Untitled job'}
                           secondary={(

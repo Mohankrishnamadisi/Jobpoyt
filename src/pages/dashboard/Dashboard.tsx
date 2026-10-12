@@ -71,6 +71,7 @@ import {
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTheme } from '@mui/material/styles';
+import { CompanyLogoAvatar } from '@components/common/CompanyLogoAvatar';
 import toast from 'react-hot-toast';
 
 import { Layout } from '@components/layout/Layout';
@@ -1519,8 +1520,9 @@ export const Dashboard: React.FC = () => {
                                 }}
                               >
                                 <Box sx={{ display: 'flex', gap: 1.4, alignItems: 'flex-start' }}>
-                                  <Avatar
-                                    src={job.company_logo_url || job.company_logo || undefined}
+                                  <CompanyLogoAvatar
+                                    companyName={String(job.company_name || '')}
+                                    logoUrl={job.company_logo_url || job.company_logo}
                                     variant="rounded"
                                     sx={{
                                       width: 50,
@@ -1536,7 +1538,7 @@ export const Dashboard: React.FC = () => {
                                     }}
                                   >
                                     {String(job.company_name || 'C').charAt(0).toUpperCase()}
-                                  </Avatar>
+                                  </CompanyLogoAvatar>
 
                                   <Box sx={{ flex: 1, minWidth: 0 }}>
                                     <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: 15, lineHeight: 1.3 }}>

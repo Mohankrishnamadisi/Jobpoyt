@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Avatar,
   Box,
   Button,
   Card,
@@ -22,6 +21,7 @@ import {
   Videocam as MockIcon,
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { CompanyLogoAvatar } from '@components/common/CompanyLogoAvatar';
 import type { AiMatchJobCardModel, MatchQuality } from '@services/aiMatchCenter';
 
 const MotionCard = motion(Card);
@@ -65,9 +65,9 @@ export const AiMatchJobCard: React.FC<AiMatchJobCardProps> = ({
       <CardContent sx={{ p: { xs: 2, md: 2.4 } }}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1} sx={{ mb: 1 }}>
           <Stack direction="row" spacing={1.1} alignItems="center">
-            <Avatar src={item.companyLogo} alt={item.companyName} sx={{ width: 42, height: 42 }}>
+            <CompanyLogoAvatar companyName={item.companyName} logoUrl={item.companyLogo} sx={{ width: 42, height: 42 }}>
               {item.companyName.charAt(0)}
-            </Avatar>
+            </CompanyLogoAvatar>
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>{item.title}</Typography>
               <Typography variant="body2" color="text.secondary">{item.companyName}</Typography>

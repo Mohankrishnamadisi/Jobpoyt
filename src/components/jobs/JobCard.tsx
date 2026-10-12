@@ -11,6 +11,7 @@ import {
 } from '@mui/icons-material';
 import { getTimeAgo, formatJobSalary } from '@utils/index';
 import { ROUTES } from '@constants/index';
+import { CompanyLogoAvatar } from '@components/common/CompanyLogoAvatar';
 import type { Job } from '../../types';
 
 const MotionCard = motion(Card);
@@ -30,6 +31,8 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSave, isSaved = false, 
   const skills = Array.isArray(job.skills) ? job.skills : [];
   const jobType = job.jobType || job.job_type || 'Type unavailable';
   const positions = job.positionsAvailable || job.positions_available;
+  const companyName = String(job.company_name || '').trim();
+  const logoSource = job.company_logo_url || job.company_logo || job.companyLogoUrl || job.companyLogo || job.logo_url;
 
   return (
     <MotionCard
@@ -107,7 +110,16 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSave, isSaved = false, 
             {job.title}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7 }}>
-            <BusinessIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+            <CompanyLogoAvatar
+              companyName={showRemotePremium ? '' : companyName}
+              logoUrl={showRemotePremium ? undefined : logoSource}
+              alt={showRemotePremium ? 'Premium company details' : `${companyName} logo`}
+              sx={{ width: 26, height: 26, bgcolor: 'rgba(14, 165, 233, 0.12)', color: 'text.secondary' }}
+            >
+              {showRemotePremium
+                ? <BusinessIcon sx={{ fontSize: 16 }} />
+                : companyName.charAt(0).toUpperCase() || <BusinessIcon sx={{ fontSize: 16 }} />}
+            </CompanyLogoAvatar>
             <Typography
               variant="body2"
               sx={{

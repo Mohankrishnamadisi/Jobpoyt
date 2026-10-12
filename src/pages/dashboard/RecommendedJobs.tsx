@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
-  Avatar,
   Box,
   Button,
   Chip,
@@ -26,6 +25,7 @@ import { userService, jobService } from '@services/api';
 import { ROUTES } from '@constants/index';
 import { calculateMatchScore } from '@utils/matchScore';
 import { formatExperienceString, getTotalExperienceMonths } from '@utils/experience';
+import { CompanyLogoAvatar } from '@components/common/CompanyLogoAvatar';
 
 const getJobList = (response: any): any[] => {
   if (Array.isArray(response)) return response;
@@ -193,9 +193,9 @@ export const RecommendedJobs: React.FC = () => {
                 <Grid item xs={12} md={6} key={job.id}>
                   <Box sx={{ height: '100%', minHeight: 280, p: { xs: 1.8, sm: 2.2 }, display: 'flex', flexDirection: 'column', border: '1px solid #DCE5EB', borderRadius: 2.5, bgcolor: '#FFFFFF', boxShadow: '0 4px 15px rgba(19, 42, 61, 0.045)', transition: 'border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease', '&:hover': { borderColor: '#9CC8C1', boxShadow: '0 14px 28px rgba(19, 42, 61, 0.1)', transform: 'translateY(-2px)' } }}>
                     <Stack direction="row" alignItems="flex-start" gap={1.5}>
-                      <Avatar src={companyLogo} alt={`${companyName} logo`} variant="rounded" sx={{ width: 58, height: 58, border: '1px solid #E2E8F0', borderRadius: 1.5, bgcolor: '#EAF4F2', color: '#176B63', fontSize: 20, fontWeight: 800, flexShrink: 0, '& img': { objectFit: 'contain', p: 0.4, bgcolor: '#fff' } }}>
+                      <CompanyLogoAvatar companyName={companyName} logoUrl={companyLogo} variant="rounded" sx={{ width: 58, height: 58, border: '1px solid #E2E8F0', borderRadius: 1.5, bgcolor: '#EAF4F2', color: '#176B63', fontSize: 20, fontWeight: 800, flexShrink: 0, '& img': { objectFit: 'contain', p: 0.4, bgcolor: '#fff' } }}>
                         {companyName.slice(0, 1).toUpperCase()}
-                      </Avatar>
+                      </CompanyLogoAvatar>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography sx={{ color: '#122B3A', fontSize: { xs: 16, sm: 17 }, fontWeight: 800, lineHeight: 1.35, overflowWrap: 'anywhere' }}>{job.title || 'Untitled role'}</Typography>
                         <Typography sx={{ mt: 0.35, color: '#617484', fontSize: 13, fontWeight: 650 }}>{companyName}</Typography>

@@ -4,12 +4,12 @@ import {
   Typography,
   Chip,
   Button,
-  Avatar,
   Badge,
   Link,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { motion } from 'framer-motion';
+import { CompanyLogoAvatar } from '@components/common/CompanyLogoAvatar';
 import {
   LocationOnOutlined as LocationOnOutlinedIcon,
   WorkOutlineOutlined as WorkOutlineOutlinedIcon,
@@ -26,36 +26,6 @@ interface HorizontalJobListItemProps {
   isPremiumUser?: boolean;
   isApplied?: boolean;
 }
-
-const companyLogoAliases: Record<string, string> = {
-  cisco: 'cisco.png',
-  deloitte: 'deloitte.png',
-  google: 'google.png',
-  ibm: 'ibm.png',
-  infosys: 'infosys.png',
-  'jp morgan': 'JP-Morgan-Chase-Emblem.png',
-  'jp morgan chase': 'JP-Morgan-Chase-Emblem.png',
-  jpmorgan: 'JP-Morgan-Chase-Emblem.png',
-  'jpmorgan chase': 'JP-Morgan-Chase-Emblem.png',
-  persistent: 'persistent.png',
-  'persistent systems': 'persistent.png',
-  nttdata: 'Nttdata.jpg',
-  'ntt data': 'Nttdata.jpg',
-  mphasis: 'Mphasis.jpg',
-  ltimindtree: 'Ltimindtree.jpg',
-  'lti mindtree': 'Ltimindtree.jpg',
-  oracle: 'oracle.png',
-  sap: 'sap.jpg',
-  genomines: 'GENOMINES.png',
-  hypotos: 'Hypatos Gmbh.png',
-  'hypotos gmbh': 'Hypatos Gmbh.png',
-  'hypertrics gmph': 'Hypertrics GmbH.jpg',
-  margo: 'MARGO.jpg',
-  nuuenegy: 'Nuuenergy.png',
-  platoapp: 'Platoapp.jpg',
-  twice: 'TWAICE.jpg',
-  capgemini: 'Capgemini.png',
-};
 
 export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
   job,
@@ -75,26 +45,7 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
   const skillsCount = Array.isArray(job.skills) ? job.skills.length : 0;
   const jobType = job.jobType || job.job_type || 'Type unavailable';
   const companyName = String(job.company_name || '').trim();
-  const [logoExtensionIndex, setLogoExtensionIndex] = React.useState(0);
-  const normalizedCompanyName = companyName.toLowerCase().replace(/\s+/g, ' ');
-  React.useEffect(() => {
-    setLogoExtensionIndex(0);
-  }, [normalizedCompanyName]);
-  const logoAliasKey = Object.keys(companyLogoAliases).find(
-    (alias) => normalizedCompanyName === alias || normalizedCompanyName.startsWith(`${alias} `),
-  );
-  const logoNames = [
-    logoAliasKey ? companyLogoAliases[logoAliasKey] : companyName,
-    companyName,
-    normalizedCompanyName,
-  ];
-  const logoCandidates = [...new Set(logoNames)].flatMap((name) =>
-    ['png', 'jpg', 'jpeg'].map(
-      (extension) => name.includes('.')
-        ? `/logos/${encodeURIComponent(name)}`
-        : `/logos/${encodeURIComponent(name)}.${extension}`,
-    ),
-  );
+  const logoSource = job.company_logo_url || job.company_logo || job.companyLogoUrl || job.companyLogo || job.logo_url;
   const companyInitials = companyName
     ?.split(' ')
     .map((w) => w[0])
@@ -188,12 +139,10 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
                 ) : null
               }
             >
-              <Avatar
-                src={showRemotePremium ? undefined : (companyName && logoExtensionIndex < logoCandidates.length ? logoCandidates[logoExtensionIndex] : undefined)}
+              <CompanyLogoAvatar
+                companyName={showRemotePremium ? '' : companyName}
+                logoUrl={showRemotePremium ? undefined : logoSource}
                 alt={showRemotePremium ? 'Premium company details' : (companyName ? `${companyName} logo` : 'Company logo')}
-                imgProps={{
-                  onError: () => setLogoExtensionIndex((index) => index + 1),
-                }}
                 sx={{
                   width: { xs: 38, sm: 56 },
                   height: { xs: 38, sm: 56 },
@@ -209,7 +158,7 @@ export const HorizontalJobListItem: React.FC<HorizontalJobListItemProps> = ({
                 }}
               >
                 {showRemotePremium ? <LockOutlinedIcon /> : companyInitials}
-              </Avatar>
+              </CompanyLogoAvatar>
             </Badge>
             {showRemotePremium && (
               <Typography variant="caption" sx={{ color: isDarkMode ? '#93c5fd' : '#2563eb', fontWeight: 600, lineHeight: 1 }}>
