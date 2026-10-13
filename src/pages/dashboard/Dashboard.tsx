@@ -485,8 +485,8 @@ export const Dashboard: React.FC = () => {
     (resumeUnlockRecruiters || []).forEach((item: any) => {
       items.push({
         id: `unlock-${item.recruiter_id}`,
-        title: 'Resume downloaded',
-        subtitle: `${item.company_name || item.recruiter_name || 'A recruiter'} accessed your resume`,
+        title: 'Resume access unlocked',
+        subtitle: `${item.company_name || item.recruiter_name || 'A recruiter'} unlocked access to your resume`,
         timestamp: new Date(item.last_unlocked_at || 0).getTime(),
         status: 'Resume',
         icon: DownloadIcon,
@@ -1085,9 +1085,9 @@ export const Dashboard: React.FC = () => {
                           },
                           {
                             key: 'resume' as const,
-                            label: 'Resume Downloads',
+                            label: 'Resume Unlocks',
                             value: recruiterResumeCount,
-                            subtitle: 'Resume accessed by recruiters',
+                            subtitle: 'Recruiters who unlocked resume access',
                             icon: DownloadIcon,
                             accent: '#059669',
                             accent2: '#10B981',

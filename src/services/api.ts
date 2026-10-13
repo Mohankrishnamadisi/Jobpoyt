@@ -860,34 +860,25 @@ export const applicationService = {
     try {
       const application = data?.[0];
       if (application) {
-        await notificationService.createNotification(
-          userId,
-          'application_status',
-          'Application Submitted',
-          `Your application for the selected role has been received. We'll let you know when HR updates the status.`,
-          { jobId }
-        );
-
-        const { data: jobDetails, error: jobDetailsError } = await supabase
-          .from('jobs')
-          .select('posted_by, title, company_name')
-          .eq('id', jobId)
-          .maybeSingle();
-
-        if (jobDetailsError) {
-          console.error('Failed to load job details for recruiter notification', jobDetailsError);
+        try {
+          await notificationService.createNotification(
+            userId,
+            'application_status',
+            'Application Submitted',
+            `Your application for the selected role has been received. We'll let you know when HR updates the status.`,
+            { jobId }
+          );
+        } catch (notificationError) {
+          console.error('Failed to notify candidate that the application was submitted:', notificationError);
         }
 
-        if (jobDetails?.posted_by) {
-          // Use 'application_status' — the closest valid type per DB check constraint
-          // (valid types: 'job_match', 'application_status', 'new_job', 'subscription')
-          await notificationService.createNotification(
-            jobDetails.posted_by,
-            'application_status',
-            'New Applicant',
-            `A candidate has applied for ${jobDetails.title || 'your job posting'} at ${jobDetails.company_name || 'your company'}.`,
-            { jobId, applicationId: application.id }
-          );
+        try {
+          const { error: recruiterNotificationError } = await supabase.rpc('notify_job_owner_of_application', {
+            p_application_id: application.id,
+          });
+          if (recruiterNotificationError) throw recruiterNotificationError;
+        } catch (notificationError) {
+          console.error('Failed to notify job owner about the application:', notificationError);
         }
       }
     } catch (notificationError) {
@@ -940,6 +931,17 @@ export const applicationService = {
     return data;
   },
 
+  async recordApplicationView(applicationId: string, candidateId: string, jobId: string) {
+    const { error } = await supabase.rpc('record_recruiter_candidate_event', {
+      p_event_type: 'application_viewed',
+      p_candidate_id: candidateId,
+      p_job_id: jobId,
+      p_application_id: applicationId,
+      p_source: 'application_details',
+    });
+    if (error) throw error;
+  },
+
   async hasUserApplied(jobId: string, userId: string) {
     if (!jobId || !userId) return false;
     const { data, error } = await supabase
@@ -982,23 +984,7 @@ export const applicationService = {
       throw new Error('Application update failed or access denied');
     }
 
-    const application = data;
-    if (application) {
-      try {
-        const applicationJob = Array.isArray(application.jobs) ? application.jobs[0] : application.jobs as any;
-        await notificationService.createNotification(
-          application.user_id,
-          'application_status',
-          'Application Update',
-          `HR has marked your application for ${applicationJob?.title || 'the role'} as ${status.replace('_', ' ')}. Check the dashboard for details.`,
-          { applicationId, status }
-        );
-      } catch (notificationError) {
-        console.error('Failed to send HR action notification:', notificationError);
-      }
-    }
-
-    return application;
+    return data;
   },
 };
 
@@ -1228,12 +1214,13 @@ export const notificationService = {
     return count;
   },
 
-  async markAsRead(notificationId: string) {
-    const { data, error } = await supabase
+  async markAsRead(notificationId: string, userId?: string) {
+    let query = supabase
       .from('notifications')
       .update({ read: true })
-      .eq('id', notificationId)
-      .select();
+      .eq('id', notificationId);
+    if (userId) query = query.eq('user_id', userId);
+    const { data, error } = await query.select();
     if (error) throw error;
     return data[0];
   },

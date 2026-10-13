@@ -65,7 +65,7 @@ const overviewMeta: Array<{
   premiumOnly?: boolean;
 }> = [
   { key: 'profileViews', label: 'Profile Views', icon: VisibilityIcon },
-  { key: 'resumeDownloads', label: 'Resume Downloads', icon: DownloadIcon },
+  { key: 'resumeDownloads', label: 'Resume Unlocks', icon: DownloadIcon },
   { key: 'recruiterMessages', label: 'Recruiter Messages', icon: ForumIcon },
   { key: 'interviewInvitations', label: 'Interview Invitations', icon: EventAvailableIcon },
   { key: 'searchAppearances', label: 'Search Appearances', icon: SearchIcon, premiumOnly: true },
@@ -77,7 +77,7 @@ const eventIcon = (type: RecruiterActivityEvent['type']) => {
   switch (type) {
     case 'profile_viewed':
       return <VisibilityIcon color="primary" fontSize="small" />;
-    case 'resume_downloaded':
+    case 'resume_unlocked':
       return <DownloadIcon color="success" fontSize="small" />;
     case 'application_shortlisted':
       return <CheckCircleIcon color="success" fontSize="small" />;
@@ -142,7 +142,7 @@ export const RecruiterActivityCenter: React.FC<RecruiterActivityCenterProps> = (
       if (downloadsResult.status === 'fulfilled' && !downloadsResult.value.error) {
         for (const row of downloadsResult.value.data || []) {
           if (!row.unlocked_at) continue;
-          events.push({ id: `resume-download-${row.id}`, type: 'resume_downloaded', title: 'Resume accessed by recruiter', subtitle: 'A recruiter unlocked your resume.', occurredAt: row.unlocked_at, status: 'completed', actionLabel: 'View resume', actionKey: 'update-resume' });
+          events.push({ id: `resume-unlock-${row.id}`, type: 'resume_unlocked', title: 'Resume access unlocked', subtitle: 'A recruiter unlocked access to your resume.', occurredAt: row.unlocked_at, status: 'completed', actionLabel: 'View resume', actionKey: 'update-resume' });
         }
       } else if (downloadsResult.status === 'rejected' || downloadsResult.value?.error) {
         console.warn('Recruiter Activity resume access events are unavailable.');
@@ -502,7 +502,7 @@ export const RecruiterActivityCenter: React.FC<RecruiterActivityCenterProps> = (
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>Counted from recorded profile views, resume accesses, unread recruiter messages, interview invitations, and shortlists.</Typography>
                     {[
                       ['Profile views', insights.overview.profileViews],
-                      ['Resume downloads', insights.overview.resumeDownloads],
+                      ['Resume unlocks', insights.overview.resumeDownloads],
                       ['Unread recruiter messages', insights.overview.recruiterMessages],
                       ['Interview invitations', insights.overview.interviewInvitations],
                       ['Shortlists', insights.overview.shortlists],

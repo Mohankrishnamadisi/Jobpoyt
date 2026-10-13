@@ -176,12 +176,17 @@ export const RecommendedCandidates: React.FC<RecommendedCandidatesProps> = ({
   };
 
   const handleViewRecommendedCandidate = async (item: RecommendedCandidate) => {
-    await trackCandidateProfileView({
-      recruiterId,
-      candidateId: item.candidate.id,
-      jobId,
-      source: 'recommended_candidates',
-    });
+    try {
+      await trackCandidateProfileView({
+        recruiterId,
+        candidateId: item.candidate.id,
+        jobId,
+        source: 'recommended_candidates',
+      });
+    } catch (error) {
+      console.error('Failed to record recommended candidate profile view:', error);
+      toast.error('Could not record profile activity.');
+    }
     setSelectedCandidate(item);
   };
 

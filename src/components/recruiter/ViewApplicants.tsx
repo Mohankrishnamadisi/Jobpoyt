@@ -48,7 +48,7 @@ import type { Job, CandidateTag } from '@types';
 import { calculateMatchScore, getMatchScoreHex, type MatchScoreResult } from '@utils/matchScore';
 import { downloadApplicantsCsv } from '@utils/applicantCsv';
 import { ApplicantDetailsModal } from './ApplicantDetailsModal';
-import { getResumeUnlockMap, trackCandidateProfileView } from '@utils/resumeUnlocks';
+import { getResumeUnlockMap, trackCandidateProfileView, trackCandidateResumeView } from '@utils/resumeUnlocks';
 import { BulkActionsToolbar, type BulkToolbarAction } from './BulkActionsToolbar';
 import { BulkConfirmationDialog } from './BulkConfirmationDialog';
 import { BulkMessageDialog } from './BulkMessageDialog';
@@ -406,14 +406,42 @@ export const ViewApplicants: React.FC<ViewApplicantsProps> = ({ recruiterId, onC
   };
 
   const handleViewApplicant = async (applicant: BulkApplicant) => {
-    await trackCandidateProfileView({
-      recruiterId,
-      candidateId: applicant.user_id,
-      jobId: selectedJobId || null,
-      source: 'view_applicants',
-    });
+    try {
+      await trackCandidateProfileView({
+        recruiterId,
+        candidateId: applicant.user_id,
+        jobId: selectedJobId || null,
+        source: 'view_applicants',
+      });
+    } catch (error) {
+      console.error('Failed to record candidate profile view:', error);
+      toast.error('Could not record profile activity.');
+    }
     setSelectedApplicant(applicant);
     setViewDialogOpen(true);
+  };
+
+  const handleViewApplicantResume = async (applicant: BulkApplicant) => {
+    if (!applicant.resume_url) return;
+    const resumeWindow = window.open('', '_blank');
+    if (!resumeWindow) {
+      toast.error('Please allow pop-ups to open the resume');
+      return;
+    }
+    resumeWindow.opener = null;
+    try {
+      await trackCandidateResumeView({
+        candidateId: applicant.user_id,
+        jobId: selectedJobId || null,
+        applicationId: applicant.id,
+        source: 'view_applicants',
+      });
+      resumeWindow.location.href = String(applicant.resume_url);
+    } catch (error) {
+      resumeWindow.close();
+      console.error('Failed to record applicant resume access:', error);
+      toast.error('Could not record resume access. Please try again.');
+    }
   };
 
   const handleStatusChanged = () => {
@@ -919,9 +947,7 @@ export const ViewApplicants: React.FC<ViewApplicantsProps> = ({ recruiterId, onC
                                 <span>
                                   <IconButton
                                     size="small"
-                                    href={String(applicant.resume_url)}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                    onClick={() => { void handleViewApplicantResume(applicant); }}
                                     title="View resume"
                                   >
                                     <DownloadIcon fontSize="small" />

@@ -140,7 +140,7 @@ const normalizeMatchValue = (value: unknown): string => String(value || '').toLo
 const premiumToolOrder: Record<string, number> = {
   'Saved Jobs': 1,
   'Profile Views': 2,
-  'Resume Downloads': 3,
+  'Resume Unlocks': 3,
   'Priority Apply': 4,
   'Resume Builder': 5,
   'Skill Test': 6,
@@ -159,7 +159,7 @@ const premiumToolOrder: Record<string, number> = {
 const premiumToolGifs: Record<string, string> = {
   'Saved Jobs': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/saved%20jobs.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9zYXZlZCBqb2JzLmdpZiIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA0MDI0OTIsImV4cCI6MjQyMTEyMjQ5Mn0.T96sorSXx8sTMcpTpuzWAYqUW0i21SpEDNjOeWFk_ss',
   'Profile Views': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/profile%20view.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9wcm9maWxlIHZpZXcuZ2lmIiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc5MDQwMjU0MCwiZXhwIjoyNDIxMTIyNTQwfQ.uq54j5ul3hbwa2IkA7F_X1ZYBZAgfXLjvWdpOcH32T0',
-  'Resume Downloads': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/profile%20download.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9wcm9maWxlIGRvd25sb2FkLmdpZiIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA0MDI1NTcsImV4cCI6MjQyMTEyMjU1N30.Ac6B2KjFeylI_EF8GTtcbmWwff7PJS0R2oNwYsG7FE8',
+  'Resume Unlocks': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/profile%20download.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9wcm9maWxlIGRvd25sb2FkLmdpZiIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA0MDI1NTcsImV4cCI6MjQyMTEyMjU1N30.Ac6B2KjFeylI_EF8GTtcbmWwff7PJS0R2oNwYsG7FE8',
   'Priority Apply': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/priority%20apply.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9wcmlvcml0eSBhcHBseS5naWYiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkwNDAyNTcyLCJleHAiOjI0MjExMjI1NzJ9.97OH5buCZOt7cayL3pCiF0Jyo_frdppWvY3FYHzVpjs',
   'Resume Builder': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/resume%20builder.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9yZXN1bWUgYnVpbGRlci5naWYiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzkwNDAyNTkxLCJleHAiOjI0MjExMjI1OTF9.NWNhDc1E8STVsGkH61Di0oaXB1L0HoxG7KnqG83nH0o',
   'Skill Test': 'https://ydvnozzigjihcachxnah.supabase.co/storage/v1/object/sign/website%20public/skill%20test.gif?token=eyJraWQiOiJjNjk4MjVmYS1iN2I5LTQ5OWItODBjMi1hZjRkNTQ4ZWQ3YjIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJ3ZWJzaXRlIHB1YmxpYy9za2lsbCB0ZXN0LmdpZiIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3OTA0MDI2MDUsImV4cCI6MjQyMTEyMjYwNX0.18qPoyfbXBJE1L-xfqLl-anh9DoYQdyuE4zoZ9I8x2o',
@@ -959,7 +959,7 @@ export const PremiumDashboard: React.FC = () => {
                       {[
                         { label: 'Applications', value: applicationCount },
                         { label: 'Saved Jobs', value: savedJobsCount },
-                        { label: 'Resume Downloads', value: resumeDownloadCount },
+                        { label: 'Resume Unlocks', value: resumeDownloadCount },
                         { label: 'Profile Views', value: profileViewCount },
                       ].map((item) => (
                         <Box key={item.label} sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -1361,11 +1361,11 @@ export const PremiumDashboard: React.FC = () => {
                   </Typography>
                 </Box>
               )
-            ) : premiumToolPopup?.label === 'Resume Downloads' ? (
+            ) : premiumToolPopup?.label === 'Resume Unlocks' ? (
               resumeUnlockRecruiters.length > 0 ? (
                 <Box sx={{ maxWidth: 1120, width: '100%', mx: 'auto' }}>
                   <Typography sx={{ color: isDarkMode ? '#F8FAFC' : '#0F172A', fontWeight: 900, fontSize: { xs: 17, md: 21 }, mb: 1.5 }}>
-                    Recruiters who downloaded your resume
+                    Recruiters who unlocked access to your resume
                   </Typography>
                   <List sx={{ p: 0, display: 'grid', gap: 1 }}>
                     {resumeUnlockRecruiters.map((recruiter) => (
@@ -1393,11 +1393,11 @@ export const PremiumDashboard: React.FC = () => {
                             <Box sx={{ display: 'flex', gap: { xs: 1, md: 1.8 }, flexWrap: 'wrap', mt: 0.25 }}>
                               <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45, color: isDarkMode ? '#CBD5E1' : '#64748B' }}>
                                 <DownloadIcon sx={{ fontSize: 14 }} />
-                                {recruiter.total_unlocks || 1} {recruiter.total_unlocks === 1 ? 'resume download' : 'resume downloads'}
+                                {recruiter.total_unlocks || 1} {recruiter.total_unlocks === 1 ? 'resume unlock' : 'resume unlocks'}
                               </Typography>
                               <Typography component="span" variant="caption" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.45, color: isDarkMode ? '#CBD5E1' : '#64748B' }}>
                                 <CalendarTodayIcon sx={{ fontSize: 13 }} />
-                                Downloaded {recruiter.last_unlocked_at ? new Date(recruiter.last_unlocked_at).toLocaleString() : 'time unavailable'}
+                                Unlocked {recruiter.last_unlocked_at ? new Date(recruiter.last_unlocked_at).toLocaleString() : 'time unavailable'}
                               </Typography>
                             </Box>
                           )}
@@ -1410,7 +1410,7 @@ export const PremiumDashboard: React.FC = () => {
               ) : (
                 <Box sx={{ maxWidth: 680, mx: 'auto', mt: 3, p: { xs: 2, md: 3 }, textAlign: 'center', borderRadius: 3, border: `1px dashed ${isDarkMode ? '#475569' : '#CBD5E1'}`, bgcolor: isDarkMode ? 'rgba(255,255,255,0.04)' : '#FFFFFF' }}>
                   <Typography sx={{ color: isDarkMode ? '#CBD5E1' : '#64748B', fontSize: { xs: 14, md: 16 } }}>
-                    No detailed resume-download records are available yet.
+                    No resume unlock records are available yet.
                   </Typography>
                 </Box>
               )
@@ -1905,9 +1905,9 @@ export const PremiumDashboard: React.FC = () => {
                       accent: '#2563EB',
                     },
                     {
-                      label: 'Resume Downloads',
+                      label: 'Resume Unlocks',
                       icon: DownloadIcon,
-                      action: () => openPremiumTool('Resume Downloads', `${resumeDownloadCount} recruiter ${resumeDownloadCount === 1 ? 'download' : 'downloads'} of your resume recorded.`, '#16A34A'),
+                      action: () => openPremiumTool('Resume Unlocks', `${resumeDownloadCount} recruiter ${resumeDownloadCount === 1 ? 'unlock' : 'unlocks'} of your resume recorded.`, '#16A34A'),
                       iconGradient: 'linear-gradient(135deg, rgba(34,197,94,0.16), rgba(209,250,229,0.34))',
                       accent: '#16A34A',
                     },
@@ -2222,7 +2222,7 @@ export const PremiumDashboard: React.FC = () => {
                       </Box>
                       <Chip
                         size="small"
-                        label={item.total_unlocks != null ? `${item.total_unlocks} downloads` : `${item.total_views || 0} views`}
+                        label={item.total_unlocks != null ? `${item.total_unlocks} unlocks` : `${item.total_views || 0} views`}
                         color={interactionType === 'downloads' ? 'success' : 'primary'}
                         sx={{ fontWeight: 700 }}
                       />

@@ -76,6 +76,7 @@ import {
   cancelInterview,
   completeInterview,
 } from '@services/interviewManagement';
+import { trackCandidateResumeView } from '@utils/resumeUnlocks';
 
 interface InterviewManagementProps {
   recruiterId: string;
@@ -259,6 +260,28 @@ export const InterviewManagement: React.FC<InterviewManagementProps> = ({ recrui
   const [saving, setSaving] = useState(false);
 
   const [detailsInterview, setDetailsInterview] = useState<InterviewRecord | null>(null);
+  const openInterviewResume = async (interview: InterviewRecord) => {
+    if (!interview.candidateResumeUrl) return;
+    const resumeWindow = window.open('', '_blank');
+    if (!resumeWindow) {
+      toast.error('Please allow pop-ups to open the resume');
+      return;
+    }
+    resumeWindow.opener = null;
+    try {
+      await trackCandidateResumeView({
+        candidateId: interview.candidateId,
+        jobId: interview.jobId,
+        applicationId: interview.applicationId,
+        source: 'interview_details',
+      });
+      resumeWindow.location.href = interview.candidateResumeUrl;
+    } catch (error) {
+      resumeWindow.close();
+      console.error('Failed to record interview resume access:', error);
+      toast.error('Could not record resume access. Please try again.');
+    }
+  };
 
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedbackInterview, setFeedbackInterview] = useState<InterviewRecord | null>(null);
@@ -1225,7 +1248,7 @@ export const InterviewManagement: React.FC<InterviewManagementProps> = ({ recrui
                   {detailsInterview.candidateEmail || '-'} • {detailsInterview.candidatePhone || '-'}
                 </Typography>
                 {detailsInterview.candidateResumeUrl && (
-                  <Button size="small" href={detailsInterview.candidateResumeUrl} target="_blank" rel="noreferrer" sx={{ mt: 0.5 }}>
+                  <Button size="small" onClick={() => void openInterviewResume(detailsInterview)} sx={{ mt: 0.5 }}>
                     View Resume
                   </Button>
                 )}

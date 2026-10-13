@@ -39,6 +39,7 @@ import { ResumeUnlockContact } from './ResumeUnlockContact';
 import { calculateMatchScore, getMatchScoreHex } from '@utils/matchScore';
 import { getApplicantStage, getApplicantTags, getApplicantTalentPools } from './bulkActionsApi';
 import { automationCenterService } from '@services/automationCenter';
+import { trackCandidateResumeView } from '@utils/resumeUnlocks';
 
 interface ApplicantDetailsModalProps {
   open: boolean;
@@ -89,6 +90,12 @@ export const ApplicantDetailsModal: React.FC<ApplicantDetailsModalProps> = ({
       setApplicant(application);
       setProfile(application.profiles || null);
       setStatus(application.status || 'applied');
+      try {
+        await applicationService.recordApplicationView(application.id, application.user_id, application.job_id);
+      } catch (error) {
+        console.error('Failed to record recruiter application view:', error);
+        toast.error('Application loaded, but its view could not be recorded.');
+      }
       if (recruiterId && candidateId) {
         const timeline = automationCenterService.getCandidateTimelineEvents(recruiterId, candidateId, applicantId);
         setAutomationTimeline(timeline);
@@ -176,11 +183,29 @@ export const ApplicantDetailsModal: React.FC<ApplicantDetailsModalProps> = ({
     }
   };
 
-  const downloadResume = () => {
-    if (resumeUrl) {
-      window.open(resumeUrl, '_blank');
-    } else {
+  const downloadResume = async () => {
+    if (!resumeUrl) {
       toast.error('Resume not available');
+      return;
+    }
+    const resumeWindow = window.open('', '_blank');
+    if (!resumeWindow) {
+      toast.error('Please allow pop-ups to open the resume');
+      return;
+    }
+    resumeWindow.opener = null;
+    try {
+      await trackCandidateResumeView({
+        candidateId: applicant?.user_id || candidateId || '',
+        jobId: applicant?.job_id || jobId || null,
+        applicationId: applicant?.id || applicantId || null,
+        source: 'application_details',
+      });
+      resumeWindow.location.href = resumeUrl;
+    } catch (error) {
+      resumeWindow.close();
+      console.error('Resume opened but its activity could not be recorded:', error);
+      toast.error('Could not record resume access. Please try again.');
     }
   };
 
@@ -704,7 +729,25 @@ export const ApplicantDetailsModal: React.FC<ApplicantDetailsModalProps> = ({
                     </Box>
                     <Box sx={{ border: '1px solid #D7E3EF', borderRadius: 2, overflow: 'hidden', bgcolor: '#FFFFFF', minHeight: 180, display: 'grid', placeItems: 'center' }}>
                       {contactUnlocked && resumeIsPdf ? (
-                        <Box component="iframe" src={String(resumeUrl)} title="Candidate resume preview" sx={{ width: '100%', height: 420, border: 0, display: 'block' }} />
+                        <Box
+                          component="iframe"
+                          src={String(resumeUrl)}
+                          title="Candidate resume preview"
+                          onLoad={() => {
+                            void trackCandidateResumeView({
+                              candidateId: applicant?.user_id || candidateId || '',
+                              jobId: applicant?.job_id || jobId || null,
+                              applicationId: applicant?.id || applicantId || null,
+                              source: 'application_details_preview',
+                            }).catch((error) => {
+                              console.error('Failed to record application resume preview access:', error);
+                              toast.error('Could not record resume preview activity.', {
+                                id: `application-resume-preview-event-${applicant?.id || applicantId}`,
+                              });
+                            });
+                          }}
+                          sx={{ width: '100%', height: 420, border: 0, display: 'block' }}
+                        />
                       ) : contactUnlocked ? (
                         <Box sx={{ textAlign: 'center', p: 2 }}>
                           <Typography variant="body2" sx={{ color: '#49627F', mb: 0.5 }}>Preview is available for PDF resumes.</Typography>

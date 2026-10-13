@@ -1,5 +1,5 @@
 import { supabase } from '@services/supabase';
-import { jobService, notificationService } from '@services/api';
+import { jobService } from '@services/api';
 import {
   calculateMatchScore as calculateWeightedMatchScore,
   normalizeSkills,
@@ -165,18 +165,13 @@ export async function inviteCandidateToApply(
   job: Job,
   score: number
 ): Promise<void> {
-  await notificationService.createNotification(
-    candidateId,
-    'job_match',
-    `You are a ${score}% match`,
-    `A recruiter invited you to apply for ${job.title} at ${job.company_name}.`,
-    {
-      jobId: job.id,
-      recruiterId,
-      matchScore: score,
-      source: 'ai_recommended_candidates',
-    }
-  );
+  if (!recruiterId) throw new Error('Recruiter session is required to invite a candidate.');
+  const { error } = await supabase.rpc('notify_candidate_of_job_invitation', {
+    p_candidate_id: candidateId,
+    p_job_id: job.id,
+    p_match_score: Math.round(score),
+  });
+  if (error) throw error;
 }
 
 async function getExcludedCandidateIds(jobId: string): Promise<Set<string>> {

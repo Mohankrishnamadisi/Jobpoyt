@@ -265,6 +265,23 @@ export interface Payment {
   createdAt: string;
 }
 
+export type RecruiterActivityNotificationEvent =
+  | 'profile_viewed'
+  | 'resume_viewed'
+  | 'application_viewed'
+  | 'application_status_changed';
+
+export interface NotificationData extends Record<string, unknown> {
+  eventType?: RecruiterActivityNotificationEvent;
+  category?: 'Profile Performance' | 'Application History' | string;
+  recruiterId?: string;
+  candidateId?: string;
+  jobId?: string | null;
+  applicationId?: string | null;
+  profileViewId?: string | null;
+  occurredAt?: string;
+}
+
 export interface Notification {
   id: string;
   userId: string;
@@ -273,7 +290,7 @@ export interface Notification {
   title: string;
   message: string;
   read: boolean;
-  data?: Record<string, unknown>;
+  data?: NotificationData;
   createdAt: string;
   created_at?: string;
   scheduled_for?: string | null; // ISO timestamp for delayed notifications

@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import { Search as SearchIcon, People as PeopleIcon } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 import { useDebounce } from '@hooks/index';
 import { useTalentPool } from '@hooks/useTalentPool';
 import { calculateSkillMatchScore, normalizeSkills } from '@utils/matchScore';
@@ -114,11 +115,16 @@ export const TalentPool: React.FC<TalentPoolProps> = ({ recruiterId, onChatClick
   };
 
   const handleViewCandidate = async (entry: TalentPoolCandidate) => {
-    await trackCandidateProfileView({
-      recruiterId,
-      candidateId: entry.candidate_id,
-      source: 'talent_pool',
-    });
+    try {
+      await trackCandidateProfileView({
+        recruiterId,
+        candidateId: entry.candidate_id,
+        source: 'talent_pool',
+      });
+    } catch (error) {
+      console.error('Failed to record talent pool candidate profile view:', error);
+      toast.error('Could not record profile activity.');
+    }
     setViewTarget(entry);
   };
 

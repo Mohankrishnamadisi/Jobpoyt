@@ -43,7 +43,7 @@ import { motion } from 'framer-motion';
 import { candidateService, savedService } from '@services/api';
 import { AddToPoolButton } from './talentPool/AddToPoolButton';
 import { ResumeUnlockContact } from './ResumeUnlockContact';
-import { getResumeUnlockMap, trackCandidateProfileView } from '@utils/resumeUnlocks';
+import { getResumeUnlockMap, trackCandidateProfileView, trackCandidateResumeView } from '@utils/resumeUnlocks';
 import { recruiterSettingsService } from '@services/recruiterSettings';
 import toast from 'react-hot-toast';
 
@@ -221,20 +221,31 @@ export const CandidateSearch: React.FC<CandidateSearchProps> = ({ recruiterId, o
     toast.success('Candidate blocked');
   };
 
-  const profileAvatarUrl =
-    selectedCandidate?.avatar_url ||
-    selectedCandidate?.profile_image_url ||
-    '';
   const resumeUrl = selectedCandidate?.resume_url || '';
   const isProfileUnlocked = Boolean(selectedCandidate && unlockedCandidates[selectedCandidate.id]);
 
-  const openResumeInNewTab = () => {
+  const openResumeInNewTab = async () => {
     if (!resumeUrl) {
       toast.error('Resume not available');
       return;
     }
-    const resumeWindow = window.open(resumeUrl, '_blank', 'noopener,noreferrer');
-    if (!resumeWindow) toast.error('Please allow pop-ups to open the resume');
+    const resumeWindow = window.open('', '_blank');
+    if (!resumeWindow) {
+      toast.error('Please allow pop-ups to open the resume');
+      return;
+    }
+    resumeWindow.opener = null;
+    try {
+      await trackCandidateResumeView({
+        candidateId: selectedCandidate!.id,
+        source: 'candidate_search',
+      });
+      resumeWindow.location.href = resumeUrl;
+    } catch (error) {
+      resumeWindow.close();
+      console.error('Resume opened but its activity could not be recorded:', error);
+      toast.error('Could not record resume access. Please try again.');
+    }
   };
 
   return (
@@ -660,6 +671,17 @@ export const CandidateSearch: React.FC<CandidateSearchProps> = ({ recruiterId, o
                               ) : <iframe
                               title="Candidate Resume"
                               src={resumeUrl}
+                              onLoad={() => {
+                                void trackCandidateResumeView({
+                                  candidateId: selectedCandidate.id,
+                                  source: 'candidate_search_preview',
+                                }).catch((error) => {
+                                  console.error('Failed to record candidate resume preview access:', error);
+                                  toast.error('Could not record resume preview activity.', {
+                                    id: `resume-preview-event-${selectedCandidate.id}`,
+                                  });
+                                });
+                              }}
                               onError={() => setResumePreviewFailed(true)}
                               style={{ width: '100%', height: '100%', border: 'none' }}
                             />}

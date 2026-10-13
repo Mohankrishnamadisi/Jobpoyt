@@ -109,20 +109,43 @@ export async function trackCandidateProfileView(payload: {
   source?: string | null;
 }): Promise<void> {
   const { recruiterId, candidateId, jobId, source } = payload;
-  if (!recruiterId || !candidateId) return;
+  if (!recruiterId || !candidateId) {
+    throw new Error('Recruiter and candidate are required to track a profile view.');
+  }
 
-  const { error } = await supabase
-    .from('profile_views')
-    .insert({
-      recruiter_id: recruiterId,
-      candidate_id: candidateId,
-      job_id: jobId || null,
-      source: source || null,
-      viewed_at: new Date().toISOString(),
-    });
+  const { error } = await supabase.rpc('record_recruiter_candidate_event', {
+    p_event_type: 'profile_viewed',
+    p_candidate_id: candidateId,
+    p_job_id: jobId || null,
+    p_application_id: null,
+    p_source: source || null,
+  });
 
   if (error) {
     console.error('Failed to track candidate profile view:', error);
+    throw error;
+  }
+}
+
+export async function trackCandidateResumeView(payload: {
+  candidateId: string;
+  jobId?: string | null;
+  applicationId?: string | null;
+  source?: string | null;
+}): Promise<void> {
+  if (!payload.candidateId) throw new Error('Candidate is required to track resume access.');
+
+  const { error } = await supabase.rpc('record_recruiter_candidate_event', {
+    p_event_type: 'resume_viewed',
+    p_candidate_id: payload.candidateId,
+    p_job_id: payload.jobId || null,
+    p_application_id: payload.applicationId || null,
+    p_source: payload.source || null,
+  });
+
+  if (error) {
+    console.error('Failed to track candidate resume access:', error);
+    throw error;
   }
 }
 

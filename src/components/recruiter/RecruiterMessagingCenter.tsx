@@ -68,6 +68,7 @@ import { messagingService, type Conversation, type Message } from '@services/mes
 import { supabase } from '@services/supabase';
 import { recruiterSettingsService } from '@services/recruiterSettings';
 import { themeColors } from '@styles/recruiterTheme';
+import { trackCandidateResumeView } from '@utils/resumeUnlocks';
 
 export interface PendingRecruiterChatTarget {
   candidateId: string;
@@ -845,6 +846,32 @@ export const RecruiterMessagingCenter: React.FC<RecruiterMessagingCenterProps> =
       setCandidateContext(resolvedContext);
     } catch (error) {
       console.error('Failed to load candidate context', error);
+    }
+  };
+
+  const openCandidateResume = async () => {
+    if (!candidateContext?.resumeUrl) {
+      toast.error('Resume not available');
+      return;
+    }
+    const resumeWindow = window.open('', '_blank');
+    if (!resumeWindow) {
+      toast.error('Please allow pop-ups to open the resume');
+      return;
+    }
+    resumeWindow.opener = null;
+    try {
+      await trackCandidateResumeView({
+        candidateId: candidateContext.candidateId,
+        jobId: candidateContext.jobId,
+        applicationId: candidateContext.applicationId,
+        source: 'recruiter_messaging',
+      });
+      resumeWindow.location.href = candidateContext.resumeUrl;
+    } catch (error) {
+      resumeWindow.close();
+      console.error('Failed to record resume access from recruiter messaging:', error);
+      toast.error('Could not record resume access. Please try again.');
     }
   };
 
@@ -2151,7 +2178,7 @@ export const RecruiterMessagingCenter: React.FC<RecruiterMessagingCenterProps> =
                   </Button>
                   <Button size="small" variant="outlined"
                     sx={{ borderRadius: 1.25, textTransform: 'none', fontSize: '0.6rem', whiteSpace: 'nowrap', flexShrink: 1, minWidth: 0, height: 27, px: 0.65 }}
-                    onClick={() => { if (!candidateContext?.resumeUrl) { toast.error('Resume not available'); return; } window.open(candidateContext.resumeUrl, '_blank', 'noopener,noreferrer'); }}>
+                    onClick={() => { void openCandidateResume(); }}>
                     Resume
                   </Button>
                   <Button size="small" variant="outlined" startIcon={<EventIcon sx={{ fontSize: '0.85rem !important' }} />}

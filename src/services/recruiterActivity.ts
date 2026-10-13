@@ -3,7 +3,7 @@ export type TrendRange = 'weekly' | 'monthly' | 'quarterly';
 
 export type RecruiterActivityType =
   | 'profile_viewed'
-  | 'resume_downloaded'
+  | 'resume_unlocked'
   | 'application_shortlisted'
   | 'recruiter_message'
   | 'interview_invite'
@@ -73,7 +73,7 @@ export interface VisibilityBreakdown {
 }
 
 export interface WeeklyComparisonRow {
-  label: 'Profile Views' | 'Resume Downloads' | 'Messages';
+  label: 'Profile Views' | 'Resume Unlocks' | 'Messages';
   thisWeek: number;
   lastWeek: number;
   growth: number | null;
@@ -171,7 +171,7 @@ const calculateVisibilityBreakdown = (ctx: RecruiterActivityContext): Visibility
 
 const buildOverview = (events: RecruiterActivityEvent[]): RecruiterActivityOverview => ({
   profileViews: events.filter((event) => event.type === 'profile_viewed').length,
-  resumeDownloads: events.filter((event) => event.type === 'resume_downloaded').length,
+  resumeDownloads: events.filter((event) => event.type === 'resume_unlocked').length,
   recruiterMessages: events.filter((event) => event.type === 'recruiter_message').length,
   interviewInvitations: events.filter((event) => event.type === 'interview_invite').length,
   searchAppearances: null,
@@ -188,7 +188,7 @@ const buildWeeklyComparison = (events: RecruiterActivityEvent[]): WeeklyComparis
   const week = 7 * 24 * 60 * 60 * 1000;
   const rows: Array<{ label: WeeklyComparisonRow['label']; type: RecruiterActivityType }> = [
     { label: 'Profile Views', type: 'profile_viewed' },
-    { label: 'Resume Downloads', type: 'resume_downloaded' },
+    { label: 'Resume Unlocks', type: 'resume_unlocked' },
     { label: 'Messages', type: 'recruiter_message' },
   ];
   return rows.map(({ label, type }) => {
@@ -210,7 +210,7 @@ const buildSuggestions = (ctx: RecruiterActivityContext): string[] => {
 };
 
 const buildNotifications = (timeline: RecruiterActivityEvent[]): RecruiterNotificationItem[] => timeline
-  .filter((event) => ['profile_viewed', 'resume_downloaded', 'interview_invite', 'recruiter_message', 'application_shortlisted'].includes(event.type))
+  .filter((event) => ['profile_viewed', 'resume_unlocked', 'interview_invite', 'recruiter_message', 'application_shortlisted'].includes(event.type))
   .slice(0, 5)
   .map((event) => ({ id: `activity-${event.id}`, text: event.title, occurredAt: event.occurredAt }));
 
