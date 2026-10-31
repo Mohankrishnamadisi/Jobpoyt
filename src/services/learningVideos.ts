@@ -45,7 +45,17 @@ export class LearningVideosError extends Error {
 }
 
 const toList = (value: unknown): string[] => {
-  if (Array.isArray(value)) return value.map(String).map((item) => item.trim()).filter(Boolean);
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (typeof item === 'string' || typeof item === 'number') return String(item);
+        if (typeof item !== 'object' || item === null) return '';
+        const skill = item as Record<string, unknown>;
+        return String(skill.name || skill.skill || skill.label || skill.value || '');
+      })
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
   if (typeof value === 'string') return value.split(/[,|;\/\n]/).map((item) => item.trim()).filter(Boolean);
   return [];
 };
@@ -53,11 +63,19 @@ const toList = (value: unknown): string[] => {
 export const learningVideosService = {
   async getProfile(userId: string): Promise<LearningProfile> {
     const profile = await userService.getProfile(userId);
+    const profileFields = (profile || {}) as Record<string, unknown>;
+    const skills = [
+      ...toList(profileFields.skills),
+      ...toList(profileFields.technologies),
+      ...toList(profileFields.key_skills),
+      ...toList(profileFields.technical_skills),
+    ];
+    const preferredTitles = toList(profileFields.preferred_job_titles);
     return {
       name: String(profile?.full_name || profile?.fullName || profile?.name || 'there'),
-      skills: toList(profile?.skills),
-      technologies: toList(profile?.technologies),
-      role: String(profile?.current_designation || profile?.currentDesignation || profile?.preferred_job_titles?.[0] || ''),
+      skills: Array.from(new Set(skills)),
+      technologies: toList(profileFields.technologies),
+      role: String(profile?.current_designation || profile?.currentDesignation || preferredTitles[0] || ''),
       experience: String(profile?.experience || profile?.experience_level || (profile?.is_fresher ? 'fresher' : '')),
     };
   },

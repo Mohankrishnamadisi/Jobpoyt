@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Box, Button, CircularProgress, Container, IconButton, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { Bookmark, BookmarkBorder, DownloadDone, DownloadForOffline, PlayCircleOutline, PlaylistAdd, Share } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -44,13 +44,20 @@ const buildTopics = (profile: LearningProfile) => {
   const topics = skills.flatMap((skill) => [`${skill} tutorial`, `${skill} interview questions`]);
   if (profile.role) topics.push(`${profile.role} career skills`);
   if (profile.experience) topics.push(`${profile.experience} interview preparation`);
+  if (topics.length === 0) topics.push('Career development tutorial');
   return unique(topics).slice(0, 10);
 };
 
+const buildProfileSearchQueries = (profile: LearningProfile) => {
+  const skillQueries = unique([...profile.skills, ...profile.technologies])
+    .slice(0, 3)
+    .map((skill) => `${skill} tutorial`);
+  const roleQuery = profile.role ? [`${profile.role} tutorial`] : [];
+  return unique([...skillQueries, ...roleQuery, 'career development tutorial']);
+};
+
 const buildSearchKey = (profile: LearningProfile) => {
-  const skills = unique([...profile.technologies, ...profile.skills]).slice(0, 6);
-  const profileTerms = unique([...skills, profile.role, profile.experience]);
-  return profileTerms.length ? `${profileTerms.join(' ')} tutorial` : '';
+  return buildProfileSearchQueries(profile)[0];
 };
 
 const formatDate = (date?: string | null) => {
@@ -96,6 +103,8 @@ export const LearningPage: React.FC = () => {
   const [savedNotesPortalTarget, setSavedNotesPortalTarget] = useState<HTMLElement | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [videoRetryCount, setVideoRetryCount] = useState(0);
+  const initialProfileSearch = useRef(false);
 
   const topics = useMemo(() => (profile ? buildTopics(profile) : []), [profile]);
 
@@ -183,6 +192,7 @@ export const LearningPage: React.FC = () => {
         if (!active) return;
         setProfile(nextProfile);
         setActiveTopic(buildSearchKey(nextProfile));
+        initialProfileSearch.current = true;
       })
       .catch(() => {
         if (active) setError('We could not read your profile yet. Please try again.');
@@ -199,14 +209,29 @@ export const LearningPage: React.FC = () => {
   useEffect(() => {
     if (!effectiveQuery) return;
     let active = true;
+    const shouldTryProfileFallbacks = initialProfileSearch.current;
+    initialProfileSearch.current = false;
     setVideos([]);
     setSelectedVideo(null);
     setNoteTitle('');
     setNoteContent('');
     setLoading(true);
     setError('');
-    learningVideosService
-      .getVideos(effectiveQuery)
+    const loadVideos = async () => {
+      let nextVideos = await learningVideosService.getVideos(effectiveQuery);
+      if (nextVideos.length || !shouldTryProfileFallbacks || !profile) return nextVideos;
+
+      const fallbackQueries = buildProfileSearchQueries(profile)
+        .filter((query) => query !== effectiveQuery)
+        .slice(0, 4);
+      for (const query of fallbackQueries) {
+        nextVideos = await learningVideosService.getVideos(query);
+        if (nextVideos.length) break;
+      }
+      return nextVideos;
+    };
+
+    loadVideos()
       .then((nextVideos) => {
         if (!active) return;
         setVideos(nextVideos);
@@ -242,7 +267,7 @@ export const LearningPage: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [effectiveQuery]);
+  }, [effectiveQuery, profile, videoRetryCount]);
 
   // History and daily minutes are driven by real playback, not by selection
   const handlePlayStart = useCallback(
@@ -651,7 +676,7 @@ export const LearningPage: React.FC = () => {
             severity="error"
             sx={{ mb: 2.5 }}
             action={
-              <Button color="inherit" size="small" onClick={() => setActiveTopic((topic) => `${topic} `)}>
+              <Button color="inherit" size="small" onClick={() => setVideoRetryCount((count) => count + 1)}>
                 Retry
               </Button>
             }
