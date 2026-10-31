@@ -850,8 +850,8 @@ export const PremiumDashboard: React.FC = () => {
       >
         <Card
           sx={{
-            mb: 3,
-            borderRadius: 6,
+            mb: 2,
+            borderRadius: { xs: 3, md: 4 },
             position: 'relative',
             overflow: 'hidden',
             border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(148, 163, 184, 0.32)',
@@ -866,13 +866,14 @@ export const PremiumDashboard: React.FC = () => {
             <div className="premium-hero-stars3" />
           </Box>
 
-          <CardContent sx={{ p: { xs: 2.5, md: 4 }, position: 'relative', zIndex: 1 }}>
-            <Grid container spacing={3} alignItems="center">
+          <CardContent sx={{ p: { xs: 1.8, sm: 2.2, md: 2.5 }, position: 'relative', zIndex: 1, '&:last-child': { pb: { xs: 1.8, sm: 2.2, md: 2.5 } } }}>
+            <Grid container spacing={{ xs: 1.5, md: 2 }} alignItems="center">
               <Grid item xs={12} md={8}>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: 1.2 }}>
                   <Chip
                     icon={<StarIcon />}
                     label="Premium Candidate"
+                    size="small"
                     sx={{
                       fontWeight: 700,
                       bgcolor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(255, 248, 230, 0.2)',
@@ -883,6 +884,7 @@ export const PremiumDashboard: React.FC = () => {
                   <Chip
                     icon={<TrendingUpIcon />}
                     label={`Profile strength ${profileStrength}%`}
+                    size="small"
                     sx={{
                       fontWeight: 700,
                       bgcolor: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(255, 248, 230, 0.2)',
@@ -892,19 +894,49 @@ export const PremiumDashboard: React.FC = () => {
                   />
                 </Box>
 
-                <Box sx={{ mb: 1.2 }}>
-                  <Typography sx={{ color: '#F7D774', fontSize: { xs: 9, md: 10 }, fontWeight: 800, letterSpacing: 1.8, textTransform: 'uppercase', mb: 0.5 }}>
+                <Box sx={{ mb: 0.8 }}>
+                  <Typography sx={{ color: '#F7D774', fontSize: { xs: 8, md: 9 }, fontWeight: 800, letterSpacing: 1.6, textTransform: 'uppercase', mb: 0.35 }}>
                     Welcome back, {user?.name || 'Candidate'}
                   </Typography>
-                  <Typography variant="h3" sx={{ fontWeight: 900, letterSpacing: 0, lineHeight: 1.08, color: '#FFFFFF', fontSize: { xs: 26, md: 36 } }}>
-                    Premium <Box component="span" sx={{ color: '#F7D774' }}>career</Box> command center
+                  <Typography
+                    variant="h3"
+                    sx={{
+                      maxWidth: 650,
+                      fontWeight: 850,
+                      letterSpacing: '-0.025em',
+                      lineHeight: 1.12,
+                      color: '#FFFFFF',
+                      fontSize: { xs: 22, sm: 26, md: 30 },
+                    }}
+                  >
+                    <Box
+                      component="span"
+                      sx={{
+                        background: 'linear-gradient(90deg, #FFFFFF, #F7D774, #38BDF8, #A78BFA, #FFFFFF)',
+                        backgroundSize: '300% 100%',
+                        backgroundClip: 'text',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        animation: 'premiumCareerGradient 6s ease-in-out infinite',
+                        '@keyframes premiumCareerGradient': {
+                          '0%, 100%': { backgroundPosition: '0% 50%' },
+                          '50%': { backgroundPosition: '100% 50%' },
+                        },
+                        '@media (prefers-reduced-motion: reduce)': {
+                          animation: 'none',
+                          backgroundPosition: '50% 50%',
+                        },
+                      }}
+                    >
+                      Your next career move starts here
+                    </Box>
                   </Typography>
                 </Box>
-                <Typography variant="h6" sx={{ color: '#FFFFFF', mb: 2.4, maxWidth: 760 }}>
-                  Built for high-intent job hunting with exclusive insights, remote pipelines, and premium tools.
+                <Typography sx={{ color: 'rgba(255,255,255,0.84)', mb: 1.6, maxWidth: 650, fontSize: { xs: '0.82rem', md: '0.92rem' }, lineHeight: 1.5, fontWeight: 400 }}>
+                  Find roles matched to your strengths, explore remote opportunities, and keep your job search moving.
                 </Typography>
 
-                <Box className="premium-hero-actions" sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.2 }}>
+                <Box className="premium-hero-actions" sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8 }}>
                   <button className="sparkle-button premium-action-matched" style={{ transform: 'scale(0.85)' }} onClick={() => navigate('/dashboard/recommended-jobs?minMatch=50')}>
                     <div className="dots-border"></div>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="sparkle-icon">
@@ -922,7 +954,7 @@ export const PremiumDashboard: React.FC = () => {
                         <div className="space-circle"></div>
                       </div>
                     </div>
-                    <Button variant="contained" onClick={() => navigate('/dashboard/remote-jobs')} sx={{ position: 'relative', zIndex: 2, border: 'none', bgcolor: 'transparent', color: '#FFFFFF', fontWeight: 700, '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' } }}>
+                    <Button size="small" variant="contained" onClick={() => navigate('/dashboard/remote-jobs')} sx={{ position: 'relative', zIndex: 2, border: 'none', bgcolor: 'transparent', color: '#FFFFFF', fontWeight: 700, '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' } }}>
                       Remote Hub
                     </Button>
                   </Box>
@@ -934,7 +966,7 @@ export const PremiumDashboard: React.FC = () => {
                         <div className="space-circle"></div>
                       </div>
                     </div>
-                    <Button variant="contained" onClick={() => navigate(ROUTES.DASHBOARD_PROFILE)} sx={{ position: 'relative', zIndex: 2, border: 'none', bgcolor: 'transparent', color: '#FFFFFF', fontWeight: 700, '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' } }}>
+                    <Button size="small" variant="contained" onClick={() => navigate(ROUTES.DASHBOARD_PROFILE)} sx={{ position: 'relative', zIndex: 2, border: 'none', bgcolor: 'transparent', color: '#FFFFFF', fontWeight: 700, '&:hover': { bgcolor: 'rgba(255,255,255,0.06)' } }}>
                       Edit Profile
                     </Button>
                   </Box>
@@ -951,11 +983,11 @@ export const PremiumDashboard: React.FC = () => {
                     boxShadow: isDarkMode ? '0 8px 24px rgba(0, 0, 0, 0.45)' : 'inset 0 1px 0 rgba(148,163,184,0.1), 0 8px 24px rgba(2,6,23,0.5)',
                   }}
                 >
-                  <CardContent>
-                    <Typography variant="h6" sx={{ fontWeight: 700, color: '#E2E8F0', mb: 2 }}>
-                      Premium communication
+                  <CardContent sx={{ p: { xs: 1.5, md: 1.8 }, '&:last-child': { pb: { xs: 1.5, md: 1.8 } } }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#E2E8F0', mb: 1 }}>
+                      Career snapshot
                     </Typography>
-                    <Box sx={{ display: 'grid', gap: 1.2, mb: 2.2 }}>
+                    <Box sx={{ display: 'grid', gap: 0.7, mb: 1.2 }}>
                       {[
                         { label: 'Applications', value: applicationCount },
                         { label: 'Saved Jobs', value: savedJobsCount },
@@ -963,18 +995,18 @@ export const PremiumDashboard: React.FC = () => {
                         { label: 'Profile Views', value: profileViewCount },
                       ].map((item) => (
                         <Box key={item.label} sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography sx={{ color: '#E5E7EB', fontWeight: 600 }}>{item.label}</Typography>
-                          <Typography sx={{ color: '#FFFFFF', fontWeight: 800 }}>{item.value}</Typography>
+                          <Typography sx={{ color: '#E5E7EB', fontWeight: 600, fontSize: '0.85rem' }}>{item.label}</Typography>
+                          <Typography sx={{ color: '#FFFFFF', fontWeight: 800, fontSize: '0.85rem' }}>{item.value}</Typography>
                         </Box>
                       ))}
                     </Box>
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                      <IconButton onClick={() => navigate(ROUTES.MESSAGING)} sx={{ bgcolor: 'rgba(255,255,255,0.08)', '&:hover': { bgcolor: 'rgba(255,255,255,0.14)' } }}>
+                      <IconButton size="small" onClick={() => navigate(ROUTES.MESSAGING)} sx={{ bgcolor: 'rgba(255,255,255,0.08)', '&:hover': { bgcolor: 'rgba(255,255,255,0.14)' } }}>
                         <Badge badgeContent={unreadMessagesCount} color="warning">
                           <ChatIcon sx={{ color: '#3B82F6' }} />
                         </Badge>
                       </IconButton>
-                      <IconButton onClick={() => navigate(ROUTES.DASHBOARD_NOTIFICATIONS)} sx={{ bgcolor: 'rgba(255,255,255,0.08)', '&:hover': { bgcolor: 'rgba(255,255,255,0.14)' } }}>
+                      <IconButton size="small" onClick={() => navigate(ROUTES.DASHBOARD_NOTIFICATIONS)} sx={{ bgcolor: 'rgba(255,255,255,0.08)', '&:hover': { bgcolor: 'rgba(255,255,255,0.14)' } }}>
                         <Badge badgeContent={notificationsCount} color="primary">
                           <NotificationsIcon sx={{ color: '#3B82F6' }} />
                         </Badge>
@@ -982,6 +1014,7 @@ export const PremiumDashboard: React.FC = () => {
                       <IconButton
                         onClick={() => setQuickNoteDialogOpen(true)}
                         aria-label="Open quick note"
+                        size="small"
                         sx={{ bgcolor: 'rgba(255,255,255,0.08)', '&:hover': { bgcolor: 'rgba(255,255,255,0.14)' } }}
                       >
                         <StickyNote2Icon sx={{ color: '#F59E0B' }} />
