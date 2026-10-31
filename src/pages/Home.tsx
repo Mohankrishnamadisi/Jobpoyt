@@ -260,7 +260,20 @@ export const Home: React.FC = () => {
                 fontSize: { xs: '1.5rem', sm: '2.1rem', md: '2.55rem' },
                 fontWeight: 800,
                 mb: { xs: 2, md: 2.2 },
-                color: '#102A43',
+                background: 'linear-gradient(90deg, #102A43 0%, #159BEF 28%, #6D5CE8 52%, #0EA5E9 76%, #102A43 100%)',
+                backgroundSize: '300% 100%',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                animation: 'homeTaglineGradient 7s ease-in-out infinite',
+                '@keyframes homeTaglineGradient': {
+                  '0%, 100%': { backgroundPosition: '0% 50%' },
+                  '50%': { backgroundPosition: '100% 50%' },
+                },
+                '@media (prefers-reduced-motion: reduce)': {
+                  animation: 'none',
+                  backgroundPosition: '50% 50%',
+                },
                 letterSpacing: 0,
                 lineHeight: 1.08,
                 cursor: 'default',
@@ -269,7 +282,7 @@ export const Home: React.FC = () => {
               <Box component="span" sx={{ display: 'block', whiteSpace: { xs: 'nowrap', md: 'nowrap' } }}>
                 Your Skills. Real Opportunities.
               </Box>
-              <Box component="span" sx={{ display: 'block', whiteSpace: { xs: 'nowrap', md: 'nowrap' }, background: 'linear-gradient(90deg, #159BEF 0%, #2563EB 52%, #8B5CF6 100%)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <Box component="span" sx={{ display: 'block', whiteSpace: { xs: 'nowrap', md: 'nowrap' } }}>
                 A Better Tomorrow.
               </Box>
             </MotionTypography>
