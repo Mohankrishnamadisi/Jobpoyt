@@ -3,9 +3,9 @@
 @media (max-width: 600px) {
   /* Compact the Jobs page "All Filters" panel on mobile */
   .find-jobs-filters .filter-section-toggle {
-    min-height: 40px !important;
-    padding: 4px 10px !important;
-    border-radius: 8px !important;
+    min-height: 36px !important;
+    padding: 3px 9px !important;
+    border-radius: 4px !important;
   }
 
   .find-jobs-filters .filter-section-toggle .MuiTypography-subtitle1 {
@@ -13,13 +13,13 @@
   }
 
   .find-jobs-filters .filter-section-toggle .MuiChip-root {
-    min-width: 24px !important;
-    height: 19px !important;
+    min-width: 22px !important;
+    height: 18px !important;
     font-size: 0.65rem !important;
   }
 
   .find-jobs-filters .filter-section-toggle .MuiIconButton-root {
-    padding: 4px !important;
+    padding: 3px !important;
   }
 
   .find-jobs-filters .filter-section-toggle .MuiIconButton-root svg {
